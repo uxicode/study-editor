@@ -1,0 +1,447 @@
+// 다크모드 전역 스타일
+
+html.dark,
+.dark {
+  // 스크롤바 스타일
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #1e293b;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #475569;
+    border-radius: 5px;
+
+    &:hover {
+      background: #64748b;
+    }
+  }
+
+  // 선택 영역
+  ::selection {
+    background: #3b82f6;
+    color: white;
+  }
+
+  // 입력 필드
+  input,
+  textarea,
+  select {
+    background: #1e293b;
+    color: #e2e8f0;
+    border-color: #334155;
+
+    &:focus {
+      border-color: #3b82f6;
+      outline: none;
+    }
+  }
+
+  // 버튼
+  button {
+    &.btn-secondary {
+      background: #334155;
+      color: #e2e8f0;
+      border-color: #475569;
+
+      &:hover:not(:disabled) {
+        background: #475569;
+      }
+    }
+  }
+
+  // 패널
+  .panel {
+    background: #1e293b;
+    border-color: #334155;
+  }
+
+  // 링크
+  a {
+    color: #60a5fa;
+
+    &:hover {
+      color: #93c5fd;
+    }
+  }
+
+  // 코드
+  code:not([class]) {
+    background: #0f172a;
+    color: #e2e8f0;
+    border: 1px solid #334155;
+  }
+
+  pre {
+    background: #0f172a;
+    border: 1px solid #334155;
+  }
+}
+
+// 컴포넌트별 다크모드 스타일
+html.dark {
+  // App.vue
+  .app-container {
+    background-color: #0f172a;
+  }
+
+  .app-header {
+    background: #1f2937;
+    border-bottom-color: #374151;
+
+    h1 {
+      color: white;
+    }
+  }
+
+  .info-button {
+    border-color: #374151;
+
+    &:hover {
+      background: #374151;
+    }
+  }
+
+  .btn-secondary {
+    background: #334155;
+    color: #e2e8f0;
+    border: 1px solid #475569;
+
+    &:hover:not(:disabled) {
+      background: #475569;
+    }
+  }
+
+  // LearningEnvironment
+  .learning-environment {
+    background: transparent;
+  }
+
+  .action-bar {
+    background: #1e293b;
+    border-color: #334155;
+
+    .btn-primary {
+      background: #3b82f6;
+      color: white;
+
+      &:hover:not(:disabled) {
+        background: #2563eb;
+      }
+
+      &:disabled {
+        background: #374151;
+        color: #6b7280;
+        cursor: not-allowed;
+      }
+    }
+
+    .btn-secondary {
+      background: #334155;
+      color: #e2e8f0;
+      border: 1px solid #475569;
+
+      &:hover:not(:disabled) {
+        background: #475569;
+      }
+
+      &:disabled {
+        background: #1e293b;
+        color: #6b7280;
+        cursor: not-allowed;
+      }
+    }
+  }
+
+  // ContentPanel
+  .content-panel-container {
+    background: #1e293b;
+    color: #e2e8f0;
+
+    .step-badge {
+      background: #1e3a8a;
+      color: #93c5fd;
+    }
+
+    .step-title {
+      color: #f9fafb;
+    }
+
+    .section-title {
+      color: #d1d5db;
+    }
+
+    .code-block {
+      background: #0f172a;
+      border-color: #334155;
+      color: #e2e8f0;
+    }
+
+    .objectives-list li {
+      color: #d1d5db;
+
+      &::before {
+        color: #60a5fa;
+      }
+    }
+
+    .progress-text {
+      color: #9ca3af;
+    }
+
+    .progress-bar-mini {
+      background: #374151;
+    }
+
+    .progress-fill {
+      background: linear-gradient(90deg, #60a5fa, #3b82f6);
+    }
+
+    .btn-hint {
+      background: #334155;
+      color: #e2e8f0;
+      border-color: #475569;
+
+      &:hover {
+        background: #475569;
+        border-color: #60a5fa;
+      }
+    }
+  }
+
+  // FileExplorer
+  .file-explorer {
+    background: #0f172a;
+    border-right-color: #1e293b;
+
+    .explorer-header {
+      background: #1e293b;
+      border-bottom-color: #334155;
+
+      .toggle-button:hover {
+        background: #334155;
+      }
+
+      .header-title {
+        color: #e2e8f0;
+      }
+    }
+
+    .file-item {
+      &:hover {
+        background: #1e293b;
+      }
+
+      &.active {
+        background: #334155;
+
+        &::before {
+          background: #3b82f6;
+        }
+      }
+    }
+
+    .readonly-badge {
+      background: #475569;
+      color: #94a3b8;
+    }
+  }
+
+  // CodeEditor
+  .tab-bar {
+    background: #1e293b;
+    border-bottom-color: #334155;
+
+    .file-tab {
+      background: #1e293b;
+      border-right-color: #0f172a;
+
+      &:hover {
+        background: #334155;
+        color: #e2e8f0;
+      }
+
+      &.active {
+        background: #0f172a;
+        color: #ffffff;
+        border-bottom-color: #3b82f6;
+      }
+    }
+  }
+
+  .current-file-header {
+    background: #1e293b;
+    border-bottom-color: #334155;
+
+    .file-name {
+      color: #e2e8f0;
+    }
+
+    .readonly-indicator {
+      background: #475569;
+      color: #94a3b8;
+    }
+  }
+
+  // ConsolePanel
+  .console-panel-container {
+    background: #0f172a;
+
+    .console-header {
+      background: #1e293b;
+      border-bottom-color: #334155;
+
+      .console-title {
+        color: #e2e8f0;
+      }
+    }
+
+    .console-tabs {
+      background: #1e293b;
+      border-bottom-color: #334155;
+    }
+
+    .console-tab {
+      color: #9ca3af;
+
+      &:hover {
+        color: #d1d5db;
+      }
+
+      &.active {
+        color: #f9fafb;
+        border-bottom-color: #3b82f6;
+      }
+    }
+
+    .detail-item {
+      background: rgba(16, 185, 129, 0.2);
+      color: #6ee7b7;
+    }
+  }
+
+  // HintModal
+  .modal-overlay {
+    background: rgba(0, 0, 0, 0.8);
+  }
+
+  .modal-content {
+    background: #1e293b;
+    border-color: #334155;
+
+    .modal-header {
+      border-bottom-color: #334155;
+
+      h3 {
+        color: #f9fafb;
+      }
+    }
+
+    .modal-body {
+      color: #e2e8f0;
+    }
+
+    .close-button:hover {
+      background: #334155;
+    }
+  }
+
+  // InfoModal
+  .info-modal-content {
+    background: #1e293b;
+    border-color: #334155;
+
+    .info-header {
+      border-bottom-color: #334155;
+
+      h3 {
+        color: #f9fafb;
+      }
+    }
+
+    .info-body {
+      color: #e2e8f0;
+
+      .info-section {
+        background: #0f172a;
+        border-color: #334155;
+
+        h4 {
+          color: #93c5fd;
+        }
+
+        .step-item {
+          background: #1e293b;
+          border-left-color: #3b82f6;
+        }
+      }
+
+      code {
+        background: #0f172a;
+        color: #60a5fa;
+        border-color: #334155;
+      }
+    }
+  }
+
+  // CongratulationsModal
+  .congrats-modal {
+    background: #1e293b;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+
+    .emblem-container {
+      background: linear-gradient(180deg, #78350f 0%, transparent 100%);
+    }
+
+    .congrats-title {
+      color: #f9fafb;
+    }
+
+    .congrats-message {
+      color: #9ca3af;
+    }
+
+    .from-level {
+      background: #374151;
+      border-color: #4b5563;
+
+      .level-label {
+        color: #9ca3af;
+      }
+
+      .level-number {
+        color: #f9fafb;
+      }
+    }
+
+    .arrow {
+      color: #60a5fa;
+    }
+
+    .stat-item {
+      background: #0f172a;
+      border-color: #334155;
+
+      .stat-label {
+        color: #9ca3af;
+      }
+
+      .stat-value {
+        color: #f9fafb;
+      }
+    }
+
+    .close-button {
+      color: #9ca3af;
+
+      &:hover {
+        background: #374151;
+        color: #f9fafb;
+      }
+    }
+  }
+}
