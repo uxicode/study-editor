@@ -110,6 +110,26 @@ watch(() => props.activeFile, (newFile) => {
   }
 })
 
+// files prop 변경 감지 - 외부에서 파일 내용이 변경되었을 때 반영
+watch(() => props.files, (newFiles) => {
+  // 현재 활성 파일의 내용이 변경되었는지 확인
+  if (props.activeFile && editor && currentModel) {
+    const file = newFiles.find(f => f.name === props.activeFile)
+    if (file) {
+      const currentContent = editor.getValue()
+      // 외부에서 변경되었고, 에디터 내부 변경이 아닌 경우에만 업데이트
+      if (file.content !== currentContent && !isUpdatingFromEditor) {
+        // 에디터 내용 직접 업데이트 (모델 재생성 없이)
+        const position = editor.getPosition() // 커서 위치 저장
+        editor.setValue(file.content)
+        if (position) {
+          editor.setPosition(position) // 커서 위치 복원
+        }
+      }
+    }
+  }
+}, { deep: true })
+
 // props.files watch 제거 - 에디터 내부 변경 시 무한 루프 방지
 // activeFile이 변경될 때만 파일을 로드하도록 함
 

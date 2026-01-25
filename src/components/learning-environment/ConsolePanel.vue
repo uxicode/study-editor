@@ -100,10 +100,26 @@
 
       <!-- 데이터베이스 탭 -->
       <div v-if="activeTab === 'database'" class="tab-panel">
-        <div v-if="!dbSnapshot || dbSnapshot.tables.length === 0" class="empty-message">
-          데이터베이스에 테이블이 없습니다.
+        <div v-if="!dbSnapshot || (dbSnapshot.tables.length === 0 && !dbSnapshot.schemaSQL)" class="empty-message">
+          데이터베이스에 테이블이 없습니다. {{ JSON.stringify(dbSnapshot) }}
         </div>
         <div v-else class="database-content">
+          <!-- SQL 스키마 섹션 -->
+          <div v-if="dbSnapshot.schemaSQL" class="schema-viewer">
+            <div class="schema-header">
+              <h4>📄 PostgreSQL 스키마</h4>
+              <button 
+                class="btn-copy" 
+                @click="copySchemaSQL"
+                title="SQL 복사"
+              >
+                📋 복사
+              </button>
+            </div>
+            <pre class="schema-sql">{{ dbSnapshot.schemaSQL }}</pre>
+          </div>
+          
+          <!-- 테이블 목록 -->
           <div v-for="table in dbSnapshot.tables" :key="table.name" class="table-viewer">
             <div class="table-header">
               <h4>{{ table.name }}</h4>
@@ -161,6 +177,33 @@ watch(() => props.validationResult, (newResult) => {
     activeTab.value = 'validation'
   }
 })
+
+// dbSnapshot이 업데이트되고 테이블이나 SQL 스키마가 있으면 데이터베이스 탭으로 전환
+watch(() => props.dbSnapshot, (newSnapshot) => {
+  if (newSnapshot) {
+    const hasTables = newSnapshot.tables && newSnapshot.tables.length > 0
+    const hasSchemaSQL = newSnapshot.schemaSQL && newSnapshot.schemaSQL.trim().length > 0
+    
+    if (hasTables || hasSchemaSQL) {
+      console.log('🔄 데이터베이스 탭으로 자동 전환:', { hasTables, hasSchemaSQL })
+      activeTab.value = 'database'
+    }
+  }
+}, { deep: true, immediate: true })
+
+// SQL 스키마 복사 함수
+function copySchemaSQL() {
+  if (props.dbSnapshot?.schemaSQL) {
+    navigator.clipboard.writeText(props.dbSnapshot.schemaSQL)
+      .then(() => {
+        alert('✅ SQL 스키마가 클립보드에 복사되었습니다!')
+      })
+      .catch(err => {
+        console.error('복사 실패:', err)
+        alert('❌ 복사에 실패했습니다.')
+      })
+  }
+}
 
 function formatCellValue(value: unknown): string {
   if (value === null) return 'NULL'
@@ -374,6 +417,65 @@ function formatCellValue(value: unknown): string {
   display: flex;
   flex-direction: column;
   gap: 24px;
+}
+
+.schema-viewer {
+  background: #2d2d2d;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #4b5563;
+}
+
+.schema-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: #374151;
+  border-bottom: 1px solid #4b5563;
+
+  h4 {
+    margin: 0;
+    font-size: 16px;
+    color: #f9fafb;
+  }
+}
+
+.btn-copy {
+  padding: 6px 12px;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.2s;
+
+  &:hover {
+    background: #2563eb;
+  }
+
+  &:active {
+    background: #1d4ed8;
+  }
+}
+
+.schema-sql {
+  padding: 16px;
+  margin: 0;
+  background: #1e293b;
+  color: #e2e8f0;
+  font-family: 'Monaco', 'Courier New', monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  overflow-x: auto;
+  white-space: pre;
+  border-radius: 0 0 8px 8px;
+
+  :global(.dark) & {
+    background: #0f172a;
+    color: #cbd5e1;
+  }
 }
 
 .table-viewer {

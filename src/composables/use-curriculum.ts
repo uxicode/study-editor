@@ -1,6 +1,6 @@
 import { ref, computed } from 'vue'
 import type { CurriculumStep, UserProgress } from '@/types/curriculum'
-import { CURRICULUM_STEPS } from '@/data/curriculum-steps'
+import { CURRICULUM_STEPS, LEVEL_STEP_COUNTS } from '@/data/curriculum-steps'
 
 const currentStepId = ref<string>('')
 const userProgress = ref<UserProgress>({
@@ -69,8 +69,41 @@ export function useCurriculum() {
   })
 
   const currentLevel = computed(() => {
-    // 4개 스텝마다 레벨 1개
-    return Math.floor(userProgress.value.completedSteps.length / 4) + 1
+    const completedCount = userProgress.value.completedSteps.length
+    const level1StepCount = LEVEL_STEP_COUNTS[1] // 9개 (8개 기본 + 1개 최종 연습문제)
+    
+    // 레벨 1의 모든 스텝(기본 8개 + 최종 연습문제 1개)을 완료하면 레벨 2
+    if (completedCount >= level1StepCount) {
+      return 2
+    }
+    return 1
+  })
+
+  // 레벨별 완료 여부 체크
+  const isLevelCompleted = computed(() => {
+    const completedCount = userProgress.value.completedSteps.length
+    const currentLevelValue = currentLevel.value
+    const requiredSteps = LEVEL_STEP_COUNTS[currentLevelValue as keyof typeof LEVEL_STEP_COUNTS] || 0
+    
+    return completedCount >= requiredSteps
+  })
+
+  // 레벨별 완료한 스텝 수
+  const completedStepsInCurrentLevel = computed(() => {
+    const currentLevelValue = currentLevel.value
+    const level1StepCount = LEVEL_STEP_COUNTS[1]
+    
+    if (currentLevelValue === 1) {
+      return Math.min(userProgress.value.completedSteps.length, level1StepCount)
+    }
+    // 레벨 2는 추후 구현
+    return 0
+  })
+
+  // 레벨별 총 스텝 수
+  const totalStepsInCurrentLevel = computed(() => {
+    const currentLevelValue = currentLevel.value
+    return LEVEL_STEP_COUNTS[currentLevelValue as keyof typeof LEVEL_STEP_COUNTS] || 0
   })
 
   function restartCurriculum() {
@@ -126,6 +159,9 @@ export function useCurriculum() {
     resetProgress,
     isAllStepsCompleted,
     currentLevel,
+    isLevelCompleted,
+    completedStepsInCurrentLevel,
+    totalStepsInCurrentLevel,
     restartCurriculum
   }
 }

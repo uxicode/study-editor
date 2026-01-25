@@ -110,25 +110,38 @@ export function useDatabase() {
   }
 
   async function reset() {
-    if (!pgliteInstance) return
+    if (!pgliteInstance) {
+      console.log('⚠️ PGlite 인스턴스가 없습니다. 초기화를 건너뜁니다.')
+      return
+    }
 
     try {
+      console.log('🔍 기존 테이블 조회 중...')
       // 모든 테이블 삭제
       const tablesResult = await pgliteInstance.query(`
         SELECT tablename 
         FROM pg_tables 
         WHERE schemaname = 'public'
       `)
+      console.log('📋 테이블 조회 결과:', tablesResult)
 
-      for (const row of tablesResult.rows) {
-        const tableName = (row as { tablename: string }).tablename
-        await pgliteInstance.query(`DROP TABLE IF EXISTS "${tableName}" CASCADE`)
+      if (tablesResult && tablesResult.rows && tablesResult.rows.length > 0) {
+        console.log(`🗑️ ${tablesResult.rows.length}개 테이블 삭제 중...`)
+        for (const row of tablesResult.rows) {
+          const tableName = (row as { tablename: string }).tablename
+          console.log(`  🗑️ ${tableName} 삭제 중...`)
+          await pgliteInstance.query(`DROP TABLE IF EXISTS "${tableName}" CASCADE`)
+          console.log(`  ✓ ${tableName} 삭제 완료`)
+        }
+        console.log('✅ 데이터베이스 리셋 완료')
+      } else {
+        console.log('ℹ️ 삭제할 테이블이 없습니다. (정상)')
       }
-
-      console.log('Database reset successfully')
     } catch (error) {
-      console.error('Failed to reset database:', error)
-      throw error
+      console.error('❌ 데이터베이스 리셋 실패:', error)
+      // 에러를 throw하지 않고 조용히 처리
+      // 테이블이 없거나 스키마가 없을 때는 정상적인 상황일 수 있음
+      console.log('⚠️ 에러를 무시하고 계속 진행합니다.')
     }
   }
 

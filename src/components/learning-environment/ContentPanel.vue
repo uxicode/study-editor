@@ -51,7 +51,7 @@
         <pre class="code-block">{{ step.content.expectedOutput }}</pre>
       </section>
 
-      <!-- 힌트 버튼 -->
+      <!-- 힌트 및 정답 버튼 -->
       <div class="hint-buttons">
         <button
           v-for="hint in step.hints"
@@ -60,6 +60,15 @@
           @click="emit('showHint', hint.level)"
         >
           💡 힌트 {{ hint.level }}
+        </button>
+        
+        <!-- 정답 보기 버튼 (마지막 힌트가 있을 때만 표시) -->
+        <button
+          v-if="step.hints.length > 0 && step.hints[step.hints.length - 1].codeSnippet"
+          class="btn-answer"
+          @click="emit('applyAnswer')"
+        >
+          ✨ 정답 보기 및 적용
         </button>
       </div>
     </div>
@@ -84,6 +93,7 @@ interface Props {
 
 interface Emits {
   (e: 'showHint', level: number): void
+  (e: 'applyAnswer'): void
 }
 
 const props = defineProps<Props>()
@@ -334,6 +344,32 @@ const progressPercentage = computed(() => {
     &:hover {
       background: #92400e;
     }
+  }
+}
+
+.btn-answer {
+  padding: 8px 16px;
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 4px rgba(245, 158, 11, 0.2);
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(245, 158, 11, 0.3);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+
+  :global(.dark) & {
+    background: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%);
   }
 }
 </style>

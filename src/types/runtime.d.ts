@@ -37,6 +37,7 @@ export interface ValidationError {
 export interface DBSnapshot {
   tables: DBTable[]
   timestamp: number
+  schemaSQL?: string // 생성된 SQL 스키마
 }
 
 export interface DBTable {

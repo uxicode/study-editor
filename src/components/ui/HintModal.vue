@@ -160,10 +160,10 @@ function handleClose() {
   background: #f9fafb;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
-  overflow: hidden;
+  overflow-y: auto;
 
   :global(.dark) & {
-    background: #111827;
+    background-color: #111827;
     border-color: #374151;
   }
 }
