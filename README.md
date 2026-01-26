@@ -39,17 +39,36 @@
 
 ## 🛠️ 기술 스택
 
-- **Frontend**: Vue 3 (Composition API) + TypeScript
+### 프론트엔드
+- **Framework**: Vue 3 (Composition API) + TypeScript
 - **Editor**: Monaco Editor
 - **Runtime**: WebContainers (StackBlitz)
 - **Database**: PGlite (PostgreSQL in WASM)
 - **Styling**: Tailwind CSS + SCSS
 - **Build Tool**: Vite
 
+### 백엔드
+- **Framework**: Express.js + TypeScript
+- **API**: RESTful API (Prisma → SQL 변환)
+- **Runtime**: Node.js
+- **Build Tool**: tsx (TypeScript 실행)
+
 ## 📦 설치 및 실행
 
+### 전체 프로젝트 (프론트엔드 + 백엔드)
+
 ```bash
-# 의존성 설치
+# 모든 의존성 설치 (프론트엔드 + 백엔드)
+npm run install:all
+
+# 프론트엔드와 백엔드 동시 실행
+npm run dev:all
+```
+
+### 프론트엔드만 실행
+
+```bash
+# 프론트엔드 디렉토리에서
 npm install
 
 # 개발 서버 실행
@@ -62,29 +81,54 @@ npm run build
 npm run preview
 ```
 
+### 백엔드만 실행
+
+```bash
+# 백엔드 디렉토리로 이동
+cd server
+
+# 의존성 설치
+npm install
+
+# 개발 서버 실행
+npm run dev
+
+# 타입 체크
+npm run type-check
+```
+
 ## 🏗️ 프로젝트 구조
 
 ```
-src/
-├── components/
-│   └── learning-environment/
-│       ├── LearningEnvironment.vue  # 메인 레이아웃
-│       ├── ContentPanel.vue         # 이론 및 미션 패널
-│       ├── CodeEditor.vue           # Monaco 에디터
-│       └── ConsolePanel.vue         # 결과 출력 패널
-├── composables/
-│   ├── use-curriculum.ts            # 커리큘럼 관리
-│   ├── use-runtime.ts               # WebContainers 런타임
-│   └── use-validator.ts             # 코드 검증
-├── data/
-│   └── curriculum-steps.ts          # 학습 단계 데이터
-├── types/
-│   ├── curriculum.d.ts              # 커리큘럼 타입
-│   └── runtime.d.ts                 # 런타임 타입
-├── styles/
-│   └── main.scss                    # 전역 스타일
-├── App.vue                          # 루트 컴포넌트
-└── main.ts                          # 앱 진입점
+study-editor/
+├── src/                              # 프론트엔드 (Vue 3)
+│   ├── components/
+│   │   └── learning-environment/
+│   │       ├── LearningEnvironment.vue
+│   │       ├── ContentPanel.vue
+│   │       ├── CodeEditor.vue
+│   │       └── ConsolePanel.vue
+│   ├── composables/
+│   │   ├── use-curriculum.ts
+│   │   ├── use-runtime.ts
+│   │   └── use-validator.ts
+│   ├── data/
+│   │   └── curriculum-steps.ts
+│   ├── types/
+│   │   ├── curriculum.d.ts
+│   │   └── runtime.d.ts
+│   ├── styles/
+│   │   └── main.scss
+│   ├── App.vue
+│   └── main.ts
+├── server/                           # 백엔드 (Express.js)
+│   ├── index.ts                      # Express 서버 진입점
+│   ├── utils/                        # 백엔드 전용 유틸리티
+│   │   ├── prisma-schema-parser.ts   # Prisma 스키마 파싱
+│   │   └── sql-generator.ts          # SQL 생성
+│   ├── package.json                  # 백엔드 의존성
+│   └── tsconfig.json                 # 백엔드 TypeScript 설정
+└── package.json                      # 프론트엔드 의존성
 ```
 
 ## 🎓 사용 방법

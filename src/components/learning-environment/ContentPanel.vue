@@ -269,9 +269,65 @@ const progressPercentage = computed(() => {
     border-radius: 4px;
     font-family: 'Monaco', 'Courier New', monospace;
     font-size: 13px;
+    white-space: pre-wrap; // 공백 보존 (여러 공백도 유지)
+    word-break: break-word; // 긴 단어 줄바꿈
 
     :global(.dark) & {
       background: #374151;
+    }
+  }
+
+  // 코드 블록 (pre > code)은 공백과 줄바꿈 모두 보존
+  :deep(pre code) {
+    white-space: pre;
+    word-break: normal;
+    display: block;
+    padding: 12px;
+    overflow-x: auto;
+  }
+
+  :deep(table) {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    font-size: 14px;
+
+    th,
+    td {
+      padding: 8px 12px;
+      text-align: left;
+      border: 1px solid #e5e7eb;
+
+      :global(.dark) & {
+        border-color: #374151;
+      }
+    }
+
+    th {
+      background: #f9fafb;
+      font-weight: 600;
+      color: #111827;
+
+      :global(.dark) & {
+        background: #1f2937;
+        color: #f9fafb;
+      }
+    }
+
+    td {
+      background: white;
+
+      :global(.dark) & {
+        background: #111827;
+      }
+    }
+
+    tr:nth-child(even) td {
+      background: #f9fafb;
+
+      :global(.dark) & {
+        background: #1f2937;
+      }
     }
   }
 }

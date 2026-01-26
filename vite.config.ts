@@ -10,7 +10,7 @@ export default defineConfig({
     }
   },
   optimizeDeps: {
-    exclude: ['@webcontainer/api'],
+    exclude: ['@webcontainer/api', '@electric-sql/pglite'],
     include: ['monaco-editor']
   },
   worker: {
@@ -29,6 +29,14 @@ export default defineConfig({
           'monaco-editor': ['monaco-editor']
         }
       }
-    }
+    },
+    // WASM 파일을 assets로 복사
+    assetsInclude: ['**/*.wasm']
+  },
+  // WASM 파일 처리
+  assetsInclude: ['**/*.wasm'],
+  // Node.js 폴리필 제외
+  define: {
+    'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development')
   }
 })

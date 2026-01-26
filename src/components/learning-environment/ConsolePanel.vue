@@ -100,10 +100,13 @@
 
       <!-- 데이터베이스 탭 -->
       <div v-if="activeTab === 'database'" class="tab-panel">
-        <div v-if="!dbSnapshot || (dbSnapshot.tables.length === 0 && !dbSnapshot.schemaSQL)" class="empty-message">
-          데이터베이스에 테이블이 없습니다. {{ JSON.stringify(dbSnapshot) }}
+        <div v-if="!dbSnapshot || (dbSnapshot.tables?.length === 0 && !dbSnapshot.schemaSQL)" class="empty-message">
+          데이터베이스에 테이블이 없습니다. 
+          <div style="margin-top: 8px; font-size: 12px; color: #9ca3af;">
+            Debug: {{ JSON.stringify(dbSnapshot, null, 2) }}
+          </div>
         </div>
-        <div v-else class="database-content">
+        <div v-else-if="dbSnapshot" class="database-content">
           <!-- SQL 스키마 섹션 -->
           <div v-if="dbSnapshot.schemaSQL" class="schema-viewer">
             <div class="schema-header">
@@ -152,7 +155,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, computed, watch } from 'vue'
 import type { ExecutionResult, ValidationResult, DBSnapshot } from '@/types/runtime'
 
 interface Props {
@@ -164,6 +167,9 @@ interface Props {
 const props = defineProps<Props>()
 
 const activeTab = ref<'output' | 'validation' | 'database'>('output')
+
+// computed로 dbSnapshot을 안전하게 접근
+const dbSnapshot = computed(() => props.dbSnapshot)
 
 // executionResult나 validationResult가 업데이트되면 해당 탭으로 전환
 watch(() => props.executionResult, (newResult) => {
@@ -179,17 +185,38 @@ watch(() => props.validationResult, (newResult) => {
 })
 
 // dbSnapshot이 업데이트되고 테이블이나 SQL 스키마가 있으면 데이터베이스 탭으로 전환
-watch(() => props.dbSnapshot, (newSnapshot) => {
+watch(() => props.dbSnapshot, (newSnapshot, oldSnapshot) => {
+  console.log('🔍 dbSnapshot watch 트리거:', {
+    newSnapshot: newSnapshot ? {
+      hasSnapshot: true,
+      tablesCount: newSnapshot.tables?.length || 0,
+      hasSchemaSQL: !!newSnapshot.schemaSQL,
+      schemaSQLLength: newSnapshot.schemaSQL?.length || 0,
+      timestamp: newSnapshot.timestamp
+    } : null,
+    oldSnapshot: oldSnapshot ? {
+      hasSnapshot: true,
+      tablesCount: oldSnapshot.tables?.length || 0,
+      timestamp: oldSnapshot.timestamp
+    } : null,
+    propsDbSnapshot: props.dbSnapshot ? '있음' : 'null'
+  })
+  console.log('🔍 dbSnapshot:', newSnapshot, oldSnapshot)
+  
   if (newSnapshot) {
     const hasTables = newSnapshot.tables && newSnapshot.tables.length > 0
     const hasSchemaSQL = newSnapshot.schemaSQL && newSnapshot.schemaSQL.trim().length > 0
+    
+    console.log('📊 dbSnapshot 상태:', { hasTables, hasSchemaSQL })
     
     if (hasTables || hasSchemaSQL) {
       console.log('🔄 데이터베이스 탭으로 자동 전환:', { hasTables, hasSchemaSQL })
       activeTab.value = 'database'
     }
+  } else {
+    console.log('⚠️ dbSnapshot이 null입니다')
   }
-}, { deep: true, immediate: true })
+}, { immediate: true })
 
 // SQL 스키마 복사 함수
 function copySchemaSQL() {
