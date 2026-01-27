@@ -152,3 +152,29 @@ export function extractTableName(modelFullMatch: string, modelName: string): str
   // @@map이 있으면 지정된 이름 사용, 없으면 원래 모델 이름 그대로 사용
   return mapMatch ? mapMatch[1] : modelName
 }
+
+/**
+ * 스키마에서 모델 이름 추출
+ */
+export function extractModelName(schemaContent: string): string | null {
+  const modelMatch = schemaContent.match(/model\s+(\w+)/)
+  return modelMatch ? modelMatch[1] : null
+}
+
+/**
+ * 스키마에서 모델의 테이블 이름 추출 (모델명과 @@map 고려)
+ */
+export function extractTableNameFromSchema(schemaContent: string, modelName: string): string {
+  const modelRegex = new RegExp(`model\\s+${modelName}[^}]*\\{([^}]+)\\}`, 's')
+  const modelMatch = schemaContent.match(modelRegex)
+  
+  if (!modelMatch) {
+    return modelName.toLowerCase()
+  }
+  
+  const modelContent = modelMatch[0]
+  const mapMatch = modelContent.match(/@@map\s*\(\s*["']([^"']+)["']\s*\)/)
+  
+  // @@map이 있으면 지정된 이름 사용, 없으면 모델 이름을 소문자로 변환
+  return mapMatch ? mapMatch[1] : modelName.toLowerCase()
+}

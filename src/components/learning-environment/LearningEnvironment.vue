@@ -104,21 +104,6 @@ import { useMockRuntime as useRuntime } from '@/composables/use-mock-runtime'
 import { useValidator } from '@/composables/use-validator'
 import { useDatabase } from '@/composables/use-database'
 import {
-  extractModelName,
-  extractTableNameFromSchema
-} from '@/utils/prisma-schema-parser'
-import {
-  extractObjectPatterns,
-  convertJsObjectToJSON,
-  extractModelFieldNames,
-  filterValidFields,
-  convertDateFields
-} from '@/utils/prisma-output-parser'
-import {
-  generateInsertSQL,
-  prepareInsertData
-} from '@/utils/sql-data-inserter'
-import {
   createSnapshot,
   logSnapshotInfo
 } from '@/utils/database-snapshot'
@@ -136,6 +121,7 @@ import {
   applySingleFile,
   findTargetFile
 } from '@/utils/file-applier'
+import { handleError } from '@/utils/error-handler'
 import type { RuntimeFile, ExecutionResult, ValidationResult, DBSnapshot } from '@/types/runtime'
 import type { Hint } from '@/types/curriculum'
 
@@ -157,7 +143,7 @@ const totalSteps = computed(() => allSteps.value.length)
 const completedSteps = computed(() => userProgress.value.completedSteps)
 const { executeCode, isExecuting } = useRuntime()
 const { validateStep } = useValidator()
-const { initializeDatabase, getSnapshot, reset: resetDatabase, executeQuery } = useDatabase()
+const { initializeDatabase, getSnapshot, reset: resetDatabase } = useDatabase()
 
 const editorFiles = ref<RuntimeFile[]>([])
 const activeFile = ref<string>('')
@@ -189,109 +175,184 @@ const canGoNext = computed(() => {
 async function handleCheckAnswer() {
   console.log('=== 정답 확인 시작 ===')
   
+  // 사전 조건 검사
+  if (!validatePreConditions()) return
+  
+  // 상태 초기화
+  resetAnswerState()
+  
+  try {
+    // 1. 코드 실행
+    const executionResult = await executeUserCode()
+    
+    // 2. 실행 실패 시 조기 반환
+    if (!executionResult.success) {
+      console.error('실행 실패:', executionResult.error)
+      return
+    }
+    
+    // 3. 검증 실행
+    const validation = await runValidation(executionResult)
+    
+    // 4. 검증 결과에 따른 처리
+    await handleValidationResult(validation, executionResult)
+    
+  } catch (error) {
+    handleExecutionError(error)
+  }
+
+  console.log('=== 정답 확인 완료 ===')
+}
+
+/**
+ * 사전 조건 검사
+ */
+function validatePreConditions(): boolean {
   if (!currentStep.value) {
     console.error('현재 단계가 없습니다')
-    return
+    return false
   }
 
   if (editorFiles.value.length === 0) {
     console.error('편집기에 파일이 없습니다')
     alert('파일이 로드되지 않았습니다. 페이지를 새로고침해주세요.')
-    return
+    return false
   }
 
   console.log('현재 단계:', currentStep.value.title)
   console.log('파일 목록:', editorFiles.value.map(f => f.name))
+  return true
+}
 
+/**
+ * 상태 초기화
+ */
+function resetAnswerState(): void {
   executionResult.value = null
   validationResult.value = null
+}
 
-  try {
-    // 코드 실행
-    console.log('코드 실행 시작...')
-    const result = await executeCode(editorFiles.value)
-    console.log('실행 결과:', result)
-    executionResult.value = result
+/**
+ * 사용자 코드 실행
+ */
+async function executeUserCode(): Promise<ExecutionResult> {
+  console.log('코드 실행 시작...')
+  const result = await executeCode(editorFiles.value)
+  console.log('실행 결과:', result)
+  executionResult.value = result
+  return result
+}
 
-    // 검증 (데이터베이스 스냅샷 업데이트와 독립적으로 실행)
-    if (result.success) {
-      console.log('검증 시작...')
-      const validation = await validateStep(
-        currentStep.value,
-        editorFiles.value,
-        result
-      )
-      console.log('검증 결과:', validation)
-      validationResult.value = validation
+/**
+ * 검증 실행
+ */
+async function runValidation(result: ExecutionResult): Promise<ValidationResult> {
+  console.log('검증 시작...')
+  const validation = await validateStep(currentStep.value!, editorFiles.value, result)
+  console.log('검증 결과:', validation)
+  validationResult.value = validation
+  return validation
+}
 
-      // 검증 통과 시 처리
-      if (validation.passed) {
-        console.log('✅ 정답입니다!')
-        console.log('다음 단계:', validation.nextStep)
-        console.log('validationResult 설정 전:', validationResult.value)
-        
-        // 진행 상황 저장
-        markStepCompleted(currentStep.value.id)
-        
-        // validationResult를 명시적으로 설정 (이미 위에서 설정했지만 확실히)
-        validationResult.value = { ...validation }
-        
-        // Vue reactivity를 위해 nextTick 사용
-        await nextTick()
-        
-        console.log('validationResult 설정 후:', validationResult.value)
-        console.log('canGoNext 상태:', canGoNext.value)
-        
-        // canGoNext가 여전히 false인 경우 강제로 업데이트
-        if (!canGoNext.value) {
-          console.warn('⚠️ canGoNext가 false입니다. validationResult를 다시 확인합니다.')
-          console.log('validationResult 상세:', JSON.stringify(validationResult.value, null, 2))
-        }
-        
-        // 레벨 완료 체크 (레벨 1의 모든 스텝 완료 시)
-        // 단, 이미 모달이 열려있지 않은 경우에만 표시 (재시작 시 모달이 다시 뜨는 것 방지)
-        if (isLevelCompleted.value && !showCongratsModal.value) {
-          console.log(`🎉 레벨 ${currentLevel.value - 1} 완료! 레벨 ${currentLevel.value}로 진급합니다!`)
-          // 약간의 딜레이 후 축하 모달 표시
-          setTimeout(() => {
-            // 재시작 중이 아닌 경우에만 모달 표시
-            if (!showCongratsModal.value) {
-              showCongratsModal.value = true
-            }
-          }, 1000)
-        } else {
-          // 다음 단계로 이동 가능하다는 메시지 표시
-          console.log('✅ 다음 단계로 이동할 수 있습니다! "다음 단계 →" 버튼을 클릭하세요.')
-        }
-        
-        // 데이터베이스 스냅샷 업데이트 (검증과 독립적으로, 실패해도 검증에는 영향 없음)
-        try {
-          console.log('🔄 코드 실행 성공, 데이터베이스 스냅샷 업데이트 중...')
-          await syncDataFromPrismaOutput(result.output)
-          await updateDatabaseSnapshot()
-        } catch (dbError) {
-          // 데이터베이스 업데이트 실패는 검증에 영향을 주지 않음
-          console.warn('⚠️ 데이터베이스 스냅샷 업데이트 실패 (무시):', dbError)
-        }
-      } else {
-        console.log('❌ 오답입니다.')
-        console.log('에러 목록:', validation.errors)
-        console.log('힌트:', validation.hints)
-      }
-    } else {
-      console.error('실행 실패:', result.error)
-    }
-  } catch (error) {
-    console.error('정답 확인 중 에러:', error)
-    executionResult.value = {
-      success: false,
-      output: '',
-      error: error instanceof Error ? error.message : String(error),
-      logs: ['예상치 못한 에러가 발생했습니다']
-    }
+/**
+ * 검증 결과 처리
+ */
+async function handleValidationResult(validation: ValidationResult, result: ExecutionResult): Promise<void> {
+  if (!validation.passed) {
+    console.log('❌ 오답입니다.')
+    console.log('에러 목록:', validation.errors)
+    console.log('힌트:', validation.hints)
+    return
   }
 
-  console.log('=== 정답 확인 완료 ===')
+  // 검증 통과 시 처리
+  await handleValidationSuccess(validation, result)
+}
+
+/**
+ * 검증 성공 시 처리
+ */
+async function handleValidationSuccess(validation: ValidationResult, result: ExecutionResult): Promise<void> {
+  console.log('✅ 정답입니다!')
+  
+  // 진행 상황 저장 및 상태 업데이트
+  await updateProgressState(validation)
+  
+  // 레벨 완료 체크 및 모달 표시
+  handleLevelCompletion()
+  
+  // 데이터베이스 스냅샷 업데이트 (실패해도 검증에 영향 없음)
+  await updateDatabaseSnapshotSafely(result)
+}
+
+/**
+ * 진행 상황 저장 및 상태 업데이트
+ */
+async function updateProgressState(validation: ValidationResult): Promise<void> {
+  markStepCompleted(currentStep.value!.id)
+  validationResult.value = { ...validation }
+  await nextTick()
+  
+  console.log('validationResult 설정 완료:', validationResult.value)
+  console.log('canGoNext 상태:', canGoNext.value)
+  
+  if (!canGoNext.value) {
+    console.warn('⚠️ canGoNext가 false입니다. validationResult를 다시 확인합니다.')
+    console.log('validationResult 상세:', JSON.stringify(validationResult.value, null, 2))
+  }
+}
+
+/**
+ * 레벨 완료 체크 및 축하 모달 표시
+ */
+function handleLevelCompletion(): void {
+  const shouldShowModal = isLevelCompleted.value && !showCongratsModal.value
+  
+  if (shouldShowModal) {
+    console.log(`🎉 레벨 ${currentLevel.value - 1} 완료! 레벨 ${currentLevel.value}로 진급합니다!`)
+    setTimeout(() => {
+      if (!showCongratsModal.value) {
+        showCongratsModal.value = true
+      }
+    }, 1000)
+  } else {
+    console.log('✅ 다음 단계로 이동할 수 있습니다! "다음 단계 →" 버튼을 클릭하세요.')
+  }
+}
+
+/**
+ * 데이터베이스 스냅샷 안전 업데이트
+ */
+async function updateDatabaseSnapshotSafely(result: ExecutionResult): Promise<void> {
+  try {
+    console.log('🔄 코드 실행 성공, 데이터베이스 스냅샷 업데이트 중...')
+    await syncDataFromPrismaOutput(result.output)
+    await updateDatabaseSnapshot()
+  } catch (error) {
+    handleError(error, {
+      level: 'warn',
+      message: '데이터베이스 스냅샷 업데이트 실패 (무시)',
+      ignore: true
+    })
+  }
+}
+
+/**
+ * 실행 에러 처리
+ */
+function handleExecutionError(error: unknown): void {
+  handleError(error, {
+    level: 'error',
+    message: '정답 확인 중 에러',
+    onError: (err) => {
+      executionResult.value = {
+        success: false,
+        output: '',
+        error: err instanceof Error ? err.message : String(err),
+        logs: ['예상치 못한 에러가 발생했습니다']
+      }
+    }
+  })
 }
 
 function handleContentUpdate(fileName: string, content: string) {
@@ -309,6 +370,7 @@ function handleFileChange(fileName: string) {
   activeFile.value = fileName
 }
 
+// 탭 닫기 핸들러
 function handleCloseTab(fileName: string) {
   const index = openTabs.value.indexOf(fileName)
   if (index === -1) return
@@ -316,20 +378,21 @@ function handleCloseTab(fileName: string) {
   // 탭 제거
   openTabs.value.splice(index, 1)
 
-  // 닫은 탭이 현재 활성 파일이면 다른 탭 활성화
-  if (activeFile.value === fileName) {
-    if (openTabs.value.length > 0) {
-      // 이전 탭 또는 다음 탭 활성화
-      const newActiveIndex = Math.max(0, index - 1)
-      activeFile.value = openTabs.value[newActiveIndex]
-    } else {
-      // 모든 탭이 닫혔으면 첫 번째 파일 활성화
-      if (editorFiles.value.length > 0) {
-        activeFile.value = editorFiles.value[0].name
-        openTabs.value.push(activeFile.value)
-      }
-    }
+  // 닫은 탭이 현재 활성 파일이 아니면 종료
+  if (activeFile.value !== fileName) return
+
+  // 남은 탭이 있으면 이전/다음 탭 활성화
+  if (openTabs.value.length > 0) {
+    const newActiveIndex = Math.max(0, index - 1)
+    activeFile.value = openTabs.value[newActiveIndex]
+    return
   }
+
+  // 모든 탭이 닫혔으면 첫 번째 파일 활성화
+  if (editorFiles.value.length === 0) return
+  
+  activeFile.value = editorFiles.value[0].name
+  openTabs.value.push(activeFile.value)
 }
 
 function handleShowHint(level: number) {
@@ -522,20 +585,17 @@ async function syncPrismaSchemaToDatabase(): Promise<string> {
       return ''
     }
 
-    // 각 테이블에 대해 SQL 실행
-    for (const table of tables) {
-      console.log(`🚀 테이블 생성 실행 시작: ${table.name}`)
-      await executeQuery(table.sql)
-      console.log(`✅ 테이블 생성 완료: ${table.name}`)
-    }
-    
-    console.log('✅ 모든 테이블 생성 완료')
+    // 서버에서 이미 SQL이 실행되었으므로 추가 작업 없음
+    console.log(`✅ ${tables.length}개 테이블이 서버에서 생성되었습니다.`)
     console.log('📝 최종 생성된 SQL:', sql ? `${sql.length}자` : '없음')
     
     return sql
   } catch (error) {
-    console.error('❌ Prisma 스키마 동기화 실패:', error)
-    return ''
+    return handleError(error, {
+      level: 'error',
+      message: 'Prisma 스키마 동기화 실패',
+      fallbackValue: ''
+    })
   }
 }
 
@@ -555,13 +615,18 @@ async function initializeAndResetDatabase(): Promise<void> {
     ])
     console.log('✅ 테이블 삭제 완료')
   } catch (error) {
-    console.warn('⚠️ 테이블 삭제 중 문제 발생 (계속 진행):', error)
+    handleError(error, {
+      level: 'warn',
+      message: '테이블 삭제 중 문제 발생 (계속 진행)',
+      ignore: true
+    })
   }
 }
 
 
 // Prisma 출력에서 데이터 생성 정보를 파싱하여 PGlite에 반영
-async function syncDataFromPrismaOutput(output: string) {
+// Express.js API를 통해 Prisma 출력 → INSERT SQL 변환 처리
+async function syncDataFromPrismaOutput(output: string): Promise<void> {
   try {
     console.log('🔍 Prisma 출력 파싱 중...')
     
@@ -570,97 +635,58 @@ async function syncDataFromPrismaOutput(output: string) {
       return
     }
     
-    // 스키마 파일 및 모델 정보 가져오기
-    const schemaInfo = getSchemaInfo()
-    if (!schemaInfo) {
+    // 스키마 파일 가져오기
+    const schemaFile = editorFiles.value.find(f => f.name === 'schema.prisma')
+    if (!schemaFile) {
+      console.log('⚠️ schema.prisma 파일이 없습니다.')
       return
     }
     
-    const { schemaContent, modelName, tableName } = schemaInfo
-    
-    // 출력에서 객체 패턴 추출
-    const objectPatterns = extractObjectPatterns(output)
-    
-    if (objectPatterns.length === 0) {
-      console.log('ℹ️ 출력에서 데이터 객체를 찾을 수 없습니다.')
-      console.log('📝 출력 내용:', output.substring(0, 500))
+    // Express.js API 호출하여 Prisma 출력 → INSERT SQL 변환
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001'
+    console.log('📡 Express API 호출:', `${apiUrl}/api/prisma-output-to-sql`)
+
+    const response = await fetch(`${apiUrl}/api/prisma-output-to-sql`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        output,
+        schemaContent: schemaFile.content
+      })
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
+      throw new Error(errorData.error || `API 요청 실패: ${response.status}`)
+    }
+
+    const result = await response.json()
+
+    if (!result.success) {
+      throw new Error(result.error || 'INSERT SQL 변환 실패')
+    }
+
+    const { insertStatements } = result
+
+    if (!insertStatements || insertStatements.length === 0) {
+      console.log('ℹ️ INSERT SQL이 생성되지 않았습니다.')
       return
     }
-    
-    console.log(`📦 ${objectPatterns.length}개 객체 패턴 발견`)
-    
-    // 필드명 추출
-    const fieldNames = extractModelFieldNames(schemaContent, modelName)
-    
-    // 각 객체를 파싱하여 데이터베이스에 삽입
-    for (const objStr of objectPatterns) {
-      await processAndInsertObject(objStr, fieldNames, tableName)
-    }
+
+    console.log(`📦 ${insertStatements.length}개 INSERT SQL 생성됨`)
+
+    // 서버에서 이미 INSERT SQL이 실행되었으므로 추가 작업 없음
+    console.log(`✅ ${insertStatements.length}개 INSERT SQL이 서버에서 실행되었습니다.`)
     
     console.log('✅ Prisma 출력 파싱 완료')
   } catch (error) {
-    console.warn('⚠️ Prisma 출력 파싱 실패 (무시):', error)
-  }
-}
-
-/**
- * 스키마 정보 가져오기
- */
-function getSchemaInfo(): { schemaContent: string; modelName: string; tableName: string } | null {
-  const schemaFile = editorFiles.value.find(f => f.name === 'schema.prisma')
-  if (!schemaFile) {
-    return null
-  }
-  
-  const modelName = extractModelName(schemaFile.content)
-  if (!modelName) {
-    return null
-  }
-  
-  const tableName = extractTableNameFromSchema(schemaFile.content, modelName)
-  
-  return {
-    schemaContent: schemaFile.content,
-    modelName,
-    tableName
-  }
-}
-
-/**
- * 객체 문자열을 파싱하여 데이터베이스에 삽입
- */
-async function processAndInsertObject(
-  objStr: string,
-  validFieldNames: string[],
-  tableName: string
-): Promise<void> {
-  try {
-    // JavaScript 객체를 JSON으로 변환
-    const data = convertJsObjectToJSON(objStr)
-    if (!data) {
-      console.log('⚠️ 객체 파싱 실패 (무시):', objStr.substring(0, 100))
-      return
-    }
-    
-    // 유효한 필드만 필터링
-    const validData = filterValidFields(data, validFieldNames)
-    
-    if (Object.keys(validData).length === 0) {
-      console.log('⚠️ 유효한 필드가 없습니다:', Object.keys(data))
-      return
-    }
-    
-    // 날짜 필드 변환
-    const convertedData = convertDateFields(validData)
-    
-    // INSERT SQL 생성 및 실행
-    const { columns, values } = prepareInsertData(convertedData)
-    const insertSQL = generateInsertSQL(tableName, columns, values)
-    
-    await executeQuery(insertSQL, values)
-    console.log(`✅ 데이터 삽입 완료: ${tableName}`, Object.fromEntries(columns.map((c, i) => [c, values[i]])))
-  } catch (error) {
-    console.log('⚠️ 데이터 삽입 실패 (무시):', error)
+    handleError(error, {
+      level: 'warn',
+      message: 'Prisma 출력 파싱 실패 (무시)',
+      ignore: true
+    })
   }
 }
 
@@ -685,8 +711,13 @@ async function updateDatabaseSnapshot() {
     // 5. 로깅
     logSnapshotInfo(newSnapshot)
   } catch (error) {
-    console.error('❌ 데이터베이스 스냅샷 업데이트 실패:', error)
-    dbSnapshot.value = createSnapshot([], '')
+    handleError(error, {
+      level: 'error',
+      message: '데이터베이스 스냅샷 업데이트 실패',
+      onError: () => {
+        dbSnapshot.value = createSnapshot([], '')
+      }
+    })
   }
 }
 
@@ -701,8 +732,11 @@ async function syncSchemaAndGetSQL(): Promise<string> {
     return schemaSQL
   } catch (error) {
     // 모델이 없거나 스키마 동기화 실패해도 계속 진행 (스텝 1처럼 모델이 없는 경우 정상)
-    console.log('ℹ️ 스키마 동기화 중 문제 발생 (계속 진행):', error)
-    return ''
+    return handleError(error, {
+      level: 'log',
+      message: '스키마 동기화 중 문제 발생 (계속 진행)',
+      fallbackValue: ''
+    })
   }
 }
 
