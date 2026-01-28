@@ -62,7 +62,10 @@ export function parseMarkdown(text: string): string {
   })
   
   // 코드 블록 변환
-  result = result.replace(/```(\w+)?\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>')
+  result = result.replace(/```(\w+)?\n([\s\S]*?)```/g, (_match, _lang, code) => {
+    const formatted = formatCodeContent(code)
+    return `<pre><code>${formatted}</code></pre>`
+  })
   
   // 테이블을 임시로 보호 (줄바꿈 변환 시 테이블 내부 줄바꿈이 변환되지 않도록)
   const tablePlaceholders: string[] = []
@@ -71,7 +74,8 @@ export function parseMarkdown(text: string): string {
     tablePlaceholders.push(match)
     return placeholder
   })
-  
+  console.log('result', result);
+
   // 나머지 변환
   result = result
     // 헤더
@@ -83,7 +87,10 @@ export function parseMarkdown(text: string): string {
     // 이탤릭
     .replace(/\*(.*?)\*/g, '<em>$1</em>')
     // 인라인 코드
-    .replace(/`(.*?)`/g, '<code>$1</code>')
+    .replace(/`([\s\S]*?)`/g, (_match, code) => {
+      const formatted = formatCodeContent(code)
+      return `<code>${formatted}</code>`
+    })
     // 링크
     .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank">$1</a>')
     // 줄바꿈
@@ -136,4 +143,50 @@ export function stripMarkdown(text: string): string {
     .replace(/`(.*?)`/g, '$1')
     .replace(/\[(.*?)\]\((.*?)\)/g, '$1')
     .replace(/^#+\s+/gm, '')
+}
+
+/**
+ * 코드 내용 포맷팅
+ * - 여는 중괄호(`{`) 이후부터 닫는 중괄호(`}`) 전까지의 줄을 들여쓰기
+ * - 예: model ModelName {\nfield...\n@attr...\n} 형태에서 중간 줄만 들여쓰기
+ */
+function formatCodeContent(code: string): string {
+  const lines = code.split('\n')
+  const formatted: string[] = []
+  let inBraceBlock = false
+  const indent = '  ' // 들여쓰기 2칸
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i]
+    const trimmed = line.trim()
+
+    // 빈 줄은 그대로 유지
+    if (trimmed.length === 0) {
+      formatted.push('')
+      continue
+    }
+
+    if (!inBraceBlock) {
+      // 블록 밖: {로 끝나는 줄은 그대로 출력하고 블록 시작 표시
+      formatted.push(trimmed)
+      
+      if (trimmed.endsWith('{')) {
+        inBraceBlock = true
+      }
+      continue
+    }
+
+    // 블록 안에 있는 경우
+    if (trimmed === '}') {
+      // 닫는 중괄호 줄은 들여쓰기하지 않고 블록 종료
+      formatted.push(trimmed)
+      inBraceBlock = false
+      continue
+    }
+
+    // 중괄호 블록 내부 실제 코드 줄: 들여쓰기 적용
+    formatted.push(`${indent}${trimmed}`)
+  }
+
+  return formatted.join('\n')
 }

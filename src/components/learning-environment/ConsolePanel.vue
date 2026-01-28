@@ -332,8 +332,8 @@ function formatCellValue(value: unknown): string {
   margin: 0;
   font-family: 'Monaco', 'Courier New', monospace;
   font-size: 13px;
-  white-space: pre-wrap;
-  word-break: break-all;
+  // white-space: pre-wrap;
+  // word-break: break-all;
 }
 
 .logs-section {

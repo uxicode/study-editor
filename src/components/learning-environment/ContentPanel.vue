@@ -269,8 +269,8 @@ const progressPercentage = computed(() => {
     border-radius: 4px;
     font-family: 'Monaco', 'Courier New', monospace;
     font-size: 13px;
-    white-space: pre-wrap; // 공백 보존 (여러 공백도 유지)
-    word-break: break-word; // 긴 단어 줄바꿈
+    // white-space: pre-wrap; // 공백 보존 (여러 공백도 유지)
+    // word-break: break-word; // 긴 단어 줄바꿈
 
     :global(.dark) & {
       background: #374151;
@@ -279,8 +279,8 @@ const progressPercentage = computed(() => {
 
   // 코드 블록 (pre > code)은 공백과 줄바꿈 모두 보존
   :deep(pre code) {
-    white-space: pre;
-    word-break: normal;
+    // white-space: pre;
+    // word-break: normal;
     display: block;
     padding: 12px;
     overflow-x: auto;
