@@ -127,7 +127,8 @@ export const step_4_1: CurriculumStep = {
         'findUnique()로 @unique/@id 필드를 사용한 단건 조회',
         'findFirst()로 일반 필드를 사용한 첫 번째 레코드 조회',
         'where 조건으로 단일 및 복합 필터링'
-      ]
+      ],
+      expectedOutput: '세 가지 조회 메서드가 올바르게 실행되어야 합니다.'
     },
     initialFiles: [
       {

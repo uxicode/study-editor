@@ -122,7 +122,23 @@ export function useDatabase() {
         tables,
         timestamp: snapshot.timestamp || Date.now()
       }
-    } catch (error) {
+    } catch (error: any) {
+      // 네트워크 연결 실패 시 서버 실행 필요 안내
+      if (error?.message?.includes('Failed to fetch') || error?.message?.includes('ERR_CONNECTION_REFUSED')) {
+        console.warn('⚠️ 백엔드 서버가 실행되지 않았습니다.')
+        console.warn('💡 서버를 실행하려면 다음 명령어를 실행하세요:')
+        console.warn('   npm run dev:all  (프론트엔드 + 백엔드 동시 실행)')
+        console.warn('   또는')
+        console.warn('   npm run dev:server  (백엔드만 실행)')
+        console.warn('')
+        console.warn('서버 없이도 기본 기능은 동작하지만, 데이터베이스 스냅샷 조회는 불가능합니다.')
+        return {
+          tables: [],
+          timestamp: Date.now()
+        }
+      }
+      
+      // 다른 에러는 로그 출력
       console.error('Failed to get database snapshot:', error)
       return {
         tables: [],

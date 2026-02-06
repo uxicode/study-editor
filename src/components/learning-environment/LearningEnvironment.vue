@@ -77,6 +77,7 @@
       :hint="selectedHint"
       @close="closeHintModal"
     />
+    {{ showCongratsModal }}
 
     <!-- 축하 모달 -->
     <CongratulationsModal
@@ -84,7 +85,7 @@
       :current-level="currentLevel - 1"
       :next-level="currentLevel"
       :completed-steps="completedSteps.length"
-      @close="showCongratsModal = false"
+      @close="handleCloseCongratsModal"
       @restart="handleRestart"
       @next-level="handleNextLevel"
     />
@@ -99,6 +100,7 @@ import ConsolePanel from './ConsolePanel.vue'
 import HintModal from '@/components/ui/HintModal.vue'
 import CongratulationsModal from '@/components/ui/CongratulationsModal.vue'
 import { useCurriculum } from '@/composables/use-curriculum'
+import { LEVEL_STEP_COUNTS } from '@/data/curriculum-steps'
 // import { useRuntime } from '@/composables/use-runtime'
 import { useMockRuntime as useRuntime } from '@/composables/use-mock-runtime'
 import { useValidator } from '@/composables/use-validator'
@@ -154,6 +156,7 @@ const dbSnapshot = ref<DBSnapshot | null>(null)
 const isHintModalOpen = ref(false)
 const selectedHint = ref<Hint | null>(null)
 const showCongratsModal = ref(false)
+const previousLevel = ref(1)
 
 const canGoPrevious = computed(() => {
   return currentStep.value && currentStep.value.order > 1
@@ -275,11 +278,8 @@ async function handleValidationResult(validation: ValidationResult, result: Exec
 async function handleValidationSuccess(validation: ValidationResult, result: ExecutionResult): Promise<void> {
   console.log('✅ 정답입니다!')
   
-  // 진행 상황 저장 및 상태 업데이트
+  // 진행 상황 저장 및 상태 업데이트 (레벨 완료 체크 포함)
   await updateProgressState(validation)
-  
-  // 레벨 완료 체크 및 모달 표시
-  handleLevelCompletion()
   
   // 데이터베이스 스냅샷 업데이트 (실패해도 검증에 영향 없음)
   await updateDatabaseSnapshotSafely(result)
@@ -289,9 +289,27 @@ async function handleValidationSuccess(validation: ValidationResult, result: Exe
  * 진행 상황 저장 및 상태 업데이트
  */
 async function updateProgressState(validation: ValidationResult): Promise<void> {
+  const oldLevel = currentLevel.value
   markStepCompleted(currentStep.value!.id)
   validationResult.value = { ...validation }
+  
+  // Vue 반응성 업데이트를 기다림
   await nextTick()
+  
+  // 레벨이 올라갔는지 확인 (nextTick 후에 체크)
+  const newLevel = currentLevel.value
+  if (newLevel > oldLevel) {
+    console.log(`🎉 레벨 ${oldLevel} 완료! 레벨 ${newLevel}로 진급합니다!`)
+    previousLevel.value = newLevel
+    
+    // 모달 표시 (약간의 지연을 두어 사용자 경험 향상)
+    setTimeout(() => {
+      if (!showCongratsModal.value) {
+        showCongratsModal.value = true
+        console.log('showCongratsModal', showCongratsModal.value)
+      }
+    }, 500)
+  }
   
   console.log('validationResult 설정 완료:', validationResult.value)
   console.log('canGoNext 상태:', canGoNext.value)
@@ -302,23 +320,6 @@ async function updateProgressState(validation: ValidationResult): Promise<void> 
   }
 }
 
-/**
- * 레벨 완료 체크 및 축하 모달 표시
- */
-function handleLevelCompletion(): void {
-  const shouldShowModal = isLevelCompleted.value && !showCongratsModal.value
-  
-  if (shouldShowModal) {
-    console.log(`🎉 레벨 ${currentLevel.value - 1} 완료! 레벨 ${currentLevel.value}로 진급합니다!`)
-    setTimeout(() => {
-      if (!showCongratsModal.value) {
-        showCongratsModal.value = true
-      }
-    }, 1000)
-  } else {
-    console.log('✅ 다음 단계로 이동할 수 있습니다! "다음 단계 →" 버튼을 클릭하세요.')
-  }
-}
 
 /**
  * 데이터베이스 스냅샷 안전 업데이트
@@ -698,7 +699,8 @@ async function updateDatabaseSnapshot() {
     // 1. Prisma 스키마 동기화 및 SQL 생성
     const schemaSQL = await syncSchemaAndGetSQL()
     
-    // 2. 데이터베이스 스냅샷 가져오기
+    // 2. 데이터베이스 스냅샷 가져오기 (에러 발생 시 빈 스냅샷 사용)
+    // getSnapshot() 내부에서 이미 에러 처리를 하므로 여기서는 바로 호출
     const snapshot = await getSnapshot()
     
     // 3. 스냅샷 객체 생성 및 업데이트
@@ -759,7 +761,8 @@ async function updateSnapshotReactive(snapshot: DBSnapshot): Promise<void> {
  */
 async function updateSchemaSqlInFiles(schemaSQL: string): Promise<void> {
   if (!schemaSQL || !schemaSQL.trim()) {
-    console.warn('⚠️ schemaSQL이 없어서 schema.sql 파일을 추가할 수 없습니다.')
+    // schemaSQL이 없는 것은 정상적인 상황일 수 있음 (예: 스텝 1처럼 모델이 없는 경우)
+    // 조용하게 처리
     return
   }
   
@@ -787,6 +790,9 @@ async function resetState() {
   dbSnapshot.value = null
 
   if (currentStep.value) {
+    // editorFiles를 설정하기 전에 이전 스키마 내용 저장 (watch 중복 트리거 방지)
+    const oldSchemaContent = editorFiles.value.find(f => f.name === 'schema.prisma')?.content
+    
     editorFiles.value = currentStep.value.initialFiles.map(f => ({
       name: f.name,
       path: f.path,
@@ -796,11 +802,18 @@ async function resetState() {
     activeFile.value = editorFiles.value[0]?.name || ''
     // 첫 번째 파일을 기본 탭으로 추가
     openTabs.value = activeFile.value ? [activeFile.value] : []
-  }
-  
-  // 스텝 변경 시 데이터베이스 스냅샷 업데이트
-  if (currentStep.value) {
-    await updateDatabaseSnapshot()
+    
+    // 스텝 변경 시 데이터베이스 스냅샷 업데이트
+    // watch가 트리거되지 않도록 하기 위해 nextTick으로 지연
+    await nextTick()
+    
+    // 스키마 내용이 변경되지 않았으면 watch가 트리거되지 않으므로 수동으로 호출
+    const newSchemaContent = editorFiles.value.find(f => f.name === 'schema.prisma')?.content
+    if (newSchemaContent === oldSchemaContent && newSchemaContent) {
+      // 스키마 내용이 같으면 watch가 트리거되지 않으므로 수동 호출
+      await updateDatabaseSnapshot()
+    }
+    // 스키마 내용이 다르면 watch가 자동으로 트리거되므로 여기서는 호출하지 않음
   }
 }
 
@@ -813,17 +826,60 @@ async function handleRestart() {
   // 검증 결과 초기화 (재시작 시 모달이 다시 뜨는 것 방지)
   validationResult.value = null
   
+  // 이전 레벨 초기화
+  previousLevel.value = 1
+  
   // 커리큘럼 재시작
   restartCurriculum()
   await resetState()
   
+  // 재시작 후 현재 레벨로 업데이트
+  previousLevel.value = currentLevel.value
+  
   console.log('✅ 재시작 완료')
 }
 
-function handleNextLevel() {
-  // TODO: 다음 레벨(다른 커리큘럼)로 이동
-  alert('다음 레벨은 아직 준비 중입니다! 🚀')
-  handleRestart()
+function handleCloseCongratsModal() {
+  showCongratsModal.value = false
+  // 모달이 닫힐 때 previousLevel을 현재 레벨로 업데이트하여 중복 표시 방지
+  previousLevel.value = currentLevel.value
+}
+
+async function handleNextLevel() {
+  const nextLevel = currentLevel.value
+  
+  // 다음 레벨이 존재하는지 확인 (레벨 4가 최대)
+  if (nextLevel > 4) {
+    alert('모든 레벨을 완료했습니다! 🎉')
+    return
+  }
+  
+  // 다음 레벨의 첫 번째 스텝 인덱스 계산
+  let firstStepIndex = 0
+  for (let level = 1; level < nextLevel; level++) {
+    firstStepIndex += LEVEL_STEP_COUNTS[level as keyof typeof LEVEL_STEP_COUNTS] || 0
+  }
+  
+  // 다음 레벨의 첫 번째 스텝 찾기
+  const nextLevelFirstStep = allSteps.value[firstStepIndex]
+  
+  if (!nextLevelFirstStep) {
+    console.error('다음 레벨의 첫 번째 스텝을 찾을 수 없습니다.')
+    alert('다음 레벨로 이동할 수 없습니다.')
+    return
+  }
+  
+  console.log(`🚀 레벨 ${nextLevel}로 이동합니다. 첫 번째 스텝: ${nextLevelFirstStep.id}`)
+  
+  // 모달 닫기
+  showCongratsModal.value = false
+  previousLevel.value = nextLevel
+  
+  // 다음 레벨의 첫 번째 스텝으로 이동
+  await loadStep(nextLevelFirstStep.id)
+  await resetState()
+  
+  console.log(`✅ 레벨 ${nextLevel}의 첫 번째 스텝으로 이동 완료`)
 }
 
 // 스키마 파일 변경 감지하여 데이터베이스 업데이트
@@ -838,7 +894,22 @@ watch(
   { deep: true }
 )
 
+// 레벨 변화 감지 (보조용 - updateProgressState에서 주로 처리)
+watch(
+  currentLevel,
+  (newLevel, oldLevel) => {
+    // 레벨이 올라갔을 때만 로그 (모달은 updateProgressState에서 처리)
+    if (oldLevel && newLevel > oldLevel) {
+      console.log(`📊 레벨 변화 감지: ${oldLevel} → ${newLevel}`)
+    }
+  },
+  { immediate: false }
+)
+
 onMounted(async () => {
+  // 초기 레벨 설정
+  previousLevel.value = currentLevel.value
+  
   await loadStep('step-1')
   await resetState()
 })

@@ -70,9 +70,21 @@ export function useCurriculum() {
 
   const currentLevel = computed(() => {
     const completedCount = userProgress.value.completedSteps.length
-    const level1StepCount = LEVEL_STEP_COUNTS[1] // 9개 (8개 기본 + 1개 최종 연습문제)
+    const level1StepCount = LEVEL_STEP_COUNTS[1] // 9개
+    const level2StepCount = LEVEL_STEP_COUNTS[2] // 6개
+    const level3StepCount = LEVEL_STEP_COUNTS[3] // 7개
+    const level4StepCount = LEVEL_STEP_COUNTS[4] // 6개
     
-    // 레벨 1의 모든 스텝(기본 8개 + 최종 연습문제 1개)을 완료하면 레벨 2
+    // 레벨별 완료 스텝 수 계산
+    if (completedCount >= level1StepCount + level2StepCount + level3StepCount + level4StepCount) {
+      return 4
+    }
+    if (completedCount >= level1StepCount + level2StepCount + level3StepCount) {
+      return 4
+    }
+    if (completedCount >= level1StepCount + level2StepCount) {
+      return 3
+    }
     if (completedCount >= level1StepCount) {
       return 2
     }
@@ -83,7 +95,12 @@ export function useCurriculum() {
   const isLevelCompleted = computed(() => {
     const completedCount = userProgress.value.completedSteps.length
     const currentLevelValue = currentLevel.value
-    const requiredSteps = LEVEL_STEP_COUNTS[currentLevelValue as keyof typeof LEVEL_STEP_COUNTS] || 0
+    
+    // 현재 레벨까지의 누적 스텝 수 계산
+    let requiredSteps = 0
+    for (let level = 1; level <= currentLevelValue; level++) {
+      requiredSteps += LEVEL_STEP_COUNTS[level as keyof typeof LEVEL_STEP_COUNTS] || 0
+    }
     
     return completedCount >= requiredSteps
   })
@@ -91,13 +108,19 @@ export function useCurriculum() {
   // 레벨별 완료한 스텝 수
   const completedStepsInCurrentLevel = computed(() => {
     const currentLevelValue = currentLevel.value
-    const level1StepCount = LEVEL_STEP_COUNTS[1]
+    const completedCount = userProgress.value.completedSteps.length
     
-    if (currentLevelValue === 1) {
-      return Math.min(userProgress.value.completedSteps.length, level1StepCount)
+    // 이전 레벨들의 누적 스텝 수 계산
+    let previousLevelSteps = 0
+    for (let level = 1; level < currentLevelValue; level++) {
+      previousLevelSteps += LEVEL_STEP_COUNTS[level as keyof typeof LEVEL_STEP_COUNTS] || 0
     }
-    // 레벨 2는 추후 구현
-    return 0
+    
+    // 현재 레벨에서 완료한 스텝 수
+    const currentLevelSteps = completedCount - previousLevelSteps
+    const maxCurrentLevelSteps = LEVEL_STEP_COUNTS[currentLevelValue as keyof typeof LEVEL_STEP_COUNTS] || 0
+    
+    return Math.max(0, Math.min(currentLevelSteps, maxCurrentLevelSteps))
   })
 
   // 레벨별 총 스텝 수

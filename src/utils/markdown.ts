@@ -74,7 +74,7 @@ export function parseMarkdown(text: string): string {
     tablePlaceholders.push(match)
     return placeholder
   })
-  console.log('result', result);
+  // console.log('result', result);
 
   // 나머지 변환
   result = result

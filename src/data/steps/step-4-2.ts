@@ -158,7 +158,8 @@ export const step_4_2: CurriculumStep = {
         'select로 특정 필드만 선택하여 조회',
         'select의 성능 최적화 및 보안 효과 이해',
         'where, orderBy, select를 조합한 복잡한 쿼리 작성'
-      ]
+      ],
+      expectedOutput: 'orderBy와 select가 올바르게 실행되어야 합니다.'
     },
     initialFiles: [
       {
