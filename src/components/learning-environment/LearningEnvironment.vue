@@ -77,7 +77,6 @@
       :hint="selectedHint"
       @close="closeHintModal"
     />
-    {{ showCongratsModal }}
 
     <!-- 축하 모달 -->
     <CongratulationsModal
@@ -136,7 +135,6 @@ const {
   goToPreviousStep, 
   markStepCompleted,
   userProgress,
-  isLevelCompleted,
   currentLevel,
   restartCurriculum
 } = useCurriculum()

@@ -10,7 +10,6 @@ export default defineConfig({
     }
   },
   optimizeDeps: {
-    exclude: ['@webcontainer/api', '@electric-sql/pglite'],
     include: ['monaco-editor']
   },
   worker: {

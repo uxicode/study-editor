@@ -13,8 +13,6 @@
     "install:all": "npm install && cd server && npm install"
   },
   "dependencies": {
-    "@electric-sql/pglite": "^0.1.5",
-    "@webcontainer/api": "^1.1.9",
     "monaco-editor": "^0.45.0",
     "vue": "^3.4.21"
   },
