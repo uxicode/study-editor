@@ -4,7 +4,7 @@
  */
 
 export function parseMarkdown(text: string): string {
-  let result = text
+  let result = normalizeMarkdown(text)
   
   // 코드 블록을 임시로 보호 (테이블 변환 시 코드 블록 안의 테이블은 변환하지 않음)
   const codeBlockPlaceholders: string[] = []
@@ -96,6 +96,8 @@ export function parseMarkdown(text: string): string {
     // 줄바꿈
     .replace(/\n\n/g, '<br><br>')
     .replace(/\n/g, '<br>')
+    // 헤더(h1~h3) 바로 뒤 과도한 공백 줄바꿈 정리
+    .replace(/(<\/h[1-3]>)<br><br>/g, '$1<br>')
   
   // 테이블 복원
   tablePlaceholders.forEach((table, index) => {
@@ -103,6 +105,27 @@ export function parseMarkdown(text: string): string {
   })
   
   return result
+}
+
+function normalizeMarkdown(text: string): string {
+  // Windows 개행 정규화
+  const normalized = text.replace(/\r\n/g, '\n')
+
+  // 템플릿 문자열에서 흔히 생기는 첫/끝 개행 제거
+  const trimmed = normalized.replace(/^\n+/, '').replace(/\n+$/, '')
+
+  // 공통 들여쓰기(dedent) 제거
+  const lines = trimmed.split('\n')
+  const indents = lines
+    .filter(line => line.trim().length > 0)
+    .map(line => (line.match(/^\s+/)?.[0].length ?? 0))
+
+  const minIndent = indents.length > 0 ? Math.min(...indents) : 0
+  if (minIndent === 0) return trimmed
+
+  return lines
+    .map(line => (line.trim().length > 0 ? line.slice(minIndent) : ''))
+    .join('\n')
 }
 
 /**
