@@ -6,6 +6,16 @@
           Interactive Backend Learning Platform
         </h1>
         <div class="header-actions">
+          <template v-if="authStore.isAuthenticated">
+            <span class="user-email">{{ authStore.user?.email }}</span>
+            <button class="btn-secondary text-sm" @click="handleLogout">
+              로그아웃
+            </button>
+          </template>
+          <template v-else>
+            <RouterLink to="/login" class="auth-header-btn">로그인</RouterLink>
+            <RouterLink to="/register" class="auth-header-btn">회원가입</RouterLink>
+          </template>
           <button
             class="info-button"
             @click="showInfoModal = true"
@@ -24,7 +34,7 @@
     </header>
 
     <main class="app-main">
-      <LearningEnvironment />
+      <RouterView />
     </main>
 
     <!-- 정보 모달 -->
@@ -37,11 +47,19 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import LearningEnvironment from '@/components/learning-environment/LearningEnvironment.vue'
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth-store'
 import InfoModal from '@/components/ui/InfoModal.vue'
 
+const router = useRouter()
+const authStore = useAuthStore()
 const isDarkMode = ref(false)
 const showInfoModal = ref(false)
+
+function handleLogout() {
+  authStore.logout()
+  router.push('/login')
+}
 
 function toggleDarkMode() {
   isDarkMode.value = !isDarkMode.value
@@ -58,7 +76,9 @@ function toggleDarkMode() {
   localStorage.setItem('darkMode', String(isDarkMode.value))
 }
 
-onMounted(() => {
+onMounted(async () => {
+  await authStore.initAuth()
+
   const savedMode = localStorage.getItem('darkMode')
   if (savedMode === 'true') {
     isDarkMode.value = true
@@ -107,6 +127,27 @@ onMounted(() => {
   display: flex;
   gap: 8px;
   align-items: center;
+}
+
+.user-email {
+  font-size: 14px;
+  color: #6b7280;
+
+  :global(.dark) & {
+    color: #9ca3af;
+  }
+}
+
+.auth-header-btn {
+  font-size: 14px;
+  font-weight: 500;
+  color: #2563eb;
+  text-decoration: none;
+  padding: 6px 12px;
+
+  &:hover {
+    text-decoration: underline;
+  }
 }
 
 .info-button {

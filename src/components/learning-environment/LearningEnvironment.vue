@@ -8,6 +8,7 @@
         :current-step-number="currentStep?.order || 0"
         :total-steps="totalSteps"
         :completed-steps="completedSteps"
+        :is-authenticated="authStore.isAuthenticated"
         @show-hint="handleShowHint"
         @apply-answer="handleApplyAnswer"
       />
@@ -37,6 +38,7 @@
           :execution-result="executionResult"
           :validation-result="validationResult"
           :db-snapshot="dbSnapshot"
+          :is-authenticated="authStore.isAuthenticated"
         />
       </div>
     </div>
@@ -93,6 +95,8 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch, nextTick } from 'vue'
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth-store'
 import ContentPanel from './ContentPanel.vue'
 import CodeEditor from './CodeEditor.vue'
 import ConsolePanel from './ConsolePanel.vue'
@@ -111,6 +115,7 @@ import {
 import {
   updateSchemaSqlFile
 } from '@/utils/file-manager'
+import { prismaToSql, prismaOutputToSql } from '@/services/prisma-api.service'
 import {
   cleanCodeSnippet,
   splitCodeSnippetIntoFiles,
@@ -126,11 +131,14 @@ import { handleError } from '@/utils/error-handler'
 import type { RuntimeFile, ExecutionResult, ValidationResult, DBSnapshot } from '@/types/runtime'
 import type { Hint } from '@/types/curriculum'
 
+const router = useRouter()
+const authStore = useAuthStore()
 const { 
   currentStep, 
   allSteps, 
   isLoadingStep, 
   loadStep, 
+  loadProgress,
   goToNextStep, 
   goToPreviousStep, 
   markStepCompleted,
@@ -237,9 +245,9 @@ function resetAnswerState(): void {
  * 사용자 코드 실행
  */
 async function executeUserCode(): Promise<ExecutionResult> {
-  console.log('코드 실행 시작...')
+  // console.log('코드 실행 시작...')
   const result = await executeCode(editorFiles.value)
-  console.log('실행 결과:', result)
+  // console.log('실행 결과:', result)
   executionResult.value = result
   return result
 }
@@ -248,7 +256,7 @@ async function executeUserCode(): Promise<ExecutionResult> {
  * 검증 실행
  */
 async function runValidation(result: ExecutionResult): Promise<ValidationResult> {
-  console.log('검증 시작...')
+  // console.log('검증 시작...')
   const validation = await validateStep(currentStep.value!, editorFiles.value, result)
   console.log('검증 결과:', validation)
   validationResult.value = validation
@@ -274,7 +282,7 @@ async function handleValidationResult(validation: ValidationResult, result: Exec
  * 검증 성공 시 처리
  */
 async function handleValidationSuccess(validation: ValidationResult, result: ExecutionResult): Promise<void> {
-  console.log('✅ 정답입니다!')
+  // console.log('✅ 정답입니다!')
   
   // 진행 상황 저장 및 상태 업데이트 (레벨 완료 체크 포함)
   await updateProgressState(validation)
@@ -304,13 +312,9 @@ async function updateProgressState(validation: ValidationResult): Promise<void> 
     setTimeout(() => {
       if (!showCongratsModal.value) {
         showCongratsModal.value = true
-        console.log('showCongratsModal', showCongratsModal.value)
       }
     }, 500)
   }
-  
-  console.log('validationResult 설정 완료:', validationResult.value)
-  console.log('canGoNext 상태:', canGoNext.value)
   
   if (!canGoNext.value) {
     console.warn('⚠️ canGoNext가 false입니다. validationResult를 다시 확인합니다.')
@@ -324,7 +328,7 @@ async function updateProgressState(validation: ValidationResult): Promise<void> 
  */
 async function updateDatabaseSnapshotSafely(result: ExecutionResult): Promise<void> {
   try {
-    console.log('🔄 코드 실행 성공, 데이터베이스 스냅샷 업데이트 중...')
+    // console.log('🔄 코드 실행 성공, 데이터베이스 스냅샷 업데이트 중...')
     await syncDataFromPrismaOutput(result.output)
     await updateDatabaseSnapshot()
   } catch (error) {
@@ -472,7 +476,7 @@ async function applyMultipleFilesToEditor(files: CodeFile[]): Promise<void> {
   }
   
   const fileList = result.appliedFiles.join(', ')
-  console.log('✨ 정답이 적용되었습니다:', fileList)
+  // console.log('✨ 정답이 적용되었습니다:', fileList)
   alert(`✨ 정답 코드가 에디터에 적용되었습니다!\n파일: ${fileList}`)
 }
 
@@ -512,7 +516,7 @@ async function applySingleFileToEditor(codeSnippet: string): Promise<void> {
     await updateDatabaseSnapshot()
   }
   
-  console.log('✨ 정답이 적용되었습니다:', targetFile.name)
+  // console.log('✨ 정답이 적용되었습니다:', targetFile.name)
   alert(`✨ 정답 코드가 에디터에 적용되었습니다!\n파일: ${targetFile.name}`)
 }
 
@@ -522,9 +526,9 @@ async function handlePreviousStep() {
 }
 
 async function handleNextStep() {
-  console.log('🚀 다음 단계로 이동 시작...')
-  console.log('현재 스텝:', currentStep.value?.id)
-  console.log('검증 결과:', validationResult.value)
+  // console.log('🚀 다음 단계로 이동 시작...')
+  // console.log('현재 스텝:', currentStep.value?.id)
+  // console.log('검증 결과:', validationResult.value)
   
   if (!validationResult.value?.passed) {
     console.warn('⚠️ 검증이 통과하지 않았습니다. 다음 단계로 이동할 수 없습니다.')
@@ -537,8 +541,7 @@ async function handleNextStep() {
   console.log('✅ 다음 단계로 이동 완료')
 }
 
-// Prisma 스키마를 파싱하여 PGlite에 테이블 생성
-// Express.js API를 통해 Prisma → SQL 변환 처리
+// Prisma 스키마를 파싱하여 PGlite에 테이블 생성 (서비스 호출)
 async function syncPrismaSchemaToDatabase(): Promise<string> {
   try {
     const schemaFile = editorFiles.value.find(f => f.name === 'schema.prisma')
@@ -547,47 +550,15 @@ async function syncPrismaSchemaToDatabase(): Promise<string> {
       return ''
     }
 
-    // 데이터베이스 초기화 및 리셋
     await initializeAndResetDatabase()
 
-    // Express.js API 호출하여 Prisma → SQL 변환
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001'
-    console.log('📡 Express API 호출:', `${apiUrl}/api/prisma-to-sql`)
+    const sql = await prismaToSql(schemaFile.content)
 
-    const response = await fetch(`${apiUrl}/api/prisma-to-sql`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        schemaContent: schemaFile.content
-      })
-    })
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
-      throw new Error(errorData.error || `API 요청 실패: ${response.status}`)
-    }
-
-    const result = await response.json()
-
-    if (!result.success) {
-      throw new Error(result.error || 'SQL 변환 실패')
-    }
-
-    const { sql, tables } = result
-
-    console.log(`📊 총 ${result.modelsCount || 0}개 모델, ${result.enumsCount || 0}개 enum 발견`)
-    
     if (!sql || sql.trim() === '') {
       console.log('ℹ️ 모델이 없습니다. (설정 단계이거나 아직 모델을 정의하지 않았습니다)')
       return ''
     }
 
-    // 서버에서 이미 SQL이 실행되었으므로 추가 작업 없음
-    console.log(`✅ ${tables.length}개 테이블이 서버에서 생성되었습니다.`)
-    console.log('📝 최종 생성된 SQL:', sql ? `${sql.length}자` : '없음')
-    
     return sql
   } catch (error) {
     return handleError(error, {
@@ -602,11 +573,11 @@ async function syncPrismaSchemaToDatabase(): Promise<string> {
  * 데이터베이스 초기화 및 리셋
  */
 async function initializeAndResetDatabase(): Promise<void> {
-  console.log('🔄 데이터베이스 초기화 중...')
+  // console.log('🔄 데이터베이스 초기화 중...')
   await initializeDatabase()
-  console.log('✅ 데이터베이스 초기화 완료')
+  // console.log('✅ 데이터베이스 초기화 완료')
 
-  console.log('🔄 기존 테이블 삭제 중...')
+  // console.log('🔄 기존 테이블 삭제 중...')
   try {
     await Promise.race([
       resetDatabase(),
@@ -623,63 +594,26 @@ async function initializeAndResetDatabase(): Promise<void> {
 }
 
 
-// Prisma 출력에서 데이터 생성 정보를 파싱하여 PGlite에 반영
-// Express.js API를 통해 Prisma 출력 → INSERT SQL 변환 처리
+// Prisma 출력에서 데이터 생성 정보를 파싱하여 PGlite에 반영 (서비스 호출)
 async function syncDataFromPrismaOutput(output: string): Promise<void> {
   try {
-    console.log('🔍 Prisma 출력 파싱 중...')
-    
     if (!output) {
       console.log('⚠️ 출력이 없습니다.')
       return
     }
-    
-    // 스키마 파일 가져오기
+
     const schemaFile = editorFiles.value.find(f => f.name === 'schema.prisma')
     if (!schemaFile) {
       console.log('⚠️ schema.prisma 파일이 없습니다.')
       return
     }
-    
-    // Express.js API 호출하여 Prisma 출력 → INSERT SQL 변환
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001'
-    console.log('📡 Express API 호출:', `${apiUrl}/api/prisma-output-to-sql`)
 
-    const response = await fetch(`${apiUrl}/api/prisma-output-to-sql`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        output,
-        schemaContent: schemaFile.content
-      })
-    })
+    const result = await prismaOutputToSql(output, schemaFile.content)
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
-      throw new Error(errorData.error || `API 요청 실패: ${response.status}`)
-    }
-
-    const result = await response.json()
-
-    if (!result.success) {
-      throw new Error(result.error || 'INSERT SQL 변환 실패')
-    }
-
-    const { insertStatements } = result
-
-    if (!insertStatements || insertStatements.length === 0) {
+    if (!result.insertStatements || result.insertStatements.length === 0) {
       console.log('ℹ️ INSERT SQL이 생성되지 않았습니다.')
       return
     }
-
-    console.log(`📦 ${insertStatements.length}개 INSERT SQL 생성됨`)
-
-    // 서버에서 이미 INSERT SQL이 실행되었으므로 추가 작업 없음
-    console.log(`✅ ${insertStatements.length}개 INSERT SQL이 서버에서 실행되었습니다.`)
-    
-    console.log('✅ Prisma 출력 파싱 완료')
   } catch (error) {
     handleError(error, {
       level: 'warn',
@@ -692,7 +626,7 @@ async function syncDataFromPrismaOutput(output: string): Promise<void> {
 // 데이터베이스 스냅샷 업데이트
 async function updateDatabaseSnapshot() {
   try {
-    console.log('🔄 데이터베이스 스냅샷 업데이트 시작...')
+    // console.log('🔄 데이터베이스 스냅샷 업데이트 시작...')
     
     // 1. Prisma 스키마 동기화 및 SQL 생성
     const schemaSQL = await syncSchemaAndGetSQL()
@@ -726,9 +660,9 @@ async function updateDatabaseSnapshot() {
  */
 async function syncSchemaAndGetSQL(): Promise<string> {
   try {
-    console.log('🔄 Prisma 스키마 동기화 시작...')
+    // console.log('🔄 Prisma 스키마 동기화 시작...')
     const schemaSQL = await syncPrismaSchemaToDatabase()
-    console.log('✅ Prisma 스키마 동기화 완료, 생성된 SQL:', schemaSQL ? `${schemaSQL.length}자` : '없음')
+    // console.log('✅ Prisma 스키마 동기화 완료, 생성된 SQL:', schemaSQL ? `${schemaSQL.length}자` : '없음')
     return schemaSQL
   } catch (error) {
     // 모델이 없거나 스키마 동기화 실패해도 계속 진행 (스텝 1처럼 모델이 없는 경우 정상)
@@ -747,11 +681,11 @@ async function updateSnapshotReactive(snapshot: DBSnapshot): Promise<void> {
   dbSnapshot.value = snapshot
   await nextTick()
   
-  console.log('📊 스냅샷 설정 완료:', {
-    tables: snapshot.tables.length,
-    schemaSQL: snapshot.schemaSQL ? `${snapshot.schemaSQL.length}자` : '없음',
-    dbSnapshotValue: dbSnapshot.value ? '설정됨' : 'null'
-  })
+  //  console.log('📊 스냅샷 설정 완료:', {
+  //   tables: snapshot.tables.length,
+  //   schemaSQL: snapshot.schemaSQL ? `${snapshot.schemaSQL.length}자` : '없음',
+  //   dbSnapshotValue: dbSnapshot.value ? '설정됨' : 'null'
+  // })
 }
 
 /**
@@ -764,22 +698,17 @@ async function updateSchemaSqlInFiles(schemaSQL: string): Promise<void> {
     return
   }
   
-  console.log('📄 schema.sql 파일 추가 체크:', {
-    hasSchemaSQL: !!schemaSQL,
-    schemaSQLLength: schemaSQL.length,
-    trimmed: schemaSQL.trim().length
-  })
+  // console.log('📄 schema.sql 파일 추가 체크:', {
+  //   hasSchemaSQL: !!schemaSQL,
+  //   schemaSQLLength: schemaSQL.length,
+  //   trimmed: schemaSQL.trim().length
+  // })
   
   // 파일 업데이트
   editorFiles.value = updateSchemaSqlFile(editorFiles.value, schemaSQL)
   
   // Vue 반응성 보장
   await nextTick()
-  
-  const fileList = editorFiles.value.map(f => f.name).join(', ')
-  console.log('✅ schema.sql 파일이 FileExplorer에 업데이트되었습니다.')
-  console.log('📁 FileExplorer 파일 목록:', fileList)
-  console.log('✅ FileExplorer UI 업데이트 완료')
 }
 
 async function resetState() {
@@ -816,7 +745,7 @@ async function resetState() {
 }
 
 async function handleRestart() {
-  console.log('🔄 처음으로 가 복습하기 - 재시작 중...')
+  // console.log('🔄 처음으로 가 복습하기 - 재시작 중...')
   
   // 축하 모달 닫기 (재시작 시 모달이 다시 뜨는 것 방지)
   showCongratsModal.value = false
@@ -834,7 +763,7 @@ async function handleRestart() {
   // 재시작 후 현재 레벨로 업데이트
   previousLevel.value = currentLevel.value
   
-  console.log('✅ 재시작 완료')
+  //  console.log('✅ 재시작 완료')
 }
 
 function handleCloseCongratsModal() {
@@ -845,7 +774,15 @@ function handleCloseCongratsModal() {
 
 async function handleNextLevel() {
   const nextLevel = currentLevel.value
-  
+
+  if (nextLevel >= 2 && !authStore.isAuthenticated) {
+    showCongratsModal.value = false
+    if (confirm('레벨 2부터는 로그인이 필요합니다. 로그인 페이지로 이동할까요?')) {
+      router.push('/login')
+    }
+    return
+  }
+
   // 다음 레벨이 존재하는지 확인 (레벨 4가 최대)
   if (nextLevel > 4) {
     alert('모든 레벨을 완료했습니다! 🎉')
@@ -867,7 +804,7 @@ async function handleNextLevel() {
     return
   }
   
-  console.log(`🚀 레벨 ${nextLevel}로 이동합니다. 첫 번째 스텝: ${nextLevelFirstStep.id}`)
+  // console.log(`🚀 레벨 ${nextLevel}로 이동합니다. 첫 번째 스텝: ${nextLevelFirstStep.id}`)
   
   // 모달 닫기
   showCongratsModal.value = false
@@ -905,10 +842,9 @@ watch(
 )
 
 onMounted(async () => {
-  // 초기 레벨 설정
+  await loadProgress()
   previousLevel.value = currentLevel.value
-  
-  await loadStep('step-1')
+  await loadStep(userProgress.value.currentStep || 'step-1')
   await resetState()
 })
 </script>

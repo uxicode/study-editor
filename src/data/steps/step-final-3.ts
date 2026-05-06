@@ -16,6 +16,12 @@ export const step_final_3: CurriculumStep = {
       'N:M 관계 설정 및 조회',
       '트랜잭션으로 안전한 데이터 처리'
     ],
+    exercise: `
+1. **스키마**: User, Document, DocumentShare(N:M)를 정의하세요.
+2. **$transaction** 안에서 사용자·문서·공유 관계를 create로 한꺼번에 만드세요.
+3. **복합 where**와 **contains/startsWith**로 문서를 검색하는 쿼리를 작성하세요.
+4. N:M 관계로 공유자 목록을 include로 조회해 로그로 확인하고, 정답 확인으로 검증하세요.
+    `.trim(),
     expectedOutput: '완전한 협업 시스템 구현 완료'
   },
   initialFiles: [

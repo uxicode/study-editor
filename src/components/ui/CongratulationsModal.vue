@@ -2,27 +2,15 @@
   <Transition name="modal-fade">
     <div v-if="isOpen" class="modal-overlay" @click.self="emit('close')">
       <div class="congrats-modal">
-        <!-- 엠블럼 -->
+        <!-- 엠블럼: 레벨별 이미지 -->
         <div class="emblem-container">
           <div class="emblem">
             <div class="emblem-glow"></div>
-            <svg class="emblem-icon" viewBox="0 0 100 100">
-              <circle cx="50" cy="50" r="45" fill="url(#gradient)" />
-              <path
-                d="M 30 50 L 45 65 L 70 35"
-                stroke="white"
-                stroke-width="6"
-                fill="none"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-              <defs>
-                <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" style="stop-color:#fbbf24;stop-opacity:1" />
-                  <stop offset="100%" style="stop-color:#f59e0b;stop-opacity:1" />
-                </linearGradient>
-              </defs>
-            </svg>
+            <img
+              :src="emblemImageSrc"
+              :alt="`Level ${currentLevel} 엠블럼`"
+              class="emblem-icon"
+            />
           </div>
         </div>
 
@@ -52,7 +40,11 @@
               <div class="stat-value">{{ completedSteps }}</div>
             </div>
             <div class="stat-item">
-              <div class="stat-icon">🏆</div>
+              <img
+                :src="emblemImageSrc"
+                :alt="`Level ${currentLevel} 엠블럼`"
+                class="stat-icon emblem-icon"
+              />
               <div class="stat-label">획득 엠블럼</div>
               <div class="stat-value">Level {{ currentLevel }}</div>
             </div>
@@ -79,6 +71,19 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
+import level1Img from '@/assets/images/level1.png'
+import level2Img from '@/assets/images/level2.png'
+import level3Img from '@/assets/images/level3.png'
+import level4Img from '@/assets/images/level4.png'
+
+const LEVEL_IMAGES: Record<number, string> = {
+  1: level1Img,
+  2: level2Img,
+  3: level3Img,
+  4: level4Img
+}
+
 interface Props {
   isOpen: boolean
   currentLevel: number
@@ -92,8 +97,12 @@ interface Emits {
   (e: 'next-level'): void
 }
 
-defineProps<Props>()
+const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
+
+const emblemImageSrc = computed(() => {
+  return LEVEL_IMAGES[props.currentLevel] ?? level1Img
+})
 
 function handleRestart() {
   emit('restart')
@@ -163,8 +172,8 @@ function handleNext() {
 
 .emblem {
   position: relative;
-  width: 120px;
-  height: 120px;
+  width: 200px;
+  height: 200px;
   animation: emblem-float 3s ease-in-out infinite;
 }
 
@@ -182,8 +191,8 @@ function handleNext() {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 140px;
-  height: 140px;
+  width: 240px;
+  height: 240px;
   background: radial-gradient(circle, rgba(251, 191, 36, 0.4) 0%, transparent 70%);
   border-radius: 50%;
   animation: glow-pulse 2s ease-in-out infinite;
@@ -204,17 +213,8 @@ function handleNext() {
   position: relative;
   width: 100%;
   height: 100%;
+  object-fit: contain;
   filter: drop-shadow(0 10px 20px rgba(251, 191, 36, 0.3));
-  animation: emblem-rotate 20s linear infinite;
-}
-
-@keyframes emblem-rotate {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
 }
 
 .congrats-content {
@@ -263,8 +263,8 @@ function handleNext() {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 24px;
-  margin-bottom: 32px;
+  gap: 12px;
+  margin-bottom: 24px;
   animation: slide-in 0.6s ease-out 0.4s both;
 }
 
@@ -283,9 +283,9 @@ function handleNext() {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 20px;
-  border-radius: 16px;
-  min-width: 120px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  min-width: 72px;
   transition: all 0.3s;
 }
 
@@ -307,11 +307,11 @@ function handleNext() {
 }
 
 .level-label {
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-bottom: 8px;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
   color: #6b7280;
 
   :global(.dark) & {
@@ -324,7 +324,7 @@ function handleNext() {
 }
 
 .level-number {
-  font-size: 36px;
+  font-size: 24px;
   font-weight: 800;
   color: #111827;
 
@@ -389,6 +389,15 @@ function handleNext() {
 .stat-icon {
   font-size: 32px;
   margin-bottom: 8px;
+
+  &.emblem-icon {
+    width: 48px;
+    height: 48px;
+    object-fit: contain;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+  }
 }
 
 .stat-label {
@@ -503,7 +512,7 @@ function handleNext() {
 
   .level-upgrade {
     flex-direction: column;
-    gap: 16px;
+    gap: 8px;
   }
 
   .arrow {

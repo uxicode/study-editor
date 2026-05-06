@@ -42,6 +42,12 @@ export const step_10_1: CurriculumStep = {
       '@@unique 사용법',
       '실무 활용 예시'
     ],
+    exercise: `
+1. **User** 모델에 \`email\`, \`team\` 필드(둘 다 String)를 두고, \`@@unique([email, team])\`를 추가하세요.
+2. app.js에서 같은 이메일·다른 팀(Team A, Team B)으로 사용자 2명을 create하세요.
+3. 같은 이메일·같은 팀(Team A)으로 한 명 더 create를 시도하고, try-catch로 Unique constraint 에러를 잡아 로그로 출력하세요.
+4. 정답 확인으로 복합 유니크가 동작하는지 검증하세요.
+    `.trim(),
     expectedOutput: '복합 유니크 제약이 설정되어야 합니다.'
   },
   initialFiles: [

@@ -72,6 +72,12 @@ export const step_final_1: CurriculumStep = {
       '실전 프로젝트 수준의 코드 작성',
       '레벨 1 학습 내용의 완전한 이해 확인'
     ],
+    exercise: `
+1. **User** 모델을 완성하세요: id, email, name, role(enum), status(enum), createdAt, updatedAt, @@map("users").
+2. **app.js**에서 사용자 **생성**(create), **조회**(findMany/findUnique), **수정**(update), **삭제**(delete)를 각각 한 번 이상 수행하세요.
+3. **orderBy**, **select**, **skip/take**를 사용한 복합 쿼리를 포함하세요.
+4. 콘솔에 각 단계 결과가 출력되도록 하고, 정답 확인으로 검증을 통과하세요.
+    `.trim(),
     expectedOutput: '완전한 사용자 관리 시스템 구현 완료'
   },
   initialFiles: [

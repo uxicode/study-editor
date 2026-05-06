@@ -1,5 +1,10 @@
+import './env'
 import express, { type Request, type Response } from 'express'
 import cors from 'cors'
+import { badRequest, internalError, ok } from './utils/response'
+import passport from 'passport'
+import authRoutes from './routes/auth'
+import progressRoutes from './routes/progress'
 import {
   parsePrismaSchema,
   extractTableName,
@@ -22,7 +27,7 @@ import {
   generateInsertSQL,
   prepareInsertData
 } from './utils/sql-data-inserter'
-import { db } from './utils/in-memory-db'
+import { db } from './utils/in-memory-db' // [ConsolePanel: "데이터베이스" 탭에 표시]
 
 const app = express()
 const PORT = process.env.PORT || 3001
@@ -35,6 +40,11 @@ app.use(cors({
 
 // JSON 파싱 미들웨어
 app.use(express.json({ limit: '10mb' }))
+app.use(passport.initialize())
+
+// 인증 및 진행상황 API
+app.use('/api/auth', authRoutes)
+app.use('/api/progress', progressRoutes)
 
 /**
  * Prisma 스키마를 SQL로 변환하는 API
@@ -46,10 +56,7 @@ app.post('/api/prisma-to-sql', async (req: Request, res: Response) => {
     const { schemaContent } = req.body
 
     if (!schemaContent || typeof schemaContent !== 'string') {
-      return res.status(400).json({
-        success: false,
-        error: 'schemaContent가 필요합니다.'
-      })
+      return badRequest(res, 'schemaContent가 필요합니다.')
     }
 
     console.log('📝 Prisma 스키마 → SQL 변환 요청 받음')
@@ -60,8 +67,7 @@ app.post('/api/prisma-to-sql', async (req: Request, res: Response) => {
     console.log(`📊 총 ${models.length}개 모델, ${enums.length}개 enum 발견`)
 
     if (models.length === 0) {
-      return res.json({
-        success: true,
+      return ok(res, {
         sql: '',
         tables: [],
         message: '모델이 없습니다. (설정 단계이거나 아직 모델을 정의하지 않았습니다)'
@@ -116,8 +122,7 @@ app.post('/api/prisma-to-sql', async (req: Request, res: Response) => {
       sqlLength: finalSQL.length
     })
 
-    res.json({
-      success: true,
+    return ok(res, {
       sql: finalSQL,
       tables,
       modelsCount: models.length,
@@ -126,11 +131,7 @@ app.post('/api/prisma-to-sql', async (req: Request, res: Response) => {
     })
   } catch (error) {
     console.error('❌ Prisma → SQL 변환 실패:', error)
-    res.status(500).json({
-      success: false,
-      error: error instanceof Error ? error.message : String(error),
-      stack: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.stack : undefined) : undefined
-    })
+    return internalError(res, error)
   }
 })
 
@@ -144,17 +145,11 @@ app.post('/api/prisma-output-to-sql', async (req: Request, res: Response) => {
     const { output, schemaContent } = req.body
 
     if (!output || typeof output !== 'string') {
-      return res.status(400).json({
-        success: false,
-        error: 'output가 필요합니다.'
-      })
+      return badRequest(res, 'output가 필요합니다.')
     }
 
     if (!schemaContent || typeof schemaContent !== 'string') {
-      return res.status(400).json({
-        success: false,
-        error: 'schemaContent가 필요합니다.'
-      })
+      return badRequest(res, 'schemaContent가 필요합니다.')
     }
 
     console.log('📝 Prisma 출력 → INSERT SQL 변환 요청 받음')
@@ -162,8 +157,7 @@ app.post('/api/prisma-output-to-sql', async (req: Request, res: Response) => {
     // 모델 이름 추출
     const modelName = extractModelName(schemaContent)
     if (!modelName) {
-      return res.json({
-        success: true,
+      return ok(res, {
         insertStatements: [],
         message: '스키마에서 모델을 찾을 수 없습니다.'
       })
@@ -176,8 +170,7 @@ app.post('/api/prisma-output-to-sql', async (req: Request, res: Response) => {
     const objectPatterns = extractObjectPatterns(output)
     
     if (objectPatterns.length === 0) {
-      return res.json({
-        success: true,
+      return ok(res, {
         insertStatements: [],
         message: '출력에서 데이터 객체를 찾을 수 없습니다.'
       })
@@ -237,8 +230,7 @@ app.post('/api/prisma-output-to-sql', async (req: Request, res: Response) => {
       }
     }
 
-    res.json({
-      success: true,
+    return ok(res, {
       insertStatements,
       objectsCount: objectPatterns.length,
       statementsCount: insertStatements.length,
@@ -246,11 +238,7 @@ app.post('/api/prisma-output-to-sql', async (req: Request, res: Response) => {
     })
   } catch (error) {
     console.error('❌ Prisma 출력 → INSERT SQL 변환 실패:', error)
-    res.status(500).json({
-      success: false,
-      error: error instanceof Error ? error.message : String(error),
-      stack: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.stack : undefined) : undefined
-    })
+    return internalError(res, error)
   }
 })
 
@@ -264,10 +252,7 @@ app.post('/api/execute-sql', async (req: Request, res: Response) => {
     const { sql } = req.body
 
     if (!sql || typeof sql !== 'string') {
-      return res.status(400).json({
-        success: false,
-        error: 'sql이 필요합니다.'
-      })
+      return badRequest(res, 'sql이 필요합니다.')
     }
 
     console.log('📝 SQL 실행 요청 받음:', sql.substring(0, 100))
@@ -276,42 +261,22 @@ app.post('/api/execute-sql', async (req: Request, res: Response) => {
 
     if (sqlUpper.startsWith('CREATE TABLE')) {
       db.executeCreateTable(sql)
-      return res.json({
-        success: true,
-        message: '테이블 생성 완료'
-      })
+      return ok(res, { message: '테이블 생성 완료' })
     } else if (sqlUpper.startsWith('INSERT INTO')) {
       db.executeInsert(sql)
-      return res.json({
-        success: true,
-        message: '데이터 삽입 완료'
-      })
+      return ok(res, { message: '데이터 삽입 완료' })
     } else if (sqlUpper.startsWith('SELECT')) {
       const rows = db.executeSelect(sql)
-      return res.json({
-        success: true,
-        rows,
-        rowCount: rows.length
-      })
+      return ok(res, { rows, rowCount: rows.length })
     } else if (sqlUpper.startsWith('DROP TABLE')) {
       // DROP TABLE은 현재 구현에서 무시 (리셋 시 전체 삭제)
-      return res.json({
-        success: true,
-        message: '테이블 삭제 완료'
-      })
+      return ok(res, { message: '테이블 삭제 완료' })
     } else {
-      return res.status(400).json({
-        success: false,
-        error: `지원하지 않는 SQL 구문입니다: ${sqlUpper.split(' ')[0]}`
-      })
+      return badRequest(res, `지원하지 않는 SQL 구문입니다: ${sqlUpper.split(' ')[0]}`)
     }
   } catch (error) {
     console.error('❌ SQL 실행 실패:', error)
-    res.status(500).json({
-      success: false,
-      error: error instanceof Error ? error.message : String(error),
-      stack: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.stack : undefined) : undefined
-    })
+    return internalError(res, error)
   }
 })
 
@@ -337,17 +302,10 @@ app.get('/api/snapshot', (req: Request, res: Response) => {
       timestamp: Date.now()
     }
 
-    res.json({
-      success: true,
-      snapshot
-    })
+    return ok(res, { snapshot })
   } catch (error) {
     console.error('❌ 스냅샷 조회 실패:', error)
-    res.status(500).json({
-      success: false,
-      error: error instanceof Error ? error.message : String(error),
-      stack: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.stack : undefined) : undefined
-    })
+    return internalError(res, error)
   }
 })
 
@@ -358,17 +316,10 @@ app.get('/api/snapshot', (req: Request, res: Response) => {
 app.post('/api/reset', (req: Request, res: Response) => {
   try {
     db.reset()
-    res.json({
-      success: true,
-      message: '데이터베이스 리셋 완료'
-    })
+    return ok(res, { message: '데이터베이스 리셋 완료' })
   } catch (error) {
     console.error('❌ 데이터베이스 리셋 실패:', error)
-    res.status(500).json({
-      success: false,
-      error: error instanceof Error ? error.message : String(error),
-      stack: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.stack : undefined) : undefined
-    })
+    return internalError(res, error)
   }
 })
 

@@ -88,6 +88,12 @@ export const step_2_2: CurriculumStep = {
         '@updatedAt으로 수정일 자동 갱신',
         '타임스탬프의 실무 활용 이해'
       ],
+      exercise: `
+1. **User** 모델에 **createdAt** 필드를 추가하세요. \`DateTime @default(now())\`를 사용하세요.
+2. **updatedAt** 필드를 추가하세요. \`DateTime @updatedAt\`를 사용하세요.
+3. 기존 id, email, name 필드는 그대로 두고, 위 두 필드만 추가하면 됩니다.
+4. 정답 확인 후 생성일/수정일이 자동으로 저장·갱신되는지 확인하세요.
+      `.trim(),
       expectedOutput: `User 모델이 다음 필드를 포함해야 합니다:
 - id: 정수형, 기본키, 자동 증가
 - email: 문자열, 유니크

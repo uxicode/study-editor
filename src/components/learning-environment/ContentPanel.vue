@@ -45,14 +45,20 @@
         <div class="section-content" v-html="formatMarkdown(step.content.theory)"></div>
       </section>
 
+      <!-- 연습문제 -->
+      <section v-if="step.content.exercise" class="content-section exercise-section">
+        <h3 class="section-title">📝 연습문제</h3>
+        <div class="section-content" v-html="formatMarkdown(step.content.exercise)"></div>
+      </section>
+
       <!-- 예상 출력 -->
       <section v-if="step.content.expectedOutput" class="content-section expected-section">
         <h3 class="section-title">✅ 예상 결과</h3>
         <pre class="code-block">{{ step.content.expectedOutput }}</pre>
       </section>
 
-      <!-- 힌트 및 정답 버튼 -->
-      <div class="hint-buttons">
+      <!-- 힌트 및 정답 버튼 (로그인 회원만) -->
+      <div v-if="isAuthenticated" class="hint-buttons">
         <button
           v-for="hint in step.hints"
           :key="hint.level"
@@ -71,6 +77,9 @@
           ✨ 정답 보기 및 적용
         </button>
       </div>
+      <p v-else-if="step.hints.length > 0" class="hint-login-message">
+        💡 힌트는 로그인한 회원만 볼 수 있습니다.
+      </p>
     </div>
 
     <div v-else class="empty-state">
@@ -89,6 +98,7 @@ interface Props {
   currentStepNumber: number
   totalSteps: number
   completedSteps: string[]
+  isAuthenticated: boolean
 }
 
 interface Emits {
@@ -369,6 +379,12 @@ const progressPercentage = computed(() => {
   font-size: 13px;
   overflow-x: auto;
   margin: 0;
+}
+
+.hint-login-message {
+  font-size: 14px;
+  color: #6b7280;
+  margin-top: 12px;
 }
 
 .hint-buttons {

@@ -31,6 +31,12 @@ export const step_3: CurriculumStep = {
         '데이터 객체 구조 이해',
         '생성된 결과 확인'
       ],
+      exercise: `
+1. **app.js**의 \`main()\` 안에서 \`prisma.user.create()\`를 호출하세요.
+2. \`data\` 객체에 \`email\`(예: \`"user@example.com"\`), \`name\`(예: \`"John Doe"\`)을 넣어 새 사용자를 생성하세요.
+3. 반환값을 \`newUser\` 변수에 담고, \`console.log('생성된 사용자:', newUser)\`로 출력하세요.
+4. 정답 확인을 눌러 실행 및 검증을 통과하세요.
+      `.trim(),
       expectedOutput: `{
   id: 1,
   email: "your-email@example.com",

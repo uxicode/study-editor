@@ -156,6 +156,13 @@ export const step_2_3: CurriculumStep = {
         '@@map으로 테이블 이름 매핑',
         '실무 수준의 User 모델 설계'
       ],
+      exercise: `
+1. **Role** enum을 정의하세요. 값: \`USER\`, \`ADMIN\`.
+2. **Status** enum을 정의하세요. 값: \`ACTIVE\`, \`INACTIVE\`.
+3. **User** 모델에 \`role Role @default(USER)\`, \`status Status @default(ACTIVE)\` 필드를 추가하세요.
+4. User 모델에 \`@@map("users")\`를 추가하여 DB 테이블 이름을 \`users\`로 매핑하세요.
+5. 정답 확인으로 검증을 통과하세요.
+      `.trim(),
       expectedOutput: `User 모델이 다음을 포함해야 합니다:
 - Role enum (USER, ADMIN)
 - Status enum (ACTIVE, INACTIVE)

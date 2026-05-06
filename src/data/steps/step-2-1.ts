@@ -112,6 +112,13 @@ export const step_2_1: CurriculumStep = {
         '기본 키와 유니크 제약 조건 설정',
         '필드 타입과 속성 사용'
       ],
+      exercise: `
+1. **schema.prisma**에 **User** 모델을 정의하세요.
+2. **id**: \`Int\` 타입, \`@id @default(autoincrement())\`로 기본 키이자 자동 증가로 설정하세요.
+3. **email**: \`String\` 타입, \`@unique\`로 중복 불가로 설정하세요.
+4. **name**: \`String?\` 타입으로 선택적(optional) 필드로 두세요.
+5. 작성 후 정답 확인을 눌러 검증을 통과하세요.
+      `.trim(),
       expectedOutput: `User 모델이 다음 필드를 포함해야 합니다:
 - id: 정수형, 기본키, 자동 증가
 - email: 문자열, 유니크

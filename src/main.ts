@@ -1,7 +1,15 @@
 import { createApp } from 'vue'
+import { createPinia } from 'pinia'
+import { router } from './router'
 import './styles/main.scss'
 import './styles/dark-mode.scss'
 import './monaco-setup'
 import App from './App.vue'
 
-createApp(App).mount('#app')
+const app = createApp(App)
+const pinia = createPinia()
+
+app.use(pinia)
+app.use(router)
+
+app.mount('#app')

@@ -27,6 +27,12 @@ export const step_13_1: CurriculumStep = {
       '마이그레이션 명령어 학습',
       '실무 프로세스 이해'
     ],
+    exercise: `
+1. **개념**: \`prisma migrate dev\`는 개발 시 스키마 변경 시 마이그레이션 파일을 만들고 DB에 적용합니다. \`prisma migrate deploy\`는 프로덕션에서 기존 마이그레이션만 적용합니다.
+2. 이론을 읽고, app.js에서는 마이그레이션 개념 이해 메시지를 출력하세요.
+3. (실습 환경에서 migrate 명령을 실행할 수 있다면) 스키마를 수정한 뒤 \`prisma migrate dev --name add_필드명\`으로 마이그레이션을 생성·적용해 보세요.
+4. 정답 확인으로 단계를 완료하세요.
+    `.trim(),
     expectedOutput: '마이그레이션 개념을 이해해야 합니다.'
   },
   initialFiles: [

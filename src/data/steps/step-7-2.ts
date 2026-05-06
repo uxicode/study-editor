@@ -326,6 +326,12 @@ export const step_7_2: CurriculumStep = {
       '성능 최적화를 위한 select 활용',
       '실무에서 include/select 선택 기준'
     ],
+    exercise: `
+1. **include**: \`findUnique\`로 사용자 조회 시 \`include: { documents: true }\`를 넣어 \`userWithInclude\`에 담고, 사용자 필드와 문서 개수를 로그로 출력하세요.
+2. **select**: \`select: { id: true, name: true, documents: true }\`로 \`userWithSelect\`를 조회하고 동일하게 로그로 확인하세요.
+3. **select로 관계 필드 제한**: \`documents: { select: { id: true, title: true } }\`를 사용해 \`userWithSelectDocs\`를 조회하고, 문서 객체에 id·title만 있는지 확인하세요.
+4. 세 가지 로그가 나오면 정답 확인을 하세요.
+    `.trim(),
     expectedOutput: 'include와 select를 사용하여 관계 데이터를 조회할 수 있어야 합니다.'
   },
   initialFiles: [

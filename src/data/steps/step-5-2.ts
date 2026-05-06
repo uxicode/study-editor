@@ -179,6 +179,12 @@ export const step_5_2: CurriculumStep = {
       'update() vs updateMany() 차이점 이해',
       '대량 업데이트 실무 활용'
     ],
+    exercise: `
+1. **createMany**로 status가 \`INACTIVE\`인 사용자와 \`ACTIVE\`인 사용자를 몇 명씩 만드세요.
+2. **updateMany()**에 \`where: { status: "INACTIVE" }\`, \`data: { status: "ACTIVE" }\`를 넣어 비활성 사용자를 한 번에 활성화하세요.
+3. \`result.count\`를 로그로 출력하고, findMany로 전체 사용자 상태를 확인하세요.
+4. 정답 확인을 눌러 검증을 통과하세요.
+    `.trim(),
     expectedOutput: '여러 레코드가 성공적으로 수정되어야 합니다.'
   },
   initialFiles: [

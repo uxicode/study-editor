@@ -36,6 +36,12 @@ export const step_12_2: CurriculumStep = {
       'Promise.all로 병렬 처리',
       '성능 최적화'
     ],
+    exercise: `
+1. **createMany**로 \`data: [{ email: "user1@example.com", name: "User 1" }, ...]\` 형태로 사용자 3명 이상을 한 번에 생성하세요.
+2. (선택) **updateMany**로 조건에 맞는 레코드를 한 번에 수정해 보세요.
+3. (선택) **Promise.all**로 여러 create를 병렬로 실행해 보세요.
+4. 배치 생성 후 findMany로 목록을 확인하고 정답 확인을 하세요.
+    `.trim(),
     expectedOutput: '배치 처리가 정상적으로 동작해야 합니다.'
   },
   initialFiles: [

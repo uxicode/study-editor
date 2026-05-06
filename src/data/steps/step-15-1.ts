@@ -42,6 +42,12 @@ export const step_15_1: CurriculumStep = {
       'deletedAt 필드 활용',
       '데이터 복구 기능'
     ],
+    exercise: `
+1. **User** 모델에 \`deletedAt DateTime?\` 필드를 추가하세요.
+2. "삭제" 시 \`delete()\` 대신 \`update({ where: { id }, data: { deletedAt: new Date() } })\`로 삭제 처리하세요.
+3. 목록 조회 시 \`where: { deletedAt: null }\`을 넣어 삭제되지 않은 사용자만 조회하세요.
+4. create → soft delete → findMany(where deletedAt: null) 순으로 실행해 보이고 정답 확인을 하세요.
+    `.trim(),
     expectedOutput: 'Soft Delete 패턴이 구현되어야 합니다.'
   },
   initialFiles: [

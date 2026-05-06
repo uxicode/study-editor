@@ -1,6 +1,20 @@
 import { ref, computed } from 'vue'
 import type { CurriculumStep, UserProgress } from '@/types/curriculum'
 import { CURRICULUM_STEPS, LEVEL_STEP_COUNTS } from '@/data/curriculum-steps'
+import { useAuthStore } from '@/stores/auth-store'
+import * as progressService from '@/services/progress.service'
+
+const MAX_LEVEL = 4
+type LevelKey = keyof typeof LEVEL_STEP_COUNTS
+
+/** 레벨 1 ~ targetLevel 까지의 누적 스텝 수 */
+function getCumulativeStepsThroughLevel(targetLevel: number): number {
+  let sum = 0
+  for (let level = 1; level <= targetLevel && level <= MAX_LEVEL; level++) {
+    sum += LEVEL_STEP_COUNTS[level as LevelKey] ?? 0
+  }
+  return sum
+}
 
 const currentStepId = ref<string>('')
 const userProgress = ref<UserProgress>({
@@ -68,65 +82,13 @@ export function useCurriculum() {
     return userProgress.value.completedSteps.length === CURRICULUM_STEPS.length
   })
 
+  /** 완료한 스텝 수 기준 현재 레벨 (1~4). 반응형이므로 computed 유지 */
   const currentLevel = computed(() => {
     const completedCount = userProgress.value.completedSteps.length
-    const level1StepCount = LEVEL_STEP_COUNTS[1] // 9개
-    const level2StepCount = LEVEL_STEP_COUNTS[2] // 6개
-    const level3StepCount = LEVEL_STEP_COUNTS[3] // 7개
-    const level4StepCount = LEVEL_STEP_COUNTS[4] // 6개
-    
-    // 레벨별 완료 스텝 수 계산
-    if (completedCount >= level1StepCount + level2StepCount + level3StepCount + level4StepCount) {
-      return 4
+    for (let level = 1; level <= MAX_LEVEL; level++) {
+      if (completedCount < getCumulativeStepsThroughLevel(level)) return level
     }
-    if (completedCount >= level1StepCount + level2StepCount + level3StepCount) {
-      return 4
-    }
-    if (completedCount >= level1StepCount + level2StepCount) {
-      return 3
-    }
-    if (completedCount >= level1StepCount) {
-      return 2
-    }
-    return 1
-  })
-
-  // 레벨별 완료 여부 체크
-  const isLevelCompleted = computed(() => {
-    const completedCount = userProgress.value.completedSteps.length
-    const currentLevelValue = currentLevel.value
-    
-    // 현재 레벨까지의 누적 스텝 수 계산
-    let requiredSteps = 0
-    for (let level = 1; level <= currentLevelValue; level++) {
-      requiredSteps += LEVEL_STEP_COUNTS[level as keyof typeof LEVEL_STEP_COUNTS] || 0
-    }
-    
-    return completedCount >= requiredSteps
-  })
-
-  // 레벨별 완료한 스텝 수
-  const completedStepsInCurrentLevel = computed(() => {
-    const currentLevelValue = currentLevel.value
-    const completedCount = userProgress.value.completedSteps.length
-    
-    // 이전 레벨들의 누적 스텝 수 계산
-    let previousLevelSteps = 0
-    for (let level = 1; level < currentLevelValue; level++) {
-      previousLevelSteps += LEVEL_STEP_COUNTS[level as keyof typeof LEVEL_STEP_COUNTS] || 0
-    }
-    
-    // 현재 레벨에서 완료한 스텝 수
-    const currentLevelSteps = completedCount - previousLevelSteps
-    const maxCurrentLevelSteps = LEVEL_STEP_COUNTS[currentLevelValue as keyof typeof LEVEL_STEP_COUNTS] || 0
-    
-    return Math.max(0, Math.min(currentLevelSteps, maxCurrentLevelSteps))
-  })
-
-  // 레벨별 총 스텝 수
-  const totalStepsInCurrentLevel = computed(() => {
-    const currentLevelValue = currentLevel.value
-    return LEVEL_STEP_COUNTS[currentLevelValue as keyof typeof LEVEL_STEP_COUNTS] || 0
+    return MAX_LEVEL
   })
 
   function restartCurriculum() {
@@ -142,16 +104,33 @@ export function useCurriculum() {
   }
 
   function saveProgress() {
-    localStorage.setItem('userProgress', JSON.stringify(userProgress.value))
+    const authStore = useAuthStore()
+    if (authStore.isAuthenticated) {
+      progressService.saveProgress(userProgress.value).catch((e) => {
+        console.error('진행상황 저장 실패:', e)
+      })
+    } else {
+      localStorage.setItem('userProgress', JSON.stringify(userProgress.value))
+    }
   }
 
-  function loadProgress() {
-    const saved = localStorage.getItem('userProgress')
-    if (saved) {
+  async function loadProgress() {
+    const authStore = useAuthStore()
+    if (authStore.isAuthenticated) {
       try {
-        userProgress.value = JSON.parse(saved)
+        const progress = await progressService.getProgress()
+        userProgress.value = progress
       } catch (e) {
-        console.error('Failed to load progress:', e)
+        console.error('진행상황 로드 실패:', e)
+      }
+    } else {
+      const saved = localStorage.getItem('userProgress')
+      if (saved) {
+        try {
+          userProgress.value = JSON.parse(saved)
+        } catch (e) {
+          console.error('Failed to load progress:', e)
+        }
       }
     }
   }
@@ -182,9 +161,6 @@ export function useCurriculum() {
     resetProgress,
     isAllStepsCompleted,
     currentLevel,
-    isLevelCompleted,
-    completedStepsInCurrentLevel,
-    totalStepsInCurrentLevel,
     restartCurriculum
   }
 }

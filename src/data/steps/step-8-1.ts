@@ -256,6 +256,12 @@ export const step_8_1: CurriculumStep = {
       'AND, OR, NOT을 복합적으로 사용',
       '실무에서 복합 조건 활용'
     ],
+    exercise: `
+1. **AND**: \`where: { role: "ADMIN", status: "ACTIVE" }\`로 활성 관리자만 조회해 \`activeAdmins\`에 담으세요.
+2. **OR**: \`where: { OR: [{ role: "ADMIN" }, { status: "ACTIVE" }] }\`로 관리자 또는 활성 사용자를 \`adminsOrActive\`에 담으세요.
+3. **NOT**: \`where: { NOT: { role: "ADMIN" } }\`로 일반 사용자만 \`nonAdmins\`에 담으세요.
+4. **복합**: AND와 OR를 조합해 (관리자이거나 활성 상태)인 사용자를 조회해 \`complexQuery\`에 담고, 정답 확인을 하세요.
+    `.trim(),
     expectedOutput: '복합 조건으로 데이터를 조회할 수 있어야 합니다.'
   },
   initialFiles: [

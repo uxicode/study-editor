@@ -247,6 +247,12 @@ export const step_8_2: CurriculumStep = {
       '복합 검색 조건 구현',
       '실무 검색 기능 구현'
     ],
+    exercise: `
+1. **contains**: 제목에 "프로젝트"가 포함된 문서를 \`title: { contains: "프로젝트", mode: 'insensitive' }\`로 조회해 \`containsResults\`에 담으세요.
+2. **startsWith**: 제목이 "프로젝트"로 시작하는 문서를 \`startsWith\`로 조회해 \`startsWithResults\`에 담으세요.
+3. **복합 검색**: \`OR\`와 \`contains\`로 제목 또는 내용에 "프로젝트"가 포함된 문서를 \`complexSearch\`에 담으세요.
+4. 각 결과 개수를 로그로 출력한 뒤 정답 확인을 하세요.
+    `.trim(),
     expectedOutput: '텍스트 검색 기능이 정상적으로 동작해야 합니다.'
   },
   initialFiles: [

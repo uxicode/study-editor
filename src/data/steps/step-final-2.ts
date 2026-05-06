@@ -73,6 +73,14 @@ export const step_final_2: CurriculumStep = {
       '에러 처리 및 null 체크',
       '실전 프로젝트 수준의 코드 작성'
     ],
+    exercise: `
+1. **스키마**: User와 Document 모델을 1:N 관계로 정의하세요 (id, email, name, documents / id, title, content, userId, user).
+2. **Create**: 사용자 한 명과 문서 2개를 함께 생성하세요.
+3. **Read**: include로 사용자+문서 조회, select로 id·name·documents(id, title)만 조회하세요.
+4. **Update**: 사용자 name, 문서 content를 각각 update()로 수정하세요.
+5. **Delete**: 문서 하나를 delete()로 삭제한 뒤, include로 남은 문서를 확인하세요.
+6. 정답 확인으로 전체 검증을 통과하세요.
+    `.trim(),
     expectedOutput: '완전한 CRUD와 관계 설정이 구현되어야 합니다.'
   },
   initialFiles: [

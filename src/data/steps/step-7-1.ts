@@ -190,6 +190,12 @@ export const step_7_1: CurriculumStep = {
       '관계 필드 네이밍 규칙',
       'User ↔ Document 관계 설정'
     ],
+    exercise: `
+1. **User** 모델에 \`documents Document[]\` 관계 필드를 추가하세요.
+2. **Document** 모델에 \`userId Int\`(외래 키), \`user User @relation(fields: [userId], references: [id])\`를 추가하세요.
+3. app.js에서 **create**로 사용자와 문서를 함께 만들고, **include**로 사용자·문서를 조회한 뒤 로그로 확인하세요.
+4. 정답 확인으로 1:N 관계가 동작하는지 검증하세요.
+    `.trim(),
     expectedOutput: 'User와 Document 모델 간의 1:N 관계가 설정되어야 합니다.'
   },
   initialFiles: [

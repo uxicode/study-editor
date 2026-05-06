@@ -76,12 +76,12 @@ export function parseMarkdown(text: string): string {
   })
   // console.log('result', result);
 
-  // 나머지 변환
+  // 나머지 변환 (헤더는 줄 앞 공백/들여쓰기 허용 - step content가 템플릿 리터럴로 들여쓰기됨)
   result = result
-    // 헤더
-    .replace(/^### (.*$)/gim, '<h3>$1</h3>')
-    .replace(/^## (.*$)/gim, '<h2>$1</h2>')
-    .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+    // 헤더: ^\s* 로 줄 시작 후 공백 허용
+    .replace(/^\s*###\s+(.*)$/gim, '<h3>$1</h3>')
+    .replace(/^\s*##\s+(.*)$/gim, '<h2>$1</h2>')
+    .replace(/^\s*#\s+(.*)$/gim, '<h1>$1</h1>')
     // 볼드
     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
     // 이탤릭

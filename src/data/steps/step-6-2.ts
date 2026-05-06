@@ -206,6 +206,12 @@ export const step_6_2: CurriculumStep = {
       '대량 삭제 실무 활용',
       '안전한 삭제 패턴 학습'
     ],
+    exercise: `
+1. **createMany**로 status가 \`INACTIVE\`인 사용자와 \`ACTIVE\`인 사용자를 여러 명 만드세요.
+2. **deleteMany()**에 \`where: { status: "INACTIVE" }\`를 넣어 비활성 사용자만 한 번에 삭제하세요.
+3. \`result.count\`를 로그로 출력하고, findMany로 남은 사용자 목록을 확인하세요.
+4. 정답 확인을 눌러 검증을 통과하세요.
+    `.trim(),
     expectedOutput: '여러 레코드가 성공적으로 삭제되어야 합니다.'
   },
   initialFiles: [

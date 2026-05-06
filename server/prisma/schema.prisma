@@ -1,0 +1,28 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         String   @id @default(cuid())
+  email      String   @unique
+  password   String?  // 이메일 가입 시만, OAuth는 null
+  provider   String   @default("email") // email | google | github
+  providerId String?  // OAuth provider 고유 ID
+  createdAt  DateTime @default(now())
+  progress   UserProgress?
+}
+
+model UserProgress {
+  id             String   @id @default(cuid())
+  userId         String   @unique
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  completedSteps String[] @default([])
+  currentStep    String   @default("step-1")
+  attempts       Json     @default("{}")
+  updatedAt      DateTime @updatedAt
+}

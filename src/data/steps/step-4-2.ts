@@ -159,6 +159,12 @@ export const step_4_2: CurriculumStep = {
         'select의 성능 최적화 및 보안 효과 이해',
         'where, orderBy, select를 조합한 복잡한 쿼리 작성'
       ],
+      exercise: `
+1. **latestUsers**: \`findMany\`에 \`orderBy: { createdAt: 'desc' }\`를 넣어 최신 가입자 순으로 조회하세요.
+2. **userNames**: \`findMany\`에 \`select: { id: true, name: true }\`를 넣어 id와 name만 조회하세요.
+3. **sortedSelected**: \`orderBy\`(createdAt 내림차순)와 \`select\`(name, email)를 함께 사용해 최신순으로 이름·이메일만 조회하세요.
+4. 각 단계별 로그가 나오면 정답 확인을 하세요.
+      `.trim(),
       expectedOutput: 'orderBy와 select가 올바르게 실행되어야 합니다.'
     },
     initialFiles: [

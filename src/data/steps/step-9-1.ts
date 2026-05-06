@@ -241,6 +241,12 @@ export const step_9_1: CurriculumStep = {
       'N:M 관계 생성 및 조회',
       '실무 협업 기능 구현'
     ],
+    exercise: `
+1. **DocumentShare** 중간 모델을 정의하세요: id, userId, documentId, role(@default("VIEWER")), user 관계, document 관계, \`@@unique([userId, documentId])\`.
+2. **User**에 \`documents DocumentShare[]\`, **Document**에 \`shares DocumentShare[]\`를 추가하세요.
+3. app.js에서 사용자 2명, 문서 1개를 만든 뒤 \`shares.create\`로 문서에 두 사용자를 OWNER/EDITOR로 공유하고, include로 조회해 로그로 확인하세요.
+4. 정답 확인으로 N:M 관계가 동작하는지 검증하세요.
+    `.trim(),
     expectedOutput: 'User와 Document 간의 N:M 관계가 설정되어야 합니다.'
   },
   initialFiles: [

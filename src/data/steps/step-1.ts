@@ -49,6 +49,12 @@ export const step_1: CurriculumStep = {
         '환경 변수를 통한 DATABASE_URL 설정 방법',
         'Prisma Client 생성 방법 학습'
       ],
+      exercise: `
+1. **schema.prisma**에 \`generator client\`와 \`datasource db\` 블록을 작성하세요.
+2. \`provider\`는 \`"prisma-client-js"\`, \`"postgresql"\`을 사용하세요.
+3. \`url\`은 \`env("DATABASE_URL")\`로 환경 변수를 참조하도록 설정하세요.
+4. 에디터에 주어진 .env의 DATABASE_URL이 올바른지 확인한 뒤, 코드 실행으로 설정이 적용되는지 확인하세요.
+      `.trim(),
       expectedOutput: 'Prisma 설정 완료'
     },
     initialFiles: [

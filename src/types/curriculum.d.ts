@@ -24,6 +24,8 @@ export interface StepContent {
   mission: string
   theory: string
   objectives: string[]
+  /** 연습문제: 학습자가 수행할 구체적인 과제 설명 */
+  exercise?: string
   expectedOutput?: string
 }
 

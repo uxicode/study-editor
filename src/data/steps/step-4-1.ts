@@ -128,6 +128,12 @@ export const step_4_1: CurriculumStep = {
         'findFirst()로 일반 필드를 사용한 첫 번째 레코드 조회',
         'where 조건으로 단일 및 복합 필터링'
       ],
+      exercise: `
+1. **findMany()**: 인자 없이 호출해 모든 사용자를 \`allUsers\`에 담고, \`console.log\`로 출력하세요.
+2. **findUnique()**: \`where: { email: "..." }\` 형태로 이메일이 일치하는 사용자 한 명을 조회해 \`userByEmail\`에 담고 출력하세요.
+3. **findFirst()**: \`where: { name: "..." }\` 형태로 이름이 일치하는 첫 번째 사용자를 \`userByName\`에 담고 출력하세요.
+4. 주석에 적힌 로그 메시지가 콘솔에 나오도록 한 뒤 정답 확인을 하세요.
+      `.trim(),
       expectedOutput: '세 가지 조회 메서드가 올바르게 실행되어야 합니다.'
     },
     initialFiles: [

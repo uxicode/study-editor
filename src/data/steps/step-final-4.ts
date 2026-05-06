@@ -15,6 +15,13 @@ export const step_final_4: CurriculumStep = {
       '배치 처리 구현',
       'Soft Delete 패턴 구현'
     ],
+    exercise: `
+1. **스키마**: User, Document(1:N), 필요 시 DocumentShare(N:M)와 **deletedAt** 필드를 정의하세요.
+2. **N+1 방지**: 사용자 목록 조회 시 \`include: { documents: true }\`로 문서를 함께 가져오세요.
+3. **배치**: createMany 또는 Promise.all로 여러 레코드를 한 번에 생성하세요.
+4. **Soft Delete**: deletedAt이 null인 것만 조회하고, "삭제" 시 update로 deletedAt을 설정하세요.
+5. 위 패턴을 적용한 뒤 정답 확인으로 검증을 통과하세요.
+    `.trim(),
     expectedOutput: '성능 최적화와 고급 패턴 구현 완료'
   },
   initialFiles: [

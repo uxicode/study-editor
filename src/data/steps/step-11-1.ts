@@ -42,6 +42,11 @@ export const step_11_1: CurriculumStep = {
       '원자성 보장',
       '실무 활용'
     ],
+    exercise: `
+1. **prisma.$transaction(async (tx) => { ... })** 안에서 \`tx.user.create\`로 사용자 한 명을 만드세요.
+2. 같은 트랜잭션에서 \`tx.document.create\`로 위 사용자의 id를 \`userId\`로 참조하는 문서를 한 개 만드세요.
+3. 두 작업이 한 트랜잭션으로 묶여 있으므로, 하나라도 실패하면 모두 롤백됩니다. 성공 시 로그로 확인한 뒤 정답 확인을 하세요.
+    `.trim(),
     expectedOutput: '트랜잭션이 정상적으로 동작해야 합니다.'
   },
   initialFiles: [

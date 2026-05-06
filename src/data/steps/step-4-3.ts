@@ -230,6 +230,12 @@ export const step_4_3: CurriculumStep = {
         'count()로 전체 개수 조회 및 페이지 수 계산',
         '실무 페이징 패턴 구현'
       ],
+      exercise: `
+1. **skip**과 **take**를 사용해 2페이지(페이지 크기 5)에 해당하는 문서 목록을 조회하세요. (\`skip: 5, take: 5\`)
+2. **orderBy**로 \`createdAt: 'desc'\`, **select**로 필요한 필드만 선택하세요.
+3. **count()**로 해당 조건의 전체 개수를 구하고, 총 페이지 수를 계산해 보세요.
+4. 정답 확인을 눌러 페이징 및 복합 쿼리가 동작하는지 검증하세요.
+      `.trim(),
       expectedOutput: '페이징 및 복합 쿼리 성공'
     },
     initialFiles: [

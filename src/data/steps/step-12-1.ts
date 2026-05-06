@@ -42,6 +42,11 @@ export const step_12_1: CurriculumStep = {
       'include로 해결',
       '성능 최적화'
     ],
+    exercise: `
+1. **findMany**로 모든 사용자를 조회할 때 \`include: { documents: true }\`를 넣어 한 번의 쿼리로 사용자와 문서를 함께 가져오세요.
+2. 반복문 안에서 \`prisma.document.findMany\`를 호출하지 말고, 위에서 포함한 \`user.documents\`를 사용하세요.
+3. 로그로 사용자별 문서 목록이 출력되는지 확인한 뒤 정답 확인을 하세요.
+    `.trim(),
     expectedOutput: 'N+1 쿼리 문제가 해결되어야 합니다.'
   },
   initialFiles: [

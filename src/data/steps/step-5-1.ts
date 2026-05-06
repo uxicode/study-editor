@@ -162,6 +162,12 @@ export const step_5_1: CurriculumStep = {
       '에러 처리 방법 학습 (레코드가 없을 때)',
       'update() vs updateMany() 차이점 이해'
     ],
+    exercise: `
+1. **create**로 테스트용 사용자(예: email \`test@example.com\`, name \`Original Name\`)를 먼저 만드세요.
+2. **update()**로 \`where: { id: user.id }\`, \`data: { name: "Updated Name" }\`를 사용해 이름을 수정하세요.
+3. 같은 사용자를 **이메일**로 찾아 \`where: { email: "test@example.com" }\`로 다시 **update()** 하세요.
+4. 수정된 사용자와 수정 시간이 로그에 나오면 정답 확인을 하세요.
+    `.trim(),
     expectedOutput: '사용자 정보가 성공적으로 수정되어야 합니다.'
   },
   initialFiles: [

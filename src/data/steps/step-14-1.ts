@@ -35,6 +35,12 @@ export const step_14_1: CurriculumStep = {
       '타입 안전성 보장',
       '실무 활용'
     ],
+    exercise: `
+1. **개념**: \`npx prisma generate\` 후 \`Prisma.UserCreateInput\`, \`Prisma.UserUpdateInput\` 같은 타입이 생성됩니다. TypeScript에서 이 타입으로 인자나 변수를 선언하면 타입 안전하게 CRUD를 할 수 있습니다.
+2. 이론을 읽고, app.js에서는 제너레이트 타입 활용에 대한 이해 메시지를 출력하세요.
+3. (TypeScript로 작성한다면) \`data: Prisma.UserCreateInput\`처럼 타입을 지정해 보세요.
+4. 정답 확인으로 단계를 완료하세요.
+    `.trim(),
     expectedOutput: 'TypeScript 타입을 활용해야 합니다.'
   },
   initialFiles: [

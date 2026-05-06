@@ -216,6 +216,12 @@ export const step_6_1: CurriculumStep = {
       '안전한 삭제 패턴 학습',
       'delete() vs deleteMany() 차이점 이해'
     ],
+    exercise: `
+1. **create**로 삭제할 테스트 사용자(예: email \`delete@example.com\`)를 만드세요.
+2. **delete()**에 \`where: { id: user.id }\`를 넣어 해당 사용자를 삭제하세요.
+3. **findUnique**로 같은 id를 조회해 결과가 \`null\`인지 확인하세요.
+4. 다른 사용자를 만든 뒤 **where: { email: "..." }**로 **delete()** 한 번 더 호출하고, 정답 확인을 하세요.
+    `.trim(),
     expectedOutput: '사용자가 성공적으로 삭제되어야 합니다.'
   },
   initialFiles: [

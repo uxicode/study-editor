@@ -94,6 +94,12 @@ export const step_9_2: CurriculumStep = {
       '관계 추가 및 제거',
       '실무 협업 기능 구현'
     ],
+    exercise: `
+1. **create**로 사용자 2명, 문서 1개를 만든 뒤 \`documentShare.create\`로 한 사용자를 문서에 OWNER로 연결하세요.
+2. **include**: 사용자 조회 시 \`documents: { include: { document: true } }\`로 공유 문서를 포함해 \`userWithDocs\`에 담으세요.
+3. 문서 조회 시 \`shares: { include: { user: true } }\`로 공유자 목록을 포함해 \`docWithShares\`에 담으세요.
+4. 공유받은 문서 개수·공유자 수를 로그로 출력하고 정답 확인을 하세요.
+    `.trim(),
     expectedOutput: 'N:M 관계 조회 및 관리가 정상적으로 동작해야 합니다.'
   },
   initialFiles: [

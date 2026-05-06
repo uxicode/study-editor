@@ -14,7 +14,10 @@
   },
   "dependencies": {
     "monaco-editor": "^0.45.0",
-    "vue": "^3.4.21"
+    "pinia": "^2.1.7",
+    "axios": "^1.6.7",
+    "vue": "^3.4.21",
+    "vue-router": "^4.4.5"
   },
   "devDependencies": {
     "@types/node": "^20.11.24",

@@ -84,7 +84,7 @@
               </div>
             </div>
 
-            <div v-if="validationResult.hints.length > 0" class="hint-list">
+            <div v-if="isAuthenticated && validationResult.hints.length > 0" class="hint-list">
               <h4>💡 힌트:</h4>
               <div
                 v-for="(hint, idx) in validationResult.hints"
@@ -162,6 +162,7 @@ interface Props {
   executionResult: ExecutionResult | null
   validationResult: ValidationResult | null
   dbSnapshot: DBSnapshot | null
+  isAuthenticated: boolean
 }
 
 const props = defineProps<Props>()
