@@ -32,8 +32,12 @@
       </form>
       <div class="auth-divider">또는</div>
       <div class="oauth-buttons">
-        <a :href="googleAuthUrl" class="oauth-btn oauth-google">Google로 로그인</a>
-        <a :href="githubAuthUrl" class="oauth-btn oauth-github">GitHub로 로그인</a>
+        <button type="button" class="oauth-btn oauth-google" @click="handleOAuth('google')">
+          Google로 로그인
+        </button>
+        <button type="button" class="oauth-btn oauth-github" @click="handleOAuth('github')">
+          GitHub로 로그인
+        </button>
       </div>
       <p class="auth-footer">
         계정이 없으신가요?
@@ -44,11 +48,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { ref, onMounted, watch } from 'vue'
+import { useRouter } from 'vue-router'
+import type { Provider } from '@supabase/supabase-js'
 import { useAuthStore } from '@/stores/auth-store'
+import { loginWithOAuth } from '@/services/auth.service'
+
 const router = useRouter()
-const route = useRoute()
 const authStore = useAuthStore()
 
 const email = ref('')
@@ -56,30 +62,19 @@ const password = ref('')
 const errorMessage = ref('')
 const isLoading = ref(false)
 
-const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001'
-const googleAuthUrl = computed(() => `${apiBaseUrl}/api/auth/google`)
-const githubAuthUrl = computed(() => `${apiBaseUrl}/api/auth/github`)
-
 onMounted(async () => {
-  const token = route.query.token as string | undefined
-  const error = route.query.error as string | undefined
-
-  if (error) {
-    errorMessage.value = decodeURIComponent(error)
-    router.replace({ path: '/login', query: {} })
-    return
-  }
-
-  if (token) {
-    await authStore.setTokenAndFetchUser(token)
-    if (authStore.isAuthenticated) {
-      router.replace('/')
-    } else {
-      errorMessage.value = '로그인 처리에 실패했습니다.'
-      router.replace({ path: '/login', query: {} })
-    }
+  await authStore.initAuth()
+  if (authStore.isAuthenticated) {
+    router.replace('/')
   }
 })
+
+watch(
+  () => authStore.isAuthenticated,
+  (authed) => {
+    if (authed) router.replace('/')
+  }
+)
 
 async function handleSubmit() {
   errorMessage.value = ''
@@ -91,6 +86,15 @@ async function handleSubmit() {
     errorMessage.value = err instanceof Error ? err.message : '로그인에 실패했습니다.'
   } finally {
     isLoading.value = false
+  }
+}
+
+async function handleOAuth(provider: Provider) {
+  errorMessage.value = ''
+  try {
+    await loginWithOAuth(provider)
+  } catch (err) {
+    errorMessage.value = err instanceof Error ? err.message : 'OAuth 로그인에 실패했습니다.'
   }
 }
 </script>
@@ -191,12 +195,15 @@ async function handleSubmit() {
 
 .oauth-btn {
   display: block;
+  width: 100%;
   text-align: center;
   padding: 12px;
+  border: none;
   border-radius: 8px;
   font-size: 14px;
   font-weight: 500;
   text-decoration: none;
+  cursor: pointer;
   transition: opacity 0.2s;
 
   &:hover {

@@ -1,5 +1,6 @@
 import type { CurriculumStep } from '@/types/curriculum'
 import type { RuntimeFile, ExecutionResult, ValidationResult, ValidationError } from '@/types/runtime'
+import { CURRICULUM_STEPS } from '@/data/curriculum-steps'
 
 export function useValidator() {
   async function validateStep(
@@ -115,13 +116,9 @@ export function useValidator() {
   }
 
   function getNextStepId(currentStepId: string): string | undefined {
-    // 단계 ID 파싱 (예: "step-1" -> "step-2")
-    const match = currentStepId.match(/step-(\d+)/)
-    if (match) {
-      const nextNum = parseInt(match[1]) + 1
-      return `step-${nextNum}`
-    }
-    return undefined
+    const idx = CURRICULUM_STEPS.findIndex((s) => s.id === currentStepId)
+    if (idx < 0 || idx >= CURRICULUM_STEPS.length - 1) return undefined
+    return CURRICULUM_STEPS[idx + 1].id
   }
 
   return {

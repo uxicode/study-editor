@@ -1,77 +1,75 @@
 import type { CurriculumStep } from '@/types/curriculum'
-import { step_1 as step1 } from './steps/step-1'
-import { step_2_1 as step2_1 } from './steps/step-2-1'
-import { step_2_2 as step2_2 } from './steps/step-2-2'
-import { step_2_3 as step2_3 } from './steps/step-2-3'
-import { step_3 as step3 } from './steps/step-3'
-import { step_4_1 as step4_1 } from './steps/step-4-1'
-import { step_4_2 as step4_2 } from './steps/step-4-2'
-import { step_4_3 as step4_3 } from './steps/step-4-3'
-import { step_final_1 as stepFinal1 } from './steps/step-final-1'
-// 레벨 2
-import { step_5_1 as step5_1 } from './steps/step-5-1'
-import { step_5_2 as step5_2 } from './steps/step-5-2'
-import { step_6_1 as step6_1 } from './steps/step-6-1'
-import { step_6_2 as step6_2 } from './steps/step-6-2'
-import { step_7_1 as step7_1 } from './steps/step-7-1'
-import { step_7_2 as step7_2 } from './steps/step-7-2'
-import { step_final_2 as stepFinal2 } from './steps/step-final-2'
-// 레벨 3
-import { step_8_1 as step8_1 } from './steps/step-8-1'
-import { step_8_2 as step8_2 } from './steps/step-8-2'
-import { step_9_1 as step9_1 } from './steps/step-9-1'
-import { step_9_2 as step9_2 } from './steps/step-9-2'
-import { step_10_1 as step10_1 } from './steps/step-10-1'
-import { step_11_1 as step11_1 } from './steps/step-11-1'
-import { step_final_3 as stepFinal3 } from './steps/step-final-3'
-// 레벨 4
-import { step_12_1 as step12_1 } from './steps/step-12-1'
-import { step_12_2 as step12_2 } from './steps/step-12-2'
-import { step_13_1 as step13_1 } from './steps/step-13-1'
-import { step_14_1 as step14_1 } from './steps/step-14-1'
-import { step_15_1 as step15_1 } from './steps/step-15-1'
-import { step_final_4 as stepFinal4 } from './steps/step-final-4'
+
+// Week 1 — Fastify + TS
+import { week_1_1 } from './steps/week-1-1'
+import { week_1_2 } from './steps/week-1-2'
+import { week_1_3 } from './steps/week-1-3'
+import { week_1_4 } from './steps/week-1-4'
+import { week_1_5 } from './steps/week-1-5'
+import { week_1_final } from './steps/week-1-final'
+
+// Week 2 — MySQL DDL
+import { week_2_1 } from './steps/week-2-1'
+import { week_2_2 } from './steps/week-2-2'
+import { week_2_3 } from './steps/week-2-3'
+import { week_2_4 } from './steps/week-2-4'
+import { week_2_5 } from './steps/week-2-5'
+import { week_2_final } from './steps/week-2-final'
+
+// Week 3 — Prisma ORM · Layered architecture
+import { week_3_1 } from './steps/week-3-1'
+import { week_3_2 } from './steps/week-3-2'
+import { week_3_3 } from './steps/week-3-3'
+import { week_3_4 } from './steps/week-3-4'
+import { week_3_5 } from './steps/week-3-5'
+import { week_3_final } from './steps/week-3-final'
+
+// Week 4 — Transactions · indexes · performance
+import { week_4_1 } from './steps/week-4-1'
+import { week_4_2 } from './steps/week-4-2'
+import { week_4_3 } from './steps/week-4-3'
+import { week_4_4 } from './steps/week-4-4'
+import { week_4_5 } from './steps/week-4-5'
+import { week_4_final } from './steps/week-4-final'
 
 export const CURRICULUM_STEPS: CurriculumStep[] = [
-  // 레벨 1
-  step1,
-  step2_1,
-  step2_2,
-  step2_3,
-  step3,
-  step4_1,
-  step4_2,
-  step4_3,
-  stepFinal1,
-  // 레벨 2
-  step5_1,
-  step5_2,
-  step6_1,
-  step6_2,
-  step7_1,
-  step7_2,
-  stepFinal2,
-  // 레벨 3
-  step8_1,
-  step8_2,
-  step9_1,
-  step9_2,
-  step10_1,
-  step11_1,
-  stepFinal3,
-  // 레벨 4
-  step12_1,
-  step12_2,
-  step13_1,
-  step14_1,
-  step15_1,
-  stepFinal4
+  // Week 1
+  week_1_1,
+  week_1_2,
+  week_1_3,
+  week_1_4,
+  week_1_5,
+  week_1_final,
+  // Week 2
+  week_2_1,
+  week_2_2,
+  week_2_3,
+  week_2_4,
+  week_2_5,
+  week_2_final,
+  // Week 3
+  week_3_1,
+  week_3_2,
+  week_3_3,
+  week_3_4,
+  week_3_5,
+  week_3_final,
+  // Week 4
+  week_4_1,
+  week_4_2,
+  week_4_3,
+  week_4_4,
+  week_4_5,
+  week_4_final
 ]
 
-// 레벨별 스텝 개수 정의
+/**
+ * 주차별 스텝 개수 (각 주 5개 기본 + 1개 종합 = 6개).
+ * 키 이름은 기존 `LEVEL_STEP_COUNTS` 를 유지하여 `useCurriculum` 의 currentLevel 계산 로직과 호환된다.
+ */
 export const LEVEL_STEP_COUNTS = {
-  1: 9,  // 레벨 1: 8개 기본 스텝 + 1개 최종 연습문제
-  2: 6,  // 레벨 2: 5개 기본 스텝 + 1개 최종 연습문제
-  3: 7,  // 레벨 3: 6개 기본 스텝 + 1개 최종 연습문제
-  4: 6   // 레벨 4: 5개 기본 스텝 + 1개 최종 연습문제
+  1: 6,
+  2: 6,
+  3: 6,
+  4: 6
 } as const

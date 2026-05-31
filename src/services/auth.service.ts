@@ -1,46 +1,52 @@
-import { apiService, setAuthToken } from '@/services/api-service'
+import { supabase } from '@/lib/supabase'
+import type { Provider, Session, User } from '@supabase/supabase-js'
 
 export interface AuthUser {
   id: string
   email: string
 }
 
-export interface LoginResponse {
-  success: boolean
-  accessToken: string
-  user: AuthUser
+function toAuthUser(user: User | null | undefined): AuthUser | null {
+  if (!user || !user.email) return null
+  return { id: user.id, email: user.email }
 }
 
-export interface MeResponse {
-  success: boolean
-  user: AuthUser
+export async function register(email: string, password: string): Promise<AuthUser> {
+  const { data, error } = await supabase.auth.signUp({ email, password })
+  if (error) throw new Error(error.message)
+  const user = toAuthUser(data.user)
+  if (!user) throw new Error('회원가입에 실패했습니다.')
+  return user
 }
 
-export async function register(email: string, password: string): Promise<LoginResponse> {
-  const data = await apiService.post<LoginResponse>('/api/auth/register', { email, password })
-  if (data.success && data.accessToken) {
-    setAuthToken(data.accessToken)
-  }
-  return data
+export async function login(email: string, password: string): Promise<AuthUser> {
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+  if (error) throw new Error(error.message)
+  const user = toAuthUser(data.user)
+  if (!user) throw new Error('로그인에 실패했습니다.')
+  return user
 }
 
-export async function login(email: string, password: string): Promise<LoginResponse> {
-  const data = await apiService.post<LoginResponse>('/api/auth/login', { email, password })
-  if (data.success && data.accessToken) {
-    setAuthToken(data.accessToken)
-  }
-  return data
+export async function loginWithOAuth(provider: Provider): Promise<void> {
+  const redirectTo = `${window.location.origin}/login`
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider,
+    options: { redirectTo }
+  })
+  if (error) throw new Error(error.message)
 }
 
 export async function fetchMe(): Promise<AuthUser | null> {
-  try {
-    const data = await apiService.get<MeResponse>('/api/auth/me')
-    return data.success ? data.user : null
-  } catch {
-    return null
-  }
+  const { data, error } = await supabase.auth.getUser()
+  if (error) return null
+  return toAuthUser(data.user)
 }
 
-export function logout(): void {
-  setAuthToken(null)
+export async function getSession(): Promise<Session | null> {
+  const { data } = await supabase.auth.getSession()
+  return data.session
+}
+
+export async function logout(): Promise<void> {
+  await supabase.auth.signOut()
 }

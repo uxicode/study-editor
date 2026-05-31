@@ -26,7 +26,7 @@ npm run dev
 ```prisma
 // schema.prisma 파일에서
 datasource db {
-  provider = "postgresql"
+  provider = "mysql"
   url      = env("DATABASE_URL")
 }
 ```

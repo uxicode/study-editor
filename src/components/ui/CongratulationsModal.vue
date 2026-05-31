@@ -2,13 +2,13 @@
   <Transition name="modal-fade">
     <div v-if="isOpen" class="modal-overlay" @click.self="emit('close')">
       <div class="congrats-modal">
-        <!-- 엠블럼: 레벨별 이미지 -->
+        <!-- 엠블럼: 주차별 이미지 -->
         <div class="emblem-container">
           <div class="emblem">
             <div class="emblem-glow"></div>
             <img
               :src="emblemImageSrc"
-              :alt="`Level ${currentLevel} 엠블럼`"
+              :alt="`${currentLevel}주차 엠블럼`"
               class="emblem-icon"
             />
           </div>
@@ -18,17 +18,17 @@
         <div class="congrats-content">
           <h2 class="congrats-title">🎉 축하합니다!</h2>
           <p class="congrats-message">
-            {{ currentLevel }} 레벨의 모든 단계를 완료하셨습니다!
+            {{ currentLevel }}주차의 모든 단계를 완료하셨습니다!
           </p>
           <div class="level-upgrade">
             <div class="level-box from-level">
               <span class="level-label">현재</span>
-              <span class="level-number">{{ currentLevel }}</span>
+              <span class="level-number">{{ currentLevel }}주차</span>
             </div>
             <div class="arrow">→</div>
             <div class="level-box to-level">
               <span class="level-label">다음</span>
-              <span class="level-number">{{ nextLevel }}</span>
+              <span class="level-number">{{ nextLevel }}주차</span>
             </div>
           </div>
 
@@ -42,11 +42,11 @@
             <div class="stat-item">
               <img
                 :src="emblemImageSrc"
-                :alt="`Level ${currentLevel} 엠블럼`"
+                :alt="`${currentLevel}주차 엠블럼`"
                 class="stat-icon emblem-icon"
               />
               <div class="stat-label">획득 엠블럼</div>
-              <div class="stat-value">Level {{ currentLevel }}</div>
+              <div class="stat-value">{{ currentLevel }}주차</div>
             </div>
           </div>
 
@@ -56,7 +56,7 @@
               🔄 처음으로 가 복습하기
             </button>
             <button class="btn-primary" @click="handleNext">
-              🚀 다음 레벨로 진행
+              🚀 다음 주차로 진행
             </button>
           </div>
         </div>

@@ -56,8 +56,8 @@ const authStore = useAuthStore()
 const isDarkMode = ref(false)
 const showInfoModal = ref(false)
 
-function handleLogout() {
-  authStore.logout()
+async function handleLogout() {
+  await authStore.logout()
   router.push('/login')
 }
 

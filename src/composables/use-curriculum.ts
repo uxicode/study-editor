@@ -16,10 +16,28 @@ function getCumulativeStepsThroughLevel(targetLevel: number): number {
   return sum
 }
 
+const FIRST_STEP_ID = 'week-1-1'
+
+const VALID_STEP_IDS = new Set(CURRICULUM_STEPS.map((s) => s.id))
+
+/** 알 수 없는 step ID (이전 커리큘럼의 잔재 등) 를 안전하게 first step 으로 정규화한다. */
+function normalizeStepId(stepId: string | undefined | null): string {
+  if (stepId && VALID_STEP_IDS.has(stepId)) return stepId
+  return FIRST_STEP_ID
+}
+
+function sanitizeProgress(input: UserProgress): UserProgress {
+  return {
+    completedSteps: (input.completedSteps ?? []).filter((id) => VALID_STEP_IDS.has(id)),
+    currentStep: normalizeStepId(input.currentStep),
+    attempts: input.attempts ?? {}
+  }
+}
+
 const currentStepId = ref<string>('')
 const userProgress = ref<UserProgress>({
   completedSteps: [],
-  currentStep: 'step-1',
+  currentStep: FIRST_STEP_ID,
   attempts: {}
 })
 
@@ -47,10 +65,13 @@ export function useCurriculum() {
   async function loadStep(stepId: string) {
     isLoadingStep.value = true
     try {
-      // 실제로는 API 호출이나 파일 로딩이 필요할 수 있음
-      await new Promise(resolve => setTimeout(resolve, 300))
-      currentStepId.value = stepId
-      userProgress.value.currentStep = stepId
+      const safeId = normalizeStepId(stepId)
+      if (safeId !== stepId) {
+        console.warn(`알 수 없는 step id "${stepId}" — 첫 스텝으로 폴백합니다.`)
+      }
+      await new Promise((resolve) => setTimeout(resolve, 300))
+      currentStepId.value = safeId
+      userProgress.value.currentStep = safeId
       saveProgress()
     } finally {
       isLoadingStep.value = false
@@ -92,7 +113,7 @@ export function useCurriculum() {
   })
 
   function restartCurriculum() {
-    loadStep('step-1')
+    loadStep(FIRST_STEP_ID)
   }
 
   function incrementAttempt(stepId: string) {
@@ -104,45 +125,56 @@ export function useCurriculum() {
   }
 
   function saveProgress() {
+    // localStorage 는 항상 백업으로 동기 저장한다 (Supabase 실패 / 로그아웃 시에도 데이터 보존)
+    try {
+      localStorage.setItem('userProgress', JSON.stringify(userProgress.value))
+    } catch {
+      // 시크릿 모드 등 localStorage 접근 실패는 무시
+    }
+
     const authStore = useAuthStore()
     if (authStore.isAuthenticated) {
       progressService.saveProgress(userProgress.value).catch((e) => {
-        console.error('진행상황 저장 실패:', e)
+        console.warn('Supabase 진행상황 저장 실패 (localStorage 에 보관됨):', e?.message ?? e)
       })
-    } else {
-      localStorage.setItem('userProgress', JSON.stringify(userProgress.value))
     }
   }
 
   async function loadProgress() {
     const authStore = useAuthStore()
+    let loaded: UserProgress | null = null
+
     if (authStore.isAuthenticated) {
       try {
-        const progress = await progressService.getProgress()
-        userProgress.value = progress
+        loaded = await progressService.getProgress()
       } catch (e) {
-        console.error('진행상황 로드 실패:', e)
+        const message = e instanceof Error ? e.message : String(e)
+        console.warn('Supabase 진행상황 로드 실패 — localStorage 로 폴백합니다:', message)
       }
-    } else {
+    }
+
+    if (!loaded) {
       const saved = localStorage.getItem('userProgress')
       if (saved) {
         try {
-          userProgress.value = JSON.parse(saved)
+          loaded = JSON.parse(saved) as UserProgress
         } catch (e) {
-          console.error('Failed to load progress:', e)
+          console.error('localStorage 진행상황 파싱 실패:', e)
         }
       }
     }
+
+    userProgress.value = loaded ? sanitizeProgress(loaded) : sanitizeProgress(userProgress.value)
   }
 
   function resetProgress() {
     userProgress.value = {
       completedSteps: [],
-      currentStep: 'step-1',
+      currentStep: FIRST_STEP_ID,
       attempts: {}
     }
     saveProgress()
-    loadStep('step-1')
+    loadStep(FIRST_STEP_ID)
   }
 
   return {

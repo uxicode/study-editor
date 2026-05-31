@@ -109,7 +109,7 @@ model ModelName {
 **기본 키 관련:**
 - `@id`: 기본 키(Primary Key)로 지정
 - `@default(autoincrement())`: 자동 증가 값 생성 (주로 ID에 사용)
-  - `autoincrement()`는 PostgreSQL의 SERIAL 타입과 동일
+  - `autoincrement()`는 MySQL의 AUTO_INCREMENT 와 동일
   - 새 레코드 생성 시 자동으로 1씩 증가
   - **왜 사용?** 개발자가 수동으로 ID를 지정하지 않아도 됨
 
@@ -222,19 +222,18 @@ model User {
 
 ## 새로운 학습 단계 추가하기
 
-1. `src/data/curriculum-steps.ts`에 새로운 `CurriculumStep` 객체 추가
-2. `initialFiles` 배열에 필요한 파일 템플릿 정의
-3. `validator` 객체에 정적/동적 검증 로직 작성
-4. `hints` 배열에 단계별 힌트 추가
-5. `content.theory` 섹션에 충분한 설명 추가 (특히 속성과 타입)
+1. `src/data/steps/week-{n}-{k}.ts` 파일을 생성하고 `CurriculumStep` 을 export
+2. `src/data/curriculum-steps.ts` 의 import 와 `CURRICULUM_STEPS` 배열에 추가
+3. 새 주차를 도입하는 경우 `LEVEL_STEP_COUNTS` 도 함께 갱신
+4. `initialFiles`, `validator`, `hints`, `content.theory` 를 작성
 
 ### 예시
 
 ```typescript
 {
-  id: 'step-5',
-  title: '새로운 단계',
-  order: 5,
+  id: 'week-5-1',
+  title: '5주차 · 새로운 주제',
+  order: 25,
   category: 'create',
   content: {
     mission: '미션 설명',
@@ -243,9 +242,9 @@ model User {
   },
   initialFiles: [
     {
-      name: 'app.js',
-      path: 'app.js',
-      language: 'javascript',
+      name: 'server.ts',
+      path: 'server.ts',
+      language: 'typescript',
       content: '// 코드를 작성하세요'
     }
   ],

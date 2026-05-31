@@ -1,80 +1,52 @@
 # Curriculum Steps
 
-이 디렉토리는 학습 커리큘럼의 각 단계를 개별 파일로 관리합니다.
+학습 커리큘럼은 4주차 · 주당 6스텝 = 총 24스텝으로 구성되며, 각 스텝은 독립된 파일로 관리합니다.
 
 ## 파일 구조
 
 ```
 src/data/
-├── curriculum-steps.ts          # 메인 export (재export만 수행)
+├── curriculum-steps.ts          # CURRICULUM_STEPS 배열과 LEVEL_STEP_COUNTS export
 └── steps/
-    ├── index.ts                 # 모든 step을 import하여 배열로 결합
-    ├── step-1.ts                # Step 1: Prisma 초기 설정
-    ├── step-2-1.ts              # Step 2-1: User 모델 정의 (기본)
-    ├── step-2-2.ts              # Step 2-2: User 모델 정의 (타임스탬프)
-    ├── step-2-3.ts              # Step 2-3: User 모델 정의 (실무 기능)
-    ├── step-3.ts                # Step 3: Create - 사용자 생성
-    ├── step-4-1.ts              # Step 4-1: Read - 기본 조회 메서드
-    ├── step-4-2.ts              # Step 4-2: Read - 정렬과 필드 선택
-    └── step-4-3.ts              # Step 4-3: Read - 페이징과 복합 쿼리
+    ├── week-1-1.ts              # 1주차 · Fastify 부트스트랩
+    ├── week-1-2.ts              # 1주차 · 라우트 핸들러와 reply
+    ├── week-1-3.ts              # 1주차 · TypeScript 라우트 타입
+    ├── week-1-4.ts              # 1주차 · JSON Schema 입력 검증
+    ├── week-1-5.ts              # 1주차 · 플러그인과 데코레이터
+    ├── week-1-final.ts          # 1주차 종합 · Todo API
+    ├── week-2-1.ts ~ week-2-5.ts # 2주차 · MySQL DDL
+    ├── week-2-final.ts          # 2주차 종합 · 게시판 스키마
+    ├── week-3-1.ts ~ week-3-5.ts # 3주차 · Prisma ORM / 레이어드 아키텍처
+    ├── week-3-final.ts          # 3주차 종합 · Fastify + Prisma 사용자 API
+    ├── week-4-1.ts ~ week-4-5.ts # 4주차 · 트랜잭션 / 인덱스 / 성능
+    └── week-4-final.ts          # 4주차 종합 · 페이징 · 인덱스 · 트랜잭션
 ```
 
-## 새로운 단계 추가하기
+## 새 스텝 추가하기
 
-1. **새 파일 생성**
-   ```bash
-   touch src/data/steps/step-5.ts
-   ```
+1. `src/data/steps/week-{n}-{k}.ts` 파일을 생성합니다.
+2. 다음과 같이 `CurriculumStep` 을 export 합니다.
 
-2. **step 파일 작성**
-   ```typescript
+   ```ts
    import type { CurriculumStep } from '@/types/curriculum'
 
-   export const step_5: CurriculumStep = {
-     id: 'step-5',
-     title: '새로운 단계',
-     order: 9,
-     category: 'update',
-     content: {
-       mission: '미션 설명',
-       theory: '이론 내용',
-       objectives: ['목표1', '목표2']
-     },
-     initialFiles: [/* 파일 목록 */],
-     validator: {/* 검증 로직 */},
-     hints: [/* 힌트 목록 */]
+   export const week_5_1: CurriculumStep = {
+     id: 'week-5-1',
+     title: '5주차 · 새로운 주제',
+     order: 25,
+     category: 'advanced',
+     content: { mission: '...', theory: '...', objectives: [...] },
+     initialFiles: [/* ... */],
+     validator: { staticChecks: [/* ... */], dynamicChecks: [/* ... */] },
+     hints: [/* ... */]
    }
    ```
 
-3. **index.ts에 import 추가**
-   ```typescript
-   import { step_5 as step5 } from './step-5'
-   
-   export const CURRICULUM_STEPS: CurriculumStep[] = [
-     // ... 기존 steps
-     step5
-   ]
-   ```
+3. `src/data/curriculum-steps.ts` 의 import 와 `CURRICULUM_STEPS` 배열, 그리고 `LEVEL_STEP_COUNTS` 에 새 주차의 개수를 추가합니다.
 
-## 장점
+## 규약
 
-### 1. **유지보수성**
-- 각 step을 독립적으로 수정 가능
-- 파일이 작아서 찾기 쉽고 편집하기 쉬움
-
-### 2. **확장성**
-- 새로운 step 추가가 간단
-- 병합 충돌 최소화
-
-### 3. **가독성**
-- 한 파일에 한 step만 집중
-- 코드 리뷰가 용이
-
-### 4. **성능**
-- 필요한 step만 선택적으로 import 가능 (향후 lazy loading 대비)
-
-## 주의사항
-
-- step 파일의 export 이름은 `step_X` 형식 (언더스코어)
-- index.ts에서 import 시 `as stepX` (camelCase)로 alias 지정
-- order 값은 중복되지 않도록 주의
+- `id` 는 파일명과 동일 (`week-3-2.ts` ↔ `id: 'week-3-2'`).
+- `order` 는 1~24 사이의 고유한 정수로, 학습 순서를 결정합니다.
+- 파일 종류: `server.ts` (Fastify), `schema.prisma` (Prisma), `schema.sql` (MySQL DDL), `*.repository.ts` / `*.service.ts` (레이어드 아키텍처).
+- 학습은 **mock 기반** 으로 검증되므로 `validator.staticChecks` 가 핵심이며, `dynamicChecks` 는 인터페이스 일관성을 위해 최소 1개를 둡니다.

@@ -33,7 +33,7 @@ export interface FileTemplate {
   name: string
   path: string
   content: string
-  language: 'javascript' | 'typescript' | 'prisma' | 'json'
+  language: 'javascript' | 'typescript' | 'prisma' | 'json' | 'sql'
   readonly?: boolean
 }
 

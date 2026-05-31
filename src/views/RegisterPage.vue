@@ -43,8 +43,12 @@
       </form>
       <div class="auth-divider">또는</div>
       <div class="oauth-buttons">
-        <a :href="googleAuthUrl" class="oauth-btn oauth-google">Google로 로그인</a>
-        <a :href="githubAuthUrl" class="oauth-btn oauth-github">GitHub로 로그인</a>
+        <button type="button" class="oauth-btn oauth-google" @click="handleOAuth('google')">
+          Google로 로그인
+        </button>
+        <button type="button" class="oauth-btn oauth-github" @click="handleOAuth('github')">
+          GitHub로 로그인
+        </button>
       </div>
       <p class="auth-footer">
         이미 계정이 있으신가요?
@@ -55,9 +59,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import type { Provider } from '@supabase/supabase-js'
 import { useAuthStore } from '@/stores/auth-store'
+import { loginWithOAuth } from '@/services/auth.service'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -67,10 +73,6 @@ const password = ref('')
 const passwordConfirm = ref('')
 const errorMessage = ref('')
 const isLoading = ref(false)
-
-const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001'
-const googleAuthUrl = computed(() => `${apiBaseUrl}/api/auth/google`)
-const githubAuthUrl = computed(() => `${apiBaseUrl}/api/auth/github`)
 
 async function handleSubmit() {
   errorMessage.value = ''
@@ -90,6 +92,15 @@ async function handleSubmit() {
     errorMessage.value = err instanceof Error ? err.message : '회원가입에 실패했습니다.'
   } finally {
     isLoading.value = false
+  }
+}
+
+async function handleOAuth(provider: Provider) {
+  errorMessage.value = ''
+  try {
+    await loginWithOAuth(provider)
+  } catch (err) {
+    errorMessage.value = err instanceof Error ? err.message : 'OAuth 로그인에 실패했습니다.'
   }
 }
 </script>
@@ -190,12 +201,15 @@ async function handleSubmit() {
 
 .oauth-btn {
   display: block;
+  width: 100%;
   text-align: center;
   padding: 12px;
+  border: none;
   border-radius: 8px;
   font-size: 14px;
   font-weight: 500;
   text-decoration: none;
+  cursor: pointer;
   transition: opacity 0.2s;
 
   &:hover {

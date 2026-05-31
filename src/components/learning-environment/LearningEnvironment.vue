@@ -116,6 +116,7 @@ import {
   updateSchemaSqlFile
 } from '@/utils/file-manager'
 import { prismaToSql, prismaOutputToSql } from '@/services/prisma-api.service'
+import { loadRawSqlSchema } from '@/lib/learning'
 import {
   cleanCodeSnippet,
   splitCodeSnippetIntoFiles,
@@ -172,13 +173,7 @@ const canGoNext = computed(() => {
   if (!validationResult.value) {
     return false
   }
-  const canGo = validationResult.value.passed === true
-  console.log('canGoNext 계산:', canGo, 'validationResult:', {
-    passed: validationResult.value.passed,
-    errors: validationResult.value.errors?.length || 0,
-    nextStep: validationResult.value.nextStep
-  })
-  return canGo
+  return validationResult.value.passed === true
 })
 
 async function handleCheckAnswer() {
@@ -284,7 +279,7 @@ async function handleValidationResult(validation: ValidationResult, result: Exec
 async function handleValidationSuccess(validation: ValidationResult, result: ExecutionResult): Promise<void> {
   // console.log('✅ 정답입니다!')
   
-  // 진행 상황 저장 및 상태 업데이트 (레벨 완료 체크 포함)
+  // 진행 상황 저장 및 상태 업데이트 (주차 완료 체크 포함)
   await updateProgressState(validation)
   
   // 데이터베이스 스냅샷 업데이트 (실패해도 검증에 영향 없음)
@@ -302,10 +297,10 @@ async function updateProgressState(validation: ValidationResult): Promise<void> 
   // Vue 반응성 업데이트를 기다림
   await nextTick()
   
-  // 레벨이 올라갔는지 확인 (nextTick 후에 체크)
+  // 주차가 올라갔는지 확인 (nextTick 후에 체크)
   const newLevel = currentLevel.value
   if (newLevel > oldLevel) {
-    console.log(`🎉 레벨 ${oldLevel} 완료! 레벨 ${newLevel}로 진급합니다!`)
+    console.log(`🎉 ${oldLevel}주차 완료! ${newLevel}주차로 진급합니다!`)
     previousLevel.value = newLevel
     
     // 모달 표시 (약간의 지연을 두어 사용자 경험 향상)
@@ -541,32 +536,55 @@ async function handleNextStep() {
   console.log('✅ 다음 단계로 이동 완료')
 }
 
-// Prisma 스키마를 파싱하여 PGlite에 테이블 생성 (서비스 호출)
-async function syncPrismaSchemaToDatabase(): Promise<string> {
-  try {
-    const schemaFile = editorFiles.value.find(f => f.name === 'schema.prisma')
-    if (!schemaFile) {
-      console.log('⚠️ schema.prisma 파일이 없습니다')
-      return ''
+interface SchemaSyncResult {
+  schemaSQL: string
+  source: 'prisma' | 'sql' | 'none'
+}
+
+/**
+ * 현재 에디터의 스키마 파일을 인메모리 DB에 반영한다.
+ * - schema.prisma 가 있으면 Prisma → MySQL DDL 변환
+ * - 없으면 schema.sql 의 원본 SQL 을 적용
+ */
+async function syncSchemaToDatabase(): Promise<SchemaSyncResult> {
+  const prismaFile = editorFiles.value.find((f) => f.name === 'schema.prisma')
+  const sqlFile = editorFiles.value.find((f) => f.name === 'schema.sql')
+
+  if (prismaFile) {
+    try {
+      await initializeAndResetDatabase()
+      const sql = await prismaToSql(prismaFile.content)
+      return { schemaSQL: sql ?? '', source: 'prisma' }
+    } catch (error) {
+      return {
+        schemaSQL: handleError(error, {
+          level: 'error',
+          message: 'Prisma 스키마 동기화 실패',
+          fallbackValue: ''
+        }),
+        source: 'prisma'
+      }
     }
-
-    await initializeAndResetDatabase()
-
-    const sql = await prismaToSql(schemaFile.content)
-
-    if (!sql || sql.trim() === '') {
-      console.log('ℹ️ 모델이 없습니다. (설정 단계이거나 아직 모델을 정의하지 않았습니다)')
-      return ''
-    }
-
-    return sql
-  } catch (error) {
-    return handleError(error, {
-      level: 'error',
-      message: 'Prisma 스키마 동기화 실패',
-      fallbackValue: ''
-    })
   }
+
+  if (sqlFile) {
+    try {
+      await initializeAndResetDatabase()
+      const { normalizedSql } = loadRawSqlSchema(sqlFile.content)
+      return { schemaSQL: normalizedSql || sqlFile.content, source: 'sql' }
+    } catch (error) {
+      return {
+        schemaSQL: handleError(error, {
+          level: 'warn',
+          message: 'SQL 스키마 동기화 실패',
+          fallbackValue: sqlFile.content
+        }),
+        source: 'sql'
+      }
+    }
+  }
+
+  return { schemaSQL: '', source: 'none' }
 }
 
 /**
@@ -577,13 +595,11 @@ async function initializeAndResetDatabase(): Promise<void> {
   await initializeDatabase()
   // console.log('✅ 데이터베이스 초기화 완료')
 
-  // console.log('🔄 기존 테이블 삭제 중...')
   try {
     await Promise.race([
       resetDatabase(),
       new Promise((resolve) => setTimeout(resolve, 1000))
     ])
-    console.log('✅ 테이블 삭제 완료')
   } catch (error) {
     handleError(error, {
       level: 'warn',
@@ -597,23 +613,12 @@ async function initializeAndResetDatabase(): Promise<void> {
 // Prisma 출력에서 데이터 생성 정보를 파싱하여 PGlite에 반영 (서비스 호출)
 async function syncDataFromPrismaOutput(output: string): Promise<void> {
   try {
-    if (!output) {
-      console.log('⚠️ 출력이 없습니다.')
-      return
-    }
+    if (!output) return
 
-    const schemaFile = editorFiles.value.find(f => f.name === 'schema.prisma')
-    if (!schemaFile) {
-      console.log('⚠️ schema.prisma 파일이 없습니다.')
-      return
-    }
+    const schemaFile = editorFiles.value.find((f) => f.name === 'schema.prisma')
+    if (!schemaFile) return
 
-    const result = await prismaOutputToSql(output, schemaFile.content)
-
-    if (!result.insertStatements || result.insertStatements.length === 0) {
-      console.log('ℹ️ INSERT SQL이 생성되지 않았습니다.')
-      return
-    }
+    await prismaOutputToSql(output, schemaFile.content)
   } catch (error) {
     handleError(error, {
       level: 'warn',
@@ -626,23 +631,17 @@ async function syncDataFromPrismaOutput(output: string): Promise<void> {
 // 데이터베이스 스냅샷 업데이트
 async function updateDatabaseSnapshot() {
   try {
-    // console.log('🔄 데이터베이스 스냅샷 업데이트 시작...')
-    
-    // 1. Prisma 스키마 동기화 및 SQL 생성
-    const schemaSQL = await syncSchemaAndGetSQL()
-    
-    // 2. 데이터베이스 스냅샷 가져오기 (에러 발생 시 빈 스냅샷 사용)
-    // getSnapshot() 내부에서 이미 에러 처리를 하므로 여기서는 바로 호출
+    const { schemaSQL, source } = await syncSchemaToDatabase()
     const snapshot = await getSnapshot()
-    
-    // 3. 스냅샷 객체 생성 및 업데이트
     const newSnapshot = createSnapshot(snapshot.tables, schemaSQL)
     await updateSnapshotReactive(newSnapshot)
-    
-    // 4. schema.sql 파일을 FileExplorer에 추가/업데이트
-    await updateSchemaSqlInFiles(schemaSQL)
-    
-    // 5. 로깅
+
+    // Prisma 스키마에서 SQL 을 생성한 경우에만 schema.sql 을 FileExplorer 에 추가 (readonly)
+    // schema.sql 원본을 사용 중인 경우 학습자의 편집 파일을 덮어쓰지 않는다
+    if (source === 'prisma') {
+      await updateSchemaSqlInFiles(schemaSQL)
+    }
+
     logSnapshotInfo(newSnapshot)
   } catch (error) {
     handleError(error, {
@@ -651,25 +650,6 @@ async function updateDatabaseSnapshot() {
       onError: () => {
         dbSnapshot.value = createSnapshot([], '')
       }
-    })
-  }
-}
-
-/**
- * Prisma 스키마 동기화 및 SQL 생성
- */
-async function syncSchemaAndGetSQL(): Promise<string> {
-  try {
-    // console.log('🔄 Prisma 스키마 동기화 시작...')
-    const schemaSQL = await syncPrismaSchemaToDatabase()
-    // console.log('✅ Prisma 스키마 동기화 완료, 생성된 SQL:', schemaSQL ? `${schemaSQL.length}자` : '없음')
-    return schemaSQL
-  } catch (error) {
-    // 모델이 없거나 스키마 동기화 실패해도 계속 진행 (스텝 1처럼 모델이 없는 경우 정상)
-    return handleError(error, {
-      level: 'log',
-      message: '스키마 동기화 중 문제 발생 (계속 진행)',
-      fallbackValue: ''
     })
   }
 }
@@ -717,30 +697,29 @@ async function resetState() {
   dbSnapshot.value = null
 
   if (currentStep.value) {
-    // editorFiles를 설정하기 전에 이전 스키마 내용 저장 (watch 중복 트리거 방지)
-    const oldSchemaContent = editorFiles.value.find(f => f.name === 'schema.prisma')?.content
-    
-    editorFiles.value = currentStep.value.initialFiles.map(f => ({
+    // editorFiles 를 설정하기 전에 이전 스키마 내용 저장 (watch 중복 트리거 방지)
+    const oldPrisma = editorFiles.value.find((f) => f.name === 'schema.prisma')?.content
+    const oldSql = editorFiles.value.find((f) => f.name === 'schema.sql')?.content
+
+    editorFiles.value = currentStep.value.initialFiles.map((f) => ({
       name: f.name,
       path: f.path,
       content: f.content,
       readonly: f.readonly
     }))
     activeFile.value = editorFiles.value[0]?.name || ''
-    // 첫 번째 파일을 기본 탭으로 추가
     openTabs.value = activeFile.value ? [activeFile.value] : []
-    
-    // 스텝 변경 시 데이터베이스 스냅샷 업데이트
-    // watch가 트리거되지 않도록 하기 위해 nextTick으로 지연
+
     await nextTick()
-    
-    // 스키마 내용이 변경되지 않았으면 watch가 트리거되지 않으므로 수동으로 호출
-    const newSchemaContent = editorFiles.value.find(f => f.name === 'schema.prisma')?.content
-    if (newSchemaContent === oldSchemaContent && newSchemaContent) {
-      // 스키마 내용이 같으면 watch가 트리거되지 않으므로 수동 호출
+
+    const newPrisma = editorFiles.value.find((f) => f.name === 'schema.prisma')?.content
+    const newSql = editorFiles.value.find((f) => f.name === 'schema.sql')?.content
+
+    // watch 가 트리거되지 않는 경우 (스키마 내용 동일 or 스키마 파일 자체 없음) 수동 갱신
+    const schemaChanged = newPrisma !== oldPrisma || newSql !== oldSql
+    if (!schemaChanged) {
       await updateDatabaseSnapshot()
     }
-    // 스키마 내용이 다르면 watch가 자동으로 트리거되므로 여기서는 호출하지 않음
   }
 }
 
@@ -753,14 +732,14 @@ async function handleRestart() {
   // 검증 결과 초기화 (재시작 시 모달이 다시 뜨는 것 방지)
   validationResult.value = null
   
-  // 이전 레벨 초기화
+  // 이전 주차 초기화
   previousLevel.value = 1
   
   // 커리큘럼 재시작
   restartCurriculum()
   await resetState()
   
-  // 재시작 후 현재 레벨로 업데이트
+  // 재시작 후 현재 주차로 업데이트
   previousLevel.value = currentLevel.value
   
   //  console.log('✅ 재시작 완료')
@@ -768,7 +747,7 @@ async function handleRestart() {
 
 function handleCloseCongratsModal() {
   showCongratsModal.value = false
-  // 모달이 닫힐 때 previousLevel을 현재 레벨로 업데이트하여 중복 표시 방지
+  // 모달이 닫힐 때 previousLevel을 현재 주차로 업데이트하여 중복 표시 방지
   previousLevel.value = currentLevel.value
 }
 
@@ -777,74 +756,75 @@ async function handleNextLevel() {
 
   if (nextLevel >= 2 && !authStore.isAuthenticated) {
     showCongratsModal.value = false
-    if (confirm('레벨 2부터는 로그인이 필요합니다. 로그인 페이지로 이동할까요?')) {
+    if (confirm('2주차부터는 로그인이 필요합니다. 로그인 페이지로 이동할까요?')) {
       router.push('/login')
     }
     return
   }
 
-  // 다음 레벨이 존재하는지 확인 (레벨 4가 최대)
+  // 다음 주차가 존재하는지 확인 (4주차가 최대)
   if (nextLevel > 4) {
-    alert('모든 레벨을 완료했습니다! 🎉')
+    alert('모든 주차를 완료했습니다! 🎉')
     return
   }
   
-  // 다음 레벨의 첫 번째 스텝 인덱스 계산
+  // 다음 주차의 첫 번째 스텝 인덱스 계산
   let firstStepIndex = 0
   for (let level = 1; level < nextLevel; level++) {
     firstStepIndex += LEVEL_STEP_COUNTS[level as keyof typeof LEVEL_STEP_COUNTS] || 0
   }
   
-  // 다음 레벨의 첫 번째 스텝 찾기
+  // 다음 주차의 첫 번째 스텝 찾기
   const nextLevelFirstStep = allSteps.value[firstStepIndex]
   
   if (!nextLevelFirstStep) {
-    console.error('다음 레벨의 첫 번째 스텝을 찾을 수 없습니다.')
-    alert('다음 레벨로 이동할 수 없습니다.')
+    console.error('다음 주차의 첫 번째 스텝을 찾을 수 없습니다.')
+    alert('다음 주차로 이동할 수 없습니다.')
     return
   }
-  
-  // console.log(`🚀 레벨 ${nextLevel}로 이동합니다. 첫 번째 스텝: ${nextLevelFirstStep.id}`)
   
   // 모달 닫기
   showCongratsModal.value = false
   previousLevel.value = nextLevel
   
-  // 다음 레벨의 첫 번째 스텝으로 이동
+  // 다음 주차의 첫 번째 스텝으로 이동
   await loadStep(nextLevelFirstStep.id)
   await resetState()
   
-  console.log(`✅ 레벨 ${nextLevel}의 첫 번째 스텝으로 이동 완료`)
+  console.log(`✅ ${nextLevel}주차의 첫 번째 스텝으로 이동 완료`)
 }
 
-// 스키마 파일 변경 감지하여 데이터베이스 업데이트
+// 스키마 파일(schema.prisma / schema.sql) 변경 감지하여 데이터베이스 업데이트
 watch(
-  () => editorFiles.value.find(f => f.name === 'schema.prisma')?.content,
-  async (newContent, oldContent) => {
-    if (newContent && newContent !== oldContent) {
-      console.log('Prisma 스키마 변경 감지, 데이터베이스 업데이트 중...')
+  () => {
+    const prisma = editorFiles.value.find((f) => f.name === 'schema.prisma')?.content ?? ''
+    const sql = editorFiles.value.find((f) => f.name === 'schema.sql')?.content ?? ''
+    return prisma + '\n---\n' + sql
+  },
+  async (newKey, oldKey) => {
+    if (newKey !== oldKey) {
       await updateDatabaseSnapshot()
     }
-  },
-  { deep: true }
+  }
 )
 
-// 레벨 변화 감지 (보조용 - updateProgressState에서 주로 처리)
+// 주차 변화 감지 (보조용 - updateProgressState에서 주로 처리)
 watch(
   currentLevel,
   (newLevel, oldLevel) => {
-    // 레벨이 올라갔을 때만 로그 (모달은 updateProgressState에서 처리)
     if (oldLevel && newLevel > oldLevel) {
-      console.log(`📊 레벨 변화 감지: ${oldLevel} → ${newLevel}`)
+      console.log(`📊 주차 변화 감지: ${oldLevel} → ${newLevel}`)
     }
   },
   { immediate: false }
 )
 
 onMounted(async () => {
+  // App.vue 의 initAuth 와 경쟁하지 않도록 먼저 await (initAuth 는 idempotent)
+  await authStore.initAuth()
   await loadProgress()
   previousLevel.value = currentLevel.value
-  await loadStep(userProgress.value.currentStep || 'step-1')
+  await loadStep(userProgress.value.currentStep || 'week-1-1')
   await resetState()
 })
 </script>

@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import * as authService from '@/services/auth.service'
-import { getAuthToken, setAuthToken } from '@/services/api-service'
+import { supabase } from '@/lib/supabase'
 import type { AuthUser } from '@/services/auth.service'
 
 export const useAuthStore = defineStore('auth', () => {
@@ -9,28 +9,17 @@ export const useAuthStore = defineStore('auth', () => {
   const isInitialized = ref(false)
 
   const isAuthenticated = computed(() => !!user.value)
-  const accessToken = computed(() => getAuthToken())
 
   async function login(email: string, password: string): Promise<void> {
-    const data = await authService.login(email, password)
-    if (data.success && data.user) {
-      user.value = data.user
-    } else {
-      throw new Error('로그인에 실패했습니다.')
-    }
+    user.value = await authService.login(email, password)
   }
 
   async function register(email: string, password: string): Promise<void> {
-    const data = await authService.register(email, password)
-    if (data.success && data.user) {
-      user.value = data.user
-    } else {
-      throw new Error('회원가입에 실패했습니다.')
-    }
+    user.value = await authService.register(email, password)
   }
 
-  function logout(): void {
-    authService.logout()
+  async function logout(): Promise<void> {
+    await authService.logout()
     user.value = null
   }
 
@@ -38,36 +27,25 @@ export const useAuthStore = defineStore('auth', () => {
     if (isInitialized.value) return
     isInitialized.value = true
 
-    const token = getAuthToken()
-    if (!token) return
-
     const fetchedUser = await authService.fetchMe()
-    if (fetchedUser) {
-      user.value = fetchedUser
-    } else {
-      authService.logout()
-    }
-  }
+    user.value = fetchedUser
 
-  async function setTokenAndFetchUser(token: string): Promise<void> {
-    setAuthToken(token)
-    const fetchedUser = await authService.fetchMe()
-    if (fetchedUser) {
-      user.value = fetchedUser
-    } else {
-      authService.logout()
-    }
+    supabase.auth.onAuthStateChange((_event, session) => {
+      if (!session?.user || !session.user.email) {
+        user.value = null
+        return
+      }
+      user.value = { id: session.user.id, email: session.user.email }
+    })
   }
 
   return {
     user,
     isAuthenticated,
-    accessToken,
     isInitialized,
     login,
     register,
     logout,
-    initAuth,
-    setTokenAndFetchUser
+    initAuth
   }
 })
