@@ -25,7 +25,22 @@
             autocomplete="current-password"
           />
         </div>
+        <p v-if="justRegistered" class="success-message">
+          회원가입이 완료되었습니다. 로그인 해주세요.
+        </p>
         <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
+        <p v-if="emailUnconfirmed" class="info-message">
+          이메일 인증이 완료되지 않았습니다.
+          <button
+            type="button"
+            class="inline-link-btn"
+            :disabled="isResending"
+            @click="handleResend"
+          >
+            {{ isResending ? '재전송 중...' : '인증 메일 다시 보내기' }}
+          </button>
+        </p>
+        <p v-if="resendMessage" class="resend-message">{{ resendMessage }}</p>
         <button type="submit" class="btn-primary auth-submit" :disabled="isLoading">
           {{ isLoading ? '로그인 중...' : '로그인' }}
         </button>
@@ -48,19 +63,27 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, computed, onMounted, watch } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import type { Provider } from '@supabase/supabase-js'
 import { useAuthStore } from '@/stores/auth-store'
-import { loginWithOAuth } from '@/services/auth.service'
+import { loginWithOAuth, resendVerificationEmail } from '@/services/auth.service'
 
 const router = useRouter()
+const route = useRoute()
 const authStore = useAuthStore()
 
 const email = ref('')
 const password = ref('')
 const errorMessage = ref('')
 const isLoading = ref(false)
+const isResending = ref(false)
+const resendMessage = ref('')
+
+const emailUnconfirmed = computed(() =>
+  /email\s*not\s*confirmed|confirm\s*your\s*email/i.test(errorMessage.value)
+)
+const justRegistered = computed(() => route.query.registered === '1')
 
 onMounted(async () => {
   await authStore.initAuth()
@@ -78,6 +101,7 @@ watch(
 
 async function handleSubmit() {
   errorMessage.value = ''
+  resendMessage.value = ''
   isLoading.value = true
   try {
     await authStore.login(email.value.trim(), password.value)
@@ -86,6 +110,24 @@ async function handleSubmit() {
     errorMessage.value = err instanceof Error ? err.message : '로그인에 실패했습니다.'
   } finally {
     isLoading.value = false
+  }
+}
+
+async function handleResend() {
+  errorMessage.value = ''
+  resendMessage.value = ''
+  if (!email.value.trim()) {
+    errorMessage.value = '이메일을 먼저 입력해 주세요.'
+    return
+  }
+  isResending.value = true
+  try {
+    await resendVerificationEmail(email.value.trim())
+    resendMessage.value = '인증 메일을 다시 발송했습니다.'
+  } catch (err) {
+    errorMessage.value = err instanceof Error ? err.message : '재전송에 실패했습니다.'
+  } finally {
+    isResending.value = false
   }
 }
 
@@ -172,6 +214,54 @@ async function handleOAuth(provider: Provider) {
 .error-message {
   color: #dc2626;
   font-size: 14px;
+}
+
+.info-message {
+  font-size: 13px;
+  color: #92400e;
+  background: #fef3c7;
+  padding: 10px 12px;
+  border-radius: 8px;
+  line-height: 1.5;
+
+  :global(.dark) & {
+    background: #422006;
+    color: #fde68a;
+  }
+}
+
+.inline-link-btn {
+  background: none;
+  border: none;
+  padding: 0 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #2563eb;
+  text-decoration: underline;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: progress;
+  }
+}
+
+.resend-message {
+  color: #059669;
+  font-size: 13px;
+}
+
+.success-message {
+  color: #065f46;
+  background: #d1fae5;
+  font-size: 13px;
+  padding: 10px 12px;
+  border-radius: 8px;
+
+  :global(.dark) & {
+    background: #064e3b;
+    color: #a7f3d0;
+  }
 }
 
 .auth-submit {

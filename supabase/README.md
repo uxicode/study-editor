@@ -35,10 +35,28 @@ Authentication → Providers 에서 다음 항목을 켭니다.
 - Email (기본)
 - Google, GitHub (선택)
 
-OAuth 사용 시 Redirect URL 에 다음을 추가합니다.
+### 4. 이메일 인증 (Confirm email) 활성화
 
-- `http://localhost:5173/login`
-- 배포 도메인의 `/login`
+`Authentication → Providers → Email` 에서 **Confirm email** 토글을 켭니다.
+이 설정이 켜져 있으면 회원가입 시 Supabase 가 자동으로 인증 메일을 발송하고,
+사용자가 메일의 링크를 클릭해야만 로그인이 가능합니다.
+
+또한 `Authentication → URL Configuration` 에서 다음 값을 설정합니다.
+
+- **Site URL**: `http://localhost:5173` (배포 시에는 실제 도메인)
+- **Additional Redirect URLs**: 콤마/줄바꿈으로 구분해 아래 URL 을 모두 추가
+  - `http://localhost:5173/auth/callback`
+  - `http://localhost:5173/login`
+  - 배포 도메인의 `/auth/callback`
+  - 배포 도메인의 `/login`
+
+> 회원가입 / 인증 메일 재전송 시 프론트엔드가 `emailRedirectTo` 로
+> `${origin}/auth/callback` 을 넘기므로, 위 목록에 반드시 포함되어 있어야 합니다.
+
+### 5. (선택) 이메일 템플릿 커스터마이즈
+
+`Authentication → Email Templates → Confirm signup` 의 본문과 제목을 한국어로
+바꿔 두면 사용자 경험이 좋아집니다. `{{ .ConfirmationURL }}` 변수는 그대로 두세요.
 
 ## 데이터 모델
 
