@@ -24,11 +24,10 @@ export const week_1_2: CurriculumStep = {
       | \`application/x-www-form-urlencoded\` | 객체 (\`@fastify/formbody\` 플러그인 필요) |
       | \`text/plain\` | 문자열 |
       | GET · DELETE 등 본문 없음 | \`undefined\` |
-
       \`\`\`ts
-      fastify.post('/users', async (request, reply) => {
-        // 클라이언트가 보낸 JSON 이 그대로 객체로 들어와 있다.
-        const { name, email } = request.body as { name: string; email: string }
+      fastify.post<{ Body: { name: string; email: string } }>('/users', async (request, reply) => {
+        // 제네릭을 사용하면 request.body의 타입을 안전하게 추론할 수 있습니다.
+        const { name, email } = request.body
         return reply.code(201).send({ name, email })
       })
       \`\`\`
@@ -39,8 +38,7 @@ export const week_1_2: CurriculumStep = {
 
       \`\`\`ts
       fastify.get('/posts', async (request) => {
-        const { page = '1', limit = '20' } =
-          request.query as Record<string, string>
+        const { page = '1', limit = '20' } = request.query as Record<string, string>
         return { page: Number(page), limit: Number(limit) }   // 명시적 변환 필수
       })
       \`\`\`
