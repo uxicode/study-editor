@@ -916,7 +916,8 @@ onMounted(async () => {
     .resize-grip {
       background: #3b82f6;
       opacity: 1;
-      width: 3px;
+      width: 8px;
+      height: 160px;
     }
   }
 
@@ -942,8 +943,8 @@ onMounted(async () => {
 }
 
 .resize-grip {
-  width: 2px;
-  height: 48px;
+  width: 3px;
+  height: 100px;
   border-radius: 2px;
   transition: background-color 0.15s ease, opacity 0.15s ease, width 0.15s ease;
 }
