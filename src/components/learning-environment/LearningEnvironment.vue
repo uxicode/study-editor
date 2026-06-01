@@ -1,5 +1,8 @@
 <template>
-  <div class="learning-environment">
+  <div
+    class="learning-environment"
+    :style="{ '--content-panel-width': contentPanelWidth + 'px' }"
+  >
     <!-- 좌측: Content Panel -->
     <div class="content-panel panel">
       <ContentPanel
@@ -12,6 +15,22 @@
         @show-hint="handleShowHint"
         @apply-answer="handleApplyAnswer"
       />
+    </div>
+
+    <!-- 좌측 패널 리사이즈 핸들 -->
+    <div
+      class="content-panel-resize-handle"
+      :class="{ 'is-resizing': isResizingContentPanel }"
+      role="separator"
+      aria-orientation="vertical"
+      :aria-valuenow="contentPanelWidth"
+      :aria-valuemin="CONTENT_PANEL_MIN_WIDTH"
+      tabindex="0"
+      title="드래그하여 좌측 패널 너비 조절"
+      @mousedown.prevent="startContentPanelResize"
+      @keydown="onContentPanelKeyboardResize"
+    >
+      <div class="resize-grip" aria-hidden="true"></div>
     </div>
 
     <!-- 우측: Editor & Console -->
@@ -103,6 +122,7 @@ import ConsolePanel from './ConsolePanel.vue'
 import HintModal from '@/components/ui/HintModal.vue'
 import CongratulationsModal from '@/components/ui/CongratulationsModal.vue'
 import { useCurriculum } from '@/composables/use-curriculum'
+import { usePanelResize } from '@/composables/use-panel-resize'
 import { LEVEL_STEP_COUNTS } from '@/data/curriculum-steps'
 // import { useRuntime } from '@/composables/use-runtime'
 import { useMockRuntime as useRuntime } from '@/composables/use-mock-runtime'
@@ -134,7 +154,24 @@ import type { Hint } from '@/types/curriculum'
 
 const router = useRouter()
 const authStore = useAuthStore()
-const { 
+
+// 좌측 학습 콘텐츠 패널 리사이즈
+const CONTENT_PANEL_MIN_WIDTH = 320
+const CONTENT_PANEL_DEFAULT_WIDTH = 500
+const {
+  width: contentPanelWidth,
+  isResizing: isResizingContentPanel,
+  startResize: startContentPanelResize,
+  onKeyboardResize: onContentPanelKeyboardResize
+} = usePanelResize({
+  initialWidth: CONTENT_PANEL_DEFAULT_WIDTH,
+  minWidth: CONTENT_PANEL_MIN_WIDTH,
+  // 우측 에디터 영역도 최소한의 공간을 확보 — 화면 너비의 65% 까지만 허용
+  maxWidth: (vw) => Math.max(CONTENT_PANEL_MIN_WIDTH, Math.floor(vw * 0.65)),
+  storageKey: 'learning-content-panel-width'
+})
+
+const {
   currentStep, 
   allSteps, 
   isLoadingStep, 
@@ -831,8 +868,9 @@ onMounted(async () => {
 
 <style scoped lang="scss">
 .learning-environment {
+  position: relative;
   display: grid;
-  grid-template-columns: 500px 1fr;
+  grid-template-columns: var(--content-panel-width, 500px) 1fr;
   grid-template-rows: 1fr auto;
   gap: 16px;
   height: 100%;
@@ -843,6 +881,65 @@ onMounted(async () => {
 .content-panel {
   grid-row: 1 / 2;
   overflow-y: auto;
+}
+
+.content-panel-resize-handle {
+  position: absolute;
+  top: 0;
+  // 그리드 gap(16px) 의 중앙에 핸들이 오도록 — 좌측 패널 우측 끝 + 4px
+  left: calc(var(--content-panel-width, 500px) + 4px);
+  width: 8px;
+  height: 100%;
+  cursor: col-resize;
+  background: transparent;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.15s ease;
+  // 그리드 두 번째 행(액션 바) 위로 핸들이 침범하지 않게 — grid-row 명시
+  grid-row: 1 / 2;
+
+  &:hover,
+  &:focus-visible,
+  &.is-resizing {
+    background: rgba(59, 130, 246, 0.18);
+
+    .resize-grip {
+      background: #3b82f6;
+      opacity: 1;
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid #3b82f6;
+    outline-offset: -2px;
+  }
+
+  :global(.dark) & {
+    &:hover,
+    &:focus-visible,
+    &.is-resizing {
+      background: rgba(96, 165, 250, 0.22);
+
+      .resize-grip {
+        background: #60a5fa;
+      }
+    }
+  }
+}
+
+.resize-grip {
+  width: 2px;
+  height: 36px;
+  border-radius: 2px;
+  background: #cbd5e1;
+  opacity: 0;
+  transition: opacity 0.15s ease, background-color 0.15s ease;
+
+  :global(.dark) & {
+    background: #475569;
+  }
 }
 
 .editor-section {
@@ -945,6 +1042,11 @@ onMounted(async () => {
   .content-panel,
   .editor-section {
     grid-column: 1 / -1;
+  }
+
+  // 단열 레이아웃에서는 가로 리사이즈가 의미 없음 → 숨김
+  .content-panel-resize-handle {
+    display: none;
   }
 }
 </style>
