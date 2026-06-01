@@ -57,6 +57,16 @@ export const week_1_2: CurriculumStep = {
       - \`request.headers\` — 모든 헤더 (이름은 소문자로 정규화)
       - \`request.ip\` — 클라이언트 IP
       - \`request.log\` — 요청 전용 로거 (요청 id 가 자동 포함되어 추적이 쉬움)
+      - \`request.id\` — 요청 id (요청 전용 로거에 자동 포함되어 추적이 쉬움)
+      - \`request.log.info()\` — 요청 전용 로거 정보 메서드
+      - \`request.log.error()\` — 요청 전용 로거 에러 메서드
+      - \`request.log.warn()\` — 요청 전용 로거 경고 메서드
+      - \`request.log.debug()\` — 요청 전용 로거 디버그 메서드
+      - \`request.log.trace()\` — 요청 전용 로거 트레이스 메서드
+      - \`request.log.fatal()\` — 요청 전용 로거 치명 오류 메서드
+      - \`request.log.child()\` — 요청 전용 로거 자식 메서드
+
+       > 
 
       ## 2. reply — 응답 만들어 보내기
 

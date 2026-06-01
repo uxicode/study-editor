@@ -294,6 +294,25 @@ const progressPercentage = computed(() => {
     display: block;
     padding: 12px;
     overflow-x: auto;
+    h1 { font-size: 24px; }
+    h2 { font-size: 20px; }
+    h3 { font-size: 18px; }
+    h4 { font-size: 16px; }
+    h5 { font-size: 14px; }
+    h6 { font-size: 12px; }
+    
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 10px;
+      margin-bottom: 10px;
+    }
+    p {
+      margin-top: 12px;
+      margin-bottom: 12px;
+    }
+    ul {
+      margin-top: 12px;
+      margin-bottom: 12px;
+    }
   }
 
   :deep(table) {
