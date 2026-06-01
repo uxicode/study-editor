@@ -3,7 +3,7 @@
     class="learning-environment"
     :style="{ '--content-panel-width': contentPanelWidth + 'px' }"
   >
-    <!-- 좌측: Content Panel -->
+    <!-- 좌측: Content Panel + 우측 가장자리 리사이즈 핸들 -->
     <div class="content-panel panel">
       <ContentPanel
         :step="currentStep"
@@ -15,22 +15,20 @@
         @show-hint="handleShowHint"
         @apply-answer="handleApplyAnswer"
       />
-    </div>
-
-    <!-- 좌측 패널 리사이즈 핸들 -->
-    <div
-      class="content-panel-resize-handle"
-      :class="{ 'is-resizing': isResizingContentPanel }"
-      role="separator"
-      aria-orientation="vertical"
-      :aria-valuenow="contentPanelWidth"
-      :aria-valuemin="CONTENT_PANEL_MIN_WIDTH"
-      tabindex="0"
-      title="드래그하여 좌측 패널 너비 조절"
-      @mousedown.prevent="startContentPanelResize"
-      @keydown="onContentPanelKeyboardResize"
-    >
-      <div class="resize-grip" aria-hidden="true"></div>
+      <div
+        class="content-panel-resize-handle"
+        :class="{ 'is-resizing': isResizingContentPanel }"
+        role="separator"
+        aria-orientation="vertical"
+        :aria-valuenow="contentPanelWidth"
+        :aria-valuemin="CONTENT_PANEL_MIN_WIDTH"
+        tabindex="0"
+        title="드래그하여 좌측 패널 너비 조절"
+        @mousedown.prevent="startContentPanelResize"
+        @keydown="onContentPanelKeyboardResize"
+      >
+        <div class="resize-grip" aria-hidden="true"></div>
+      </div>
     </div>
 
     <!-- 우측: Editor & Console -->
@@ -880,15 +878,20 @@ onMounted(async () => {
 
 .content-panel {
   grid-row: 1 / 2;
-  overflow-y: auto;
+  position: relative;
+  // 내부 ContentPanel 이 자체 스크롤(overflow-y: auto)을 가지고 있으므로
+  // 여기서는 overflow 를 visible 로 유지해야 우측 가장자리에 걸린 리사이즈 핸들이
+  // 잘리지 않는다.
+  overflow: visible;
 }
 
 .content-panel-resize-handle {
+  // .content-panel 의 오른쪽 경계를 정확히 가운데로 가로지르는 12px 의 hit area.
+  // 패널 안쪽 6px, gap(16px) 쪽 6px → 좌우 어느 쪽으로 호버해도 잡힘.
   position: absolute;
   top: 0;
-  // 그리드 gap(16px) 의 중앙에 핸들이 오도록 — 좌측 패널 우측 끝 + 4px
-  left: calc(var(--content-panel-width, 500px) + 4px);
-  width: 8px;
+  right: -6px;
+  width: 12px;
   height: 100%;
   cursor: col-resize;
   background: transparent;
@@ -897,17 +900,20 @@ onMounted(async () => {
   align-items: center;
   justify-content: center;
   transition: background-color 0.15s ease;
-  // 그리드 두 번째 행(액션 바) 위로 핸들이 침범하지 않게 — grid-row 명시
-  grid-row: 1 / 2;
+
+  .resize-grip {
+    background: #cbd5e1;
+    opacity: 0.55;
+  }
 
   &:hover,
-  &:focus-visible,
   &.is-resizing {
-    background: rgba(59, 130, 246, 0.18);
+    background: rgba(59, 130, 246, 0.15);
 
     .resize-grip {
       background: #3b82f6;
       opacity: 1;
+      width: 3px;
     }
   }
 
@@ -917,8 +923,11 @@ onMounted(async () => {
   }
 
   :global(.dark) & {
+    .resize-grip {
+      background: #475569;
+    }
+
     &:hover,
-    &:focus-visible,
     &.is-resizing {
       background: rgba(96, 165, 250, 0.22);
 
@@ -931,15 +940,9 @@ onMounted(async () => {
 
 .resize-grip {
   width: 2px;
-  height: 36px;
+  height: 48px;
   border-radius: 2px;
-  background: #cbd5e1;
-  opacity: 0;
-  transition: opacity 0.15s ease, background-color 0.15s ease;
-
-  :global(.dark) & {
-    background: #475569;
-  }
+  transition: background-color 0.15s ease, opacity 0.15s ease, width 0.15s ease;
 }
 
 .editor-section {
