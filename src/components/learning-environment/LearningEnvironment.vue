@@ -879,10 +879,13 @@ onMounted(async () => {
 .content-panel {
   grid-row: 1 / 2;
   position: relative;
-  // 내부 ContentPanel 이 자체 스크롤(overflow-y: auto)을 가지고 있으므로
-  // 여기서는 overflow 를 visible 로 유지해야 우측 가장자리에 걸린 리사이즈 핸들이
-  // 잘리지 않는다.
+  // 우측 가장자리에 걸린 리사이즈 핸들이 잘리지 않도록 outer 는 visible 로 유지.
   overflow: visible;
+  // 그리드 아이템 기본 min-size 는 min-content 라서 자식 콘텐츠 만큼 늘어난다.
+  // 0 으로 명시해야 1fr 행 안에 갇히고, 내부 ContentPanel 의 자체 스크롤
+  // (height:100% + overflow-y:auto) 이 의도대로 동작한다.
+  min-height: 0;
+  min-width: 0;
 }
 
 .content-panel-resize-handle {

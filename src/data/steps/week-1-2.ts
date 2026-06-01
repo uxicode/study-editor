@@ -9,21 +9,104 @@ export const week_1_2: CurriculumStep = {
     mission:
       '`POST /echo` 라우트를 추가하여 `request.body` 를 그대로 받아 `reply.code(201).send(...)` 로 응답하도록 구현하세요.',
     theory: `
-      Fastify 핸들러는 두 개의 인자 \`(request, reply)\` 를 받습니다.
+      Fastify 핸들러는 항상 두 개의 인자 \`(request, reply)\` 를 받습니다.
+      \`request\` 는 **들어온 요청을 읽는 객체**, \`reply\` 는 **응답을 만들어 내보내는 객체** 입니다.
+      이 둘의 역할을 분리해서 이해하는 것이 Fastify 코드를 읽고 쓰는 출발점입니다.
 
-      ## request
+      ## 1. request — 요청에서 값 꺼내기
 
-      - \`request.body\` — JSON 으로 자동 파싱된 요청 본문
-      - \`request.query\` — 쿼리스트링 객체
-      - \`request.params\` — \`:id\` 같은 URL 파라미터
+      ### request.body — 요청 본문
+      클라이언트가 보낸 payload. Fastify 가 Content-Type 헤더를 보고 **자동으로 파싱**해 줍니다.
 
-      ## reply
+      | Content-Type | request.body 의 형태 |
+      |---|---|
+      | \`application/json\` | 객체 (자동 \`JSON.parse\`) |
+      | \`application/x-www-form-urlencoded\` | 객체 (\`@fastify/formbody\` 플러그인 필요) |
+      | \`text/plain\` | 문자열 |
+      | GET · DELETE 등 본문 없음 | \`undefined\` |
 
-      - \`reply.code(201).send({...})\` — 상태 코드를 지정한 후 본문을 전송
-      - \`reply.header('x-custom', 'value')\` — 커스텀 헤더 추가
-      - return 값이 있으면 자동으로 \`reply.send\` 와 동일하게 동작
+      \`\`\`ts
+      fastify.post('/users', async (request, reply) => {
+        // 클라이언트가 보낸 JSON 이 그대로 객체로 들어와 있다.
+        const { name, email } = request.body as { name: string; email: string }
+        return reply.code(201).send({ name, email })
+      })
+      \`\`\`
 
-      ## POST 본문 받기
+      ### request.query — 쿼리스트링
+      \`/posts?page=2&limit=10\` 같은 \`?\` 뒤의 값을 객체로 변환한 것입니다.
+      **schema 를 지정하지 않으면 모든 값이 문자열** 이라는 점이 가장 자주 실수하는 부분입니다.
+
+      \`\`\`ts
+      fastify.get('/posts', async (request) => {
+        const { page = '1', limit = '20' } =
+          request.query as Record<string, string>
+        return { page: Number(page), limit: Number(limit) }   // 명시적 변환 필수
+      })
+      \`\`\`
+
+      ### request.params — URL 경로 파라미터
+      경로 패턴의 \`:id\` 같은 콜론 변수에 매칭된 값입니다. 역시 **항상 문자열** 입니다.
+
+      \`\`\`ts
+      fastify.get('/users/:id', async (request) => {
+        const { id } = request.params as { id: string }
+        return { userId: id }
+      })
+      \`\`\`
+
+      ### 그 외 자주 쓰는 것
+      - \`request.headers\` — 모든 헤더 (이름은 소문자로 정규화)
+      - \`request.ip\` — 클라이언트 IP
+      - \`request.log\` — 요청 전용 로거 (요청 id 가 자동 포함되어 추적이 쉬움)
+
+      ## 2. reply — 응답 만들어 보내기
+
+      ### reply.code(status).send(payload)
+      상태 코드를 정한 뒤 본문을 전송합니다. \`code\` · \`send\` · \`header\` 는 **체이닝** 가능합니다.
+
+      | payload 타입 | Fastify 가 해 주는 일 |
+      |---|---|
+      | 객체 · 배열 | \`JSON.stringify\` + \`Content-Type: application/json\` |
+      | 문자열 | \`Content-Type: text/plain\` |
+      | \`Buffer\` · \`Stream\` | 그대로 흘려보냄 (이미지/파일 응답에 유용) |
+      | \`null\` · \`undefined\` | 빈 본문 (보통 \`reply.code(204).send()\` 와 함께) |
+
+      > **주의**: \`send()\` 는 한 요청당 한 번만 호출해야 합니다.
+      > 두 번 부르면 \`FST_ERR_REP_ALREADY_SENT\` 가 발생합니다.
+
+      ### reply.header(name, value) / reply.headers({...})
+      응답 헤더를 추가합니다. **\`send\` 가 호출되기 전에** 지정해야 적용됩니다.
+
+      \`\`\`ts
+      reply
+        .header('x-request-id', request.id)
+        .code(200)
+        .send({ ok: true })
+
+      // 여러 개를 한 번에 지정
+      reply.headers({ 'x-foo': '1', 'x-bar': '2' }).send({ ok: true })
+      \`\`\`
+
+      ### return = 자동 send
+      \`async\` 핸들러에서 값을 \`return\` 하면 Fastify 가 자동으로 \`reply.send(값)\` 으로 보내 줍니다.
+      가장 깔끔한 패턴이며 \`try/catch\` 와 같은 에러 흐름도 자연스럽게 이어집니다.
+
+      \`\`\`ts
+      // ✅ 단순 응답은 return 하나로 끝
+      fastify.get('/me', async () => ({ id: 1, name: 'Alice' }))
+
+      // ✅ 상태 코드/헤더 조작이 필요할 땐 reply 를 쓰고, 결과를 그대로 return
+      fastify.post('/users', async (request, reply) => {
+        return reply.code(201).send({ created: true })
+      })
+      \`\`\`
+
+      > \`reply.send()\` 를 호출만 하고 결과를 \`return\` 하지 않으면 \`onResponse\` 같은
+      > 일부 라이프사이클 훅이 어긋날 수 있습니다. \`return reply.code(...).send(...)\` 형태로
+      > 항상 같이 쓰세요.
+
+      ## 3. 이번 단계에서 만들 코드
 
       \`\`\`ts
       fastify.post('/echo', async (request, reply) => {
@@ -33,6 +116,10 @@ export const week_1_2: CurriculumStep = {
         })
       })
       \`\`\`
+
+      - \`POST\` 요청의 본문(\`request.body\`)을 그대로 받아
+      - \`201 Created\` 상태로
+      - JSON 응답에 \`received\` · \`at\` 두 필드를 담아 돌려줍니다.
     `,
     objectives: [
       'request / reply 객체의 역할 구분',
