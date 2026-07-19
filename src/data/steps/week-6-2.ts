@@ -2,34 +2,32 @@ import type { CurriculumStep } from '@/types/curriculum'
 
 export const week_6_2: CurriculumStep = {
   id: 'week-6-2',
-  title: '6주차 · 스택 & 큐 자료구조 활용',
+  title: '6주차 · [스택] 일일 온도 — Monotonic Stack (고급)',
   order: 32,
   category: 'advanced',
   content: {
-    mission:
-      '괄호 문자들로만 이루어진 문자열 \`s\`가 매개변수로 주어집니다 (예: \`"()[]{}"\`). 소괄호, 중괄호, 대괄호의 짝이 올바르게 닫히는지 여부를 확인하는 \`isValidParentheses(s: string): boolean\` 함수를 작성하세요. 스택 자료구조(배열의 push, pop 활용)를 필수로 활용하여 해결하세요.',
+    mission: '매일의 온도가 담긴 배열 `T`가 주어집니다. 각 날짜마다 더 따뜻한 날씨를 맞이하기까지 며칠을 더 기다려야 하는지 담은 배열을 반환하는 `dailyTemperatures(T: number[]): number[]` 함수를 작성하세요. (더 따뜻해지는 날이 없다면 0)',
     theory: `
-      ## 1. 스택(Stack)과 큐(Queue)
-      - **스택**: 후입선출(LIFO, Last In First Out) 형태의 자료구조입니다. JavaScript 배열의 \`push()\`와 \`pop()\` 메서드로 간단히 모방할 수 있습니다.
-      - **큐**: 선입선출(FIFO, First In First Out) 형태의 자료구조입니다. JavaScript 배열의 \`push()\`와 \`shift()\` 메서드로 간단히 구현할 수 있습니다.
+      ## 단조 스택(Monotonic Stack)
+      스택 내부의 원소들을 오름차순 또는 내림차순 상태로 유지하는 기법입니다. 다음으로 더 큰/작은 원소를 찾아내는 인덱스 거리를 O(N)으로 해결하는 데 매우 유용합니다.
 
-      ## 2. 괄호 검사 알고리즘과 스택
-      여는 괄호(\`(\`, \`{\`, \`[\`)를 만나면 스택에 추가하고, 닫는 괄호를 만나면 스택에서 최상단 요소를 꺼내어 매칭되는 여는 괄호인지 확인합니다.
+      ## 일일 온도 풀이 흐름
+      - 온도의 **인덱스**를 스택에 차례대로 담습니다.
+      - 현재 날짜의 온도가 스택 탑 인덱스의 온도보다 높다면, 스택 탑 인덱스를 pop하고 대기 기간(\`현재인덱스 - 이전인덱스\`)을 계산해 결과에 적재합니다.
     `,
     objectives: [
-      '배열의 push() 메서드를 활용하여 여는 괄호를 스택에 집어넣을 것',
-      '배열의 pop() 메서드를 활용하여 닫는 괄호가 매칭되는지 스택에서 꺼내 확인하도록 구현할 것'
+      '단조 감소 형태의 온도를 추적하기 위해 스택에 날짜 인덱스를 푸시할 것',
+      '현재 날씨가 이전 날씨보다 온도가 높으면 스택에서 인덱스를 pop하여 일수 차이를 누적 기록할 것'
     ],
-    exercise: "1. 괄호 검사 클래스 `ParenthesisChecker`의 `isValid` 메서드를 완성하세요.\n2. 스택(Stack) 배열 구조를 선언하고, 열린 괄호가 올 때 push하고 닫힌 괄호가 올 때 pop하며 올바르게 짝이 맞는지 검사하여 결과를 리턴하세요."
+    exercise: "1. 결과 배열을 입력 배열 T와 같은 길이로 생성하고 0으로 채우세요.\n2. 온도가 높아지는 시점을 단조 스택으로 찾아내어 인덱스 거리 값을 입력하고 리턴하세요."
   },
   initialFiles: [
     {
       name: 'index.ts',
       path: 'index.ts',
-      content: `export function isValidParentheses(s: string): boolean {
-  const stack: string[] = [];
-  // 스택을 사용하여 괄호 유효성을 검사하고 결과를 반환하세요.
-  return false;
+      content: `export function dailyTemperatures(T: number[]): number[] {
+  // Monotonic Stack을 활용해 더 따뜻해지는 대기 일수를 리턴하세요.
+  return [];
 }`,
       language: 'typescript'
     }
@@ -39,14 +37,14 @@ export const week_6_2: CurriculumStep = {
       {
         type: 'includes',
         target: 'index.ts',
-        pattern: '.push(',
-        message: 'push() 메서드를 사용하여 여는 괄호를 스택에 쌓아야 합니다.'
+        pattern: 'dailyTemperatures',
+        message: 'dailyTemperatures 구현이 포함되어야 합니다.'
       },
       {
-        type: 'includes',
+        type: 'regex',
         target: 'index.ts',
-        pattern: '.pop()',
-        message: 'pop() 메서드를 사용하여 스택에서 이전 여는 괄호를 추출하여 비교해야 합니다.'
+        pattern: /\.pop\(/,
+        message: '알고리즘의 올바른 구현 규칙을 준수해야 합니다.'
       }
     ],
     dynamicChecks: []
@@ -54,34 +52,27 @@ export const week_6_2: CurriculumStep = {
   hints: [
     {
       level: 1,
-      content: '닫는 괄호를 만났을 때 스택이 비어 있거나 스택 최상단(pop 결과)이 매칭되지 않는 괄호면 바로 `false`를 리턴해야 합니다.'
+      content: '스택에는 온도가 아닌 날짜의 인덱스(`i`)를 넣어야 거리 연산이 수월합니다.'
     },
     {
       level: 2,
-      content: '루프가 모두 끝났을 때 스택에 남은 여는 괄호가 없어야(즉, `stack.length === 0`) 유효한 괄호입니다.'
+      content: '`while (stack.length > 0 && T[i] > T[stack[stack.length - 1]])` 구조를 적용해 보세요.'
     },
     {
       level: 3,
       content: '정답 코드 예시입니다.',
-      codeSnippet: `export class ParenthesisChecker {
-  isValid(s: string): boolean {
-    const stack: string[] = [];
-    const pairs: Record<string, string> = {
-      ')': '(',
-      '}': '{',
-      ']': '['
-    };
-    for (const char of s) {
-      if (['(', '{', '['].includes(char)) {
-        stack.push(char);
-      } else if ([')', '}', ']'].includes(char)) {
-        if (stack.pop() !== pairs[char]) {
-          return false;
-        }
-      }
+      codeSnippet: `export function dailyTemperatures(T: number[]): number[] {
+  const result = new Array(T.length).fill(0);
+  const stack: number[] = [];
+
+  for (let i = 0; i < T.length; i++) {
+    while (stack.length > 0 && T[i] > T[stack[stack.length - 1]]) {
+      const prevIndex = stack.pop()!;
+      result[prevIndex] = i - prevIndex;
     }
-    return stack.length === 0;
+    stack.push(i);
   }
+  return result;
 }`
     }
   ]

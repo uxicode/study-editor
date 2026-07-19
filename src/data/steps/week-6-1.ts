@@ -2,53 +2,34 @@ import type { CurriculumStep } from '@/types/curriculum'
 
 export const week_6_1: CurriculumStep = {
   id: 'week-6-1',
-  title: '6주차 · 정렬 알고리즘 및 커스텀 비교기',
+  title: '6주차 · [스택] 올바른 괄호쌍 검사 (기본)',
   order: 31,
   category: 'advanced',
   content: {
-    mission:
-      '상품 리스트 `products`가 주어집니다 (예: `{ name: "Apple", price: 1000, sales: 50 }`). 상품들을 가격(`price`) 오름차순으로 정렬하되, 가격이 같다면 판매량(`sales`) 내림차순으로 정렬하는 `sortProducts(products: Product[]): Product[]` 함수를 작성하세요. Array의 `sort` 메서드와 비교 함수(comparator)를 사용해 구현하세요.',
+    mission: '대, 중, 소괄호가 섞인 문자열 `str`이 주어질 때, 괄호의 짝이 맞고 올바른 순서로 닫혔는지 검사하는 `checkBrackets(str: string): boolean` 함수를 작성하세요.',
     theory: `
-      배열 정렬은 데이터를 정돈하는 필수 알고리즘입니다. JavaScript의 \`Array.prototype.sort()\` 메서드는 커스텀 비교 함수를 매개변수로 받아 다양한 조건의 정렬을 수행할 수 있습니다.
+      ## 스택(Stack) 자료구조
+      스택은 **LIFO (Last In First Out, 후입선출)** 원칙에 따라 동작하는 선형 자료구조입니다. 가장 마지막에 삽입된 데이터가 가장 먼저 꺼내집니다.
 
-      ## 1. 비교 함수(Comparator) 구조
-      \`\`\`ts
-      array.sort((a, b) => {
-        if (a가 b보다 앞서야 함) return -1;
-        if (b가 a보다 앞서야 함) return 1;
-        return 0; // 순서 유지
-      });
-      \`\`\`
-      - 반환값이 **0보다 작으면** \`a\`가 \`b\`보다 앞에 배치됩니다.
-      - 반환값이 **0보다 크면** \`b\`가 \`a\`보다 앞에 배치됩니다.
-      
-      ## 2. 다중 조건 정렬 예시
-      \`\`\`ts
-      // 가격 오름차순 정렬 예시
-      products.sort((a, b) => a.price - b.price);
-      \`\`\`
+      ## 괄호 매칭 설계
+      - 여는 괄호(\`(\`, \`{\`, \`[\`)를 만나면 스택에 push합니다.
+      - 닫는 괄호(\`)\`, \`}\`, \`]\`)를 만나면 스택에서 pop하여 짝이 맞는지 검사합니다.
+      - 모든 처리가 끝났을 때 스택이 비어 있어야 올바른 괄호쌍입니다.
     `,
     objectives: [
-      'Array.prototype.sort() 메서드를 사용해 배열을 정렬할 것',
-      '가격 비교 후 값이 같을 때 판매량을 비교하여 다중 조건을 만족하는 정렬 함수를 작성할 것'
+      '여는 괄호가 올 때 스택에 적재할 것',
+      '닫는 괄호를 만나면 스택에서 pop하여 올바른 짝인지 비교 검증할 것',
+      '최종 스택의 빈 상태 여부를 boolean으로 리턴할 것'
     ],
-    exercise: "1. `sortProducts` 함수 내부에서 Array의 `sort()` 메서드를 사용해 상품 목록을 정렬하세요.\n2. 가격(`price`) 기준 오름차순으로 정렬하되, 가격이 같을 경우 판매량(`sales`) 기준 내림차순으로 정렬하는 다중 정렬 규칙을 구현하세요."
+    exercise: "1. `checkBrackets` 함수 내부에 스택 배열을 선언하세요.\n2. 여는 괄호와 닫는 괄호의 대응 관계를 나타내는 매핑 객체(matches)를 선언하고, 짝이 맞는지 검사하여 결과를 반환하세요."
   },
   initialFiles: [
     {
       name: 'index.ts',
       path: 'index.ts',
-      content: `export interface Product {
-  name: string;
-  price: number;
-  sales: number;
-}
-
-export function sortProducts(products: Product[]): Product[] {
-  // 가격 오름차순, 가격이 같으면 판매량 내림차순 정렬을 리턴하세요.
-  return products.sort((a, b) => {
-    return 0;
-  });
+      content: `export function checkBrackets(str: string): boolean {
+  // 스택을 사용해 대, 중, 소괄호 매칭 여부를 검사하여 반환하세요.
+  return false;
 }`,
       language: 'typescript'
     }
@@ -58,8 +39,20 @@ export function sortProducts(products: Product[]): Product[] {
       {
         type: 'includes',
         target: 'index.ts',
-        pattern: '.sort(',
-        message: 'sort() 메서드를 사용하여 정렬해야 합니다.'
+        pattern: 'checkBrackets',
+        message: 'checkBrackets 구현이 포함되어야 합니다.'
+      },
+      {
+        type: 'regex',
+        target: 'index.ts',
+        pattern: /\.push\(/,
+        message: '알고리즘의 올바른 구현 규칙을 준수해야 합니다.'
+      },
+      {
+        type: 'regex',
+        target: 'index.ts',
+        pattern: /\.pop\(/,
+        message: '알고리즘의 올바른 구현 규칙을 준수해야 합니다.'
       }
     ],
     dynamicChecks: []
@@ -67,28 +60,29 @@ export function sortProducts(products: Product[]): Product[] {
   hints: [
     {
       level: 1,
-      content: '비교 함수 내에서 `a.price !== b.price` 라면 `a.price - b.price`를 반환하여 가격 오름차순 정렬을 선행하세요.'
+      content: '여는 괄호가 들어오면 `stack.push(char)`를 사용해 스택에 담으세요.'
     },
     {
       level: 2,
-      content: '가격이 같다면 `b.sales - a.sales`를 반환하여 판매량 내림차순 정렬이 되도록 설정하세요.'
+      content: '닫는 괄호인 경우 `stack.pop()`을 호출해 매칭되는 짝과 맞는지 검사하고, 다르면 즉시 false를 리턴하세요.'
     },
     {
       level: 3,
       content: '정답 코드 예시입니다.',
-      codeSnippet: `export interface Product {
-  name: string;
-  price: number;
-  sales: number;
-}
-
-export function sortProducts(products: Product[]): Product[] {
-  return [...products].sort((a, b) => {
-    if (a.price !== b.price) {
-      return a.price - b.price;
+      codeSnippet: `export function checkBrackets(str: string): boolean {
+  const stack: string[] = [];
+  const matches: Record<string, string> = { ')': '(', '}': '{', ']': '[' };
+  
+  for (let char of str) {
+    if (['(', '{', '['].includes(char)) {
+      stack.push(char);
+    } else if ([')', '}', ']'].includes(char)) {
+      if (stack.length === 0 || stack.pop() !== matches[char]) {
+        return false;
+      }
     }
-    return b.sales - a.sales;
-  });
+  }
+  return stack.length === 0;
 }`
     }
   ]

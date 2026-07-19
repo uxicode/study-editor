@@ -46,6 +46,16 @@ import { week_6_2 } from './steps/week-6-2'
 import { week_6_3 } from './steps/week-6-3'
 import { week_6_4 } from './steps/week-6-4'
 import { week_6_5 } from './steps/week-6-5'
+import { week_6_6 } from './steps/week-6-6'
+import { week_6_7 } from './steps/week-6-7'
+import { week_6_8 } from './steps/week-6-8'
+import { week_6_9 } from './steps/week-6-9'
+import { week_6_10 } from './steps/week-6-10'
+import { week_6_11 } from './steps/week-6-11'
+import { week_6_12 } from './steps/week-6-12'
+import { week_6_13 } from './steps/week-6-13'
+import { week_6_14 } from './steps/week-6-14'
+import { week_6_15 } from './steps/week-6-15'
 import { week_6_final } from './steps/week-6-final'
 
 // Week 7 — Next.js & React Hooks
@@ -113,9 +123,12 @@ export const CURRICULUMS: Curriculum[] = [
     icon: '🧮',
     description: '정렬, 스택/큐, 해시맵, 탐색(DFS/BFS), DP 기초',
     steps: [
-      week_6_1, week_6_2, week_6_3, week_6_4, week_6_5, week_6_final
+      week_6_1, week_6_2, week_6_3, week_6_4,
+      week_6_5, week_6_6, week_6_7, week_6_8,
+      week_6_9, week_6_10, week_6_11, week_6_12,
+      week_6_13, week_6_14, week_6_15, week_6_final
     ],
-    levelCounts: { 1: 6 }
+    levelCounts: { 1: 4, 2: 4, 3: 4, 4: 4 }
   },
   {
     id: 'nextjs',
@@ -147,7 +160,7 @@ export const LEVEL_STEP_COUNTS = {
   3: 6,
   4: 6,
   5: 6,
-  6: 6,
+  6: 16,
   7: 6,
   8: 6,
   9: 6

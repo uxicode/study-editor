@@ -2,39 +2,34 @@ import type { CurriculumStep } from '@/types/curriculum'
 
 export const week_6_3: CurriculumStep = {
   id: 'week-6-3',
-  title: '6주차 · 해시 맵(Hash Map) 및 빈도수 집계',
+  title: '6주차 · [큐] 프린터 인쇄 대기열 (기본)',
   order: 33,
   category: 'advanced',
   content: {
-    mission:
-      '숫자 배열 \`nums\`가 주어집니다. 배열 내에서 과반수(배열 길이의 절반을 초과)로 등장하는 요소를 찾아내는 \`findMajorityElement(nums: number[]): number\` 함수를 작성하세요. JavaScript의 \`Map\` 또는 기본 객체(\`Record\`)를 해시 맵으로 활용하여 빈도수를 집계하세요.',
+    mission: '문서의 중요도가 담긴 배열 `priorities`와 내가 인쇄를 요청한 문서의 인덱스 `location`이 주어질 때, 대기열 중요도를 판별하여 내 문서가 몇 번째로 인쇄되는지 구하는 `printerQueue(priorities: number[], location: number): number` 함수를 완성하세요.',
     theory: `
-      ## 1. 해시 맵(Hash Map)
-      키-값 쌍을 관리하며 검색, 삽입의 평균 시간 복잡도가 \`O(1)\`인 고성능 자료구조입니다. JavaScript에서는 일반 객체 \`{}\` 또는 \`Map\` 클래스를 사용하여 구현할 수 있습니다.
+      ## 큐(Queue) 자료구조
+      큐는 **FIFO (First In First Out, 선입선출)** 원칙에 따라 동작하는 선형 자료구조입니다. 먼저 들어온 데이터가 먼저 빠져나갑니다.
 
-      ## 2. 빈도수 집계 패턴(Frequency Counter)
-      중첩 루프를 사용해 \`O(N^2)\`이 걸릴 수 있는 탐색 작업을 한 번의 루프로 처리하게 해주는 최적화 방법입니다.
-      \`\`\`ts
-      const counts: Record<number, number> = {};
-      for (const num of nums) {
-        counts[num] = (counts[num] || 0) + 1;
-      }
-      \`\`\`
+      ## 문제 해결 전략
+      - 문서를 \`{ id, priority }\` 객체로 포장하여 대기열 큐로 관리합니다.
+      - 대기열의 맨 앞 문서를 꺼낸 후, 대기열 내에 더 높은 중요도를 가진 문서가 존재한다면 다시 큐의 뒤로 보냅니다.
+      - 더 높은 중요도가 없으면 해당 문서를 인쇄 처리하고 순서를 셉니다.
     `,
     objectives: [
-      '해시 맵(객체 또는 Map 인스턴스)에 각 요소를 키로 하여 등장 빈도수를 기록할 것',
-      '빈도수가 nums.length / 2를 초과하는 요소를 찾아 반환할 것'
+      '대기열 문서들의 원본 위치와 중요도를 결합해 큐 배열로 구성할 것',
+      '큐 맨 앞을 꺼내어 중요도를 확인하고 최우선순위가 아닐 경우 맨 뒤로 보낼 것',
+      '최우선순위일 때 인쇄 카운트를 늘리고 본인의 인덱스가 맞으면 출력할 것'
     ],
-    exercise: "1. 해시 맵 구조를 이용하여 배열 내 각 숫자의 카운트를 세어보세요.\n2. 그 후, 빈도가 `k` 이상인 숫자들만 필터링하여 오름차순 배열로 리턴하는 `topKFrequent` 함수를 작성하세요."
+    exercise: "1. `priorities` 배열을 `{ id: index, priority: val }` 형태의 객체 큐로 변환하세요.\n2. 인쇄 처리될 때마다 순서를 누적하여 내가 요청한 location과 id가 같아지는 시점의 순서를 리턴하세요."
   },
   initialFiles: [
     {
       name: 'index.ts',
       path: 'index.ts',
-      content: `export function findMajorityElement(nums: number[]): number {
-  const frequencyMap: Record<number, number> = {};
-  // 해시 맵을 사용하여 과반수 요소를 찾아 리턴하세요.
-  return -1;
+      content: `export function printerQueue(priorities: number[], location: number): number {
+  // 큐 시뮬레이션을 통해 내 문서가 인쇄되는 순서를 계산하세요.
+  return 0;
 }`,
       language: 'typescript'
     }
@@ -42,10 +37,22 @@ export const week_6_3: CurriculumStep = {
   validator: {
     staticChecks: [
       {
+        type: 'includes',
+        target: 'index.ts',
+        pattern: 'printerQueue',
+        message: 'printerQueue 구현이 포함되어야 합니다.'
+      },
+      {
         type: 'regex',
         target: 'index.ts',
-        pattern: /frequencyMap\[\w+\]\s*=/,
-        message: '해시 맵에 각 요소의 빈도수를 누적하여 저장해야 합니다.'
+        pattern: /\.shift\(/,
+        message: '알고리즘의 올바른 구현 규칙을 준수해야 합니다.'
+      },
+      {
+        type: 'regex',
+        target: 'index.ts',
+        pattern: /\.push\(/,
+        message: '알고리즘의 올바른 구현 규칙을 준수해야 합니다.'
       }
     ],
     dynamicChecks: []
@@ -53,27 +60,33 @@ export const week_6_3: CurriculumStep = {
   hints: [
     {
       level: 1,
-      content: '배열을 루프 돌며 `frequencyMap[num] = (frequencyMap[num] || 0) + 1;` 패턴을 사용해 개수를 세어보세요.'
+      content: '큐의 앞단을 꺼내려면 JS 배열의 `shift()` 메서드를 이용하면 편리합니다.'
     },
     {
       level: 2,
-      content: '이후 객체의 키를 순회하거나 루프 도중 `frequencyMap[num] > nums.length / 2`인지 판단하여 충족하는 즉시 해당 `num`을 반환하면 됩니다.'
+      content: '대기열에 나보다 높은 중요도가 있는지 탐색할 때 `some()` 메서드를 활용해 보세요.'
     },
     {
       level: 3,
       content: '정답 코드 예시입니다.',
-      codeSnippet: `export function topKFrequent(nums: number[], k: number): number[] {
-  const counts = new Map<number, number>();
-  for (const num of nums) {
-    counts.set(num, (counts.get(num) || 0) + 1);
-  }
-  const result: number[] = [];
-  for (const [num, count] of counts.entries()) {
-    if (count >= k) {
-      result.push(num);
+      codeSnippet: `export function printerQueue(priorities: number[], location: number): number {
+  const queue = priorities.map((p, i) => ({ id: i, priority: p }));
+  let printOrder = 0;
+
+  while (queue.length > 0) {
+    const current = queue.shift()!;
+    const hasHigher = queue.some(doc => doc.priority > current.priority);
+
+    if (hasHigher) {
+      queue.push(current);
+    } else {
+      printOrder++;
+      if (current.id === location) {
+        return printOrder;
+      }
     }
   }
-  return result.sort((a, b) => a - b);
+  return printOrder;
 }`
     }
   ]

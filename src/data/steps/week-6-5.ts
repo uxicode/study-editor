@@ -2,40 +2,33 @@ import type { CurriculumStep } from '@/types/curriculum'
 
 export const week_6_5: CurriculumStep = {
   id: 'week-6-5',
-  title: '6주차 · 동적 계획법 (DP) 기초',
+  title: '6주차 · [DFS] 섬의 개수 구하기 (기본 행렬 탐색)',
   order: 35,
   category: 'advanced',
   content: {
-    mission:
-      '동전 권종 배열 `coins`와 목표 금액 `amount`가 주어집니다 (예: `coins: [1, 2, 5]`, `amount: 11`). 목표 금액을 만들기 위해 필요한 최소 동전 개수를 구하는 `coinChange(coins: number[], amount: number): number` 함수를 작성하세요. 단, 조합이 불가능할 경우 `-1`을 반환하세요. DP 메모 테이블(배열)을 생성하여 구현하세요.',
+    mission: '1(땅)과 0(바다)으로 구성된 2차원 문자열 그리드 맵 `grid`가 주어질 때, 상하좌우로 연결된 섬의 총 개수를 반환하는 `numIslands(grid: string[][]): number` 함수를 작성하세요.',
     theory: `
-      ## 1. 동적 계획법 (DP, Dynamic Programming)
-      큰 문제를 작은 하위 문제들로 나누어 푸는 방법으로, 한 번 계산한 하위 문제의 결과는 배열 등에 저장(메모이제이션)하여 중복 계산을 방지합니다.
+      ## 깊이 우선 탐색 (DFS)
+      DFS는 **가장 깊은 곳까지** 탐색을 시도한 다음 더 이상 갈 곳이 없을 때 복귀하는 그래프 탐색 알고리즘입니다. 2차원 격자판에서 상하좌우 연결 컴포넌트(Connected Component)를 분류할 때 널리 쓰입니다.
 
-      ## 2. 최소 동전 문제 점화식
-      배열 \`dp\`를 정의하고, \`dp[i]\`를 \`i\`원을 만드는 데 필요한 최소 동전 수로 둡니다:
-      \`\`\`ts
-      dp[0] = 0;
-      // i원을 만들기 위한 전처리
-      dp[i] = min(dp[i], dp[i - coin] + 1)
-      \`\`\`
+      ## 섬 탐색 알고리즘
+      - 이중 루프로 그리드를 돌며 \`'1'\`(땅)을 찾습니다.
+      - 땅을 발견하면 섬 개수를 1 늘리고, 재귀 DFS 함수를 호출해 연결된 모든 땅을 \`'0'\`(바다)으로 가라앉히며 방문 처리합니다.
     `,
     objectives: [
-      'amount + 1 크기의 dp 배열을 생성하고 Infinity 등으로 초기화할 것',
-      'dp[0] = 0으로 설정한 뒤 이중 루프를 통해 값을 갱신하여 최적의 동전 개수를 계산할 것'
+      '2차원 배열 격자 루프 도중 땅(\'1\')을 찾으면 섬 카운트를 올리고 DFS를 가동할 것',
+      'DFS 진입 시 범위를 벗어나거나 바다(\'0\')를 만나면 재귀 호출을 멈출 것',
+      '방문한 좌표의 값은 중복 방문 방지를 위해 \'0\'으로 덮어쓸 것'
     ],
-    exercise: "1. 동적 계획법(DP)을 사용해 피보나치 수열의 N번째 값을 리턴하는 `fibonacci` 함수를 작성하세요.\n2. N번째 연산 시 중복 계산을 막기 위해 메모이제이션(Memoization) 테이블을 선언하고 활용하세요."
+    exercise: "1. `numIslands` 함수 내부에서 격자판의 섬 개수를 추적하는 변수를 선언하세요.\n2. 재귀적인 `dfs(r, c)` 함수를 선언해 상하좌우 연결 상태 땅을 지우는 연산을 완성하세요."
   },
   initialFiles: [
     {
       name: 'index.ts',
       path: 'index.ts',
-      content: `export function coinChange(coins: number[], amount: number): number {
-  // DP 테이블을 생성하고 최소 동전 개수를 리턴하세요.
-  const dp = Array(amount + 1).fill(Infinity);
-  dp[0] = 0;
-  
-  return dp[amount] === Infinity ? -1 : dp[amount];
+      content: `export function numIslands(grid: string[][]): number {
+  // DFS를 활용하여 상하좌우 연결된 섬의 개수를 리턴하세요.
+  return 0;
 }`,
       language: 'typescript'
     }
@@ -45,14 +38,14 @@ export const week_6_5: CurriculumStep = {
       {
         type: 'includes',
         target: 'index.ts',
-        pattern: '.fill(',
-        message: 'DP 테이블 초기화를 위해 배열 fill() 메서드를 사용해야 합니다.'
+        pattern: 'numIslands',
+        message: 'numIslands 구현이 포함되어야 합니다.'
       },
       {
         type: 'regex',
         target: 'index.ts',
-        pattern: /Math\.min\(/,
-        message: 'Math.min()을 사용해 최소 값을 비교 및 갱신해야 합니다.'
+        pattern: /function\s+dfs/,
+        message: '알고리즘의 올바른 구현 규칙을 준수해야 합니다.'
       }
     ],
     dynamicChecks: []
@@ -60,25 +53,40 @@ export const week_6_5: CurriculumStep = {
   hints: [
     {
       level: 1,
-      content: '1원부터 `amount`원까지 순회하는 바깥 루프와, 각 `coin`을 순회하는 안쪽 루프를 설계하세요.'
+      content: 'dfs 함수 호출 시 경계 조건 검사 `r < 0 || c < 0 || r >= grid.length || c >= grid[0].length` 를 잊지 마세요.'
     },
     {
       level: 2,
-      content: '안쪽 루프에서 `if (i - coin >= 0)` 조건을 충족할 때 `dp[i] = Math.min(dp[i], dp[i - coin] + 1)` 공식을 적용해 누계 최솟값을 구하세요.'
+      content: '이미 방문한 땅은 `grid[r][c] = \'0\'` 처럼 바다로 바꿔 재귀 방문이 무한히 돌지 않게 차단해야 합니다.'
     },
     {
       level: 3,
       content: '정답 코드 예시입니다.',
-      codeSnippet: `export function fibonacci(n: number): number {
-  if (n <= 0) return 0;
-  if (n === 1) return 1;
-  const dp = new Array(n + 1).fill(0);
-  dp[0] = 0;
-  dp[1] = 1;
-  for (let i = 2; i <= n; i++) {
-    dp[i] = dp[i - 1] + dp[i - 2];
+      codeSnippet: `export function numIslands(grid: string[][]): number {
+  if (!grid || grid.length === 0) return 0;
+  let islandCount = 0;
+
+  function dfs(r: number, c: number) {
+    if (r < 0 || c < 0 || r >= grid.length || c >= grid[0].length || grid[r][c] === '0') {
+      return;
+    }
+    grid[r][c] = '0';
+
+    dfs(r - 1, c);
+    dfs(r + 1, c);
+    dfs(r, c - 1);
+    dfs(r, c + 1);
   }
-  return dp[n];
+
+  for (let r = 0; r < grid.length; r++) {
+    for (let c = 0; c < grid[0].length; c++) {
+      if (grid[r][c] === '1') {
+        islandCount++;
+        dfs(r, c);
+      }
+    }
+  }
+  return islandCount;
 }`
     }
   ]

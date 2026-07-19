@@ -2,44 +2,32 @@ import type { CurriculumStep } from '@/types/curriculum'
 
 export const week_6_4: CurriculumStep = {
   id: 'week-6-4',
-  title: '6주차 · 그래프 및 깊이 우선 탐색 (DFS)',
+  title: '6주차 · [큐] 기능 개발 (중급)',
   order: 34,
   category: 'advanced',
   content: {
-    mission:
-      '인접 리스트 형식의 그래프 `graph`와 시작 노드 `start`, 대상 노드 `target`이 주어집니다. 시작 노드에서 깊이 우선 탐색(DFS)을 시작하여 대상 노드에 도달할 수 있는지 여부를 판단하는 `hasPathDFS(graph: Record<string, string[]>, start: string, target: string, visited?: Set<string>): boolean` 함수를 작성하세요. 재귀(Recursion) 호출을 사용해 구현하세요.',
+    mission: '작업 진도 배열 `progresses`와 작업 속도 배열 `speeds`가 주어질 때, 각 배포마다 완료된 기능들이 묶여 배포되는 개수 목록을 반환하는 `developFeatures(progresses: number[], speeds: number[]): number[]` 함수를 구현하세요.',
     theory: `
-      ## 1. 그래프 탐색
-      그래프(Graph)는 노드(Node, 정점)와 노드를 잇는 간선(Edge)의 집합입니다. 그래프의 모든 노드를 체계적으로 방문하는 방법으로는 크게 DFS와 BFS가 있습니다.
+      ## 큐 기반 묶음 연산
+      앞선 기능이 완료되기 전까지는 뒤의 기능들이 먼저 완성되어도 대기하게 됩니다. 이를 해결하기 위해 각 기능별 완료까지 남은 "일수(days)"를 먼저 연산해 두고 순서대로 소모하며 배포 묶음을 구성합니다.
 
-      ## 2. 깊이 우선 탐색 (DFS, Depth-First Search)
-      한 경로를 끝까지 탐색하고 더 이상 갈 수 없으면 이전 갈림길로 돌아가 다른 경로를 탐색하는 방법입니다.
-      - **구현 방법**: 주로 **재귀 함수**나 **명시적인 스택**을 사용하여 구현합니다.
-      - 무한 루프에 빠지지 않도록 이미 방문한 노드를 기억하는 **방문(visited) 테이블/셋**이 필수적입니다.
+      ## 완료 일수 계산
+      - 남은 작업량: \`100 - progresses[i]\`
+      - 완료까지 걸리는 일수: \`Math.ceil(남은 작업량 / speeds[i])\`
     `,
     objectives: [
-      '방문 여부를 확인하기 위한 Set을 관리하고, 새로운 방문 노드를 추가할 것',
-      '인접 노드에 대해 재귀적으로 hasPathDFS를 호출하여 경로 유무를 판별할 것'
+      '각 작업이 100% 완료되기까지 걸리는 소요일을 구해 순차 큐를 만들 것',
+      '배포 기준일(maxDay)보다 작거나 같은 기간의 작업들은 단일 배포 묶음(count)으로 통합 연산할 것'
     ],
-    exercise: "1. BFS(너비 우선 탐색)를 활용하여 최단 경로 길이를 계산하는 `shortestPath` 함수를 완성하세요.\n2. 인접 리스트 형식의 그래프와 큐(Queue) 자료구조를 생성하여 탐색 과정을 구현하세요."
+    exercise: "1. `Math.ceil((100 - p) / speeds[i])` 공식으로 작업 완료까지 소요되는 일수 배열을 만드세요.\n2. 순차적으로 루프를 돌며 배포 기준일에 같이 묶여 나가는 개수를 추출하여 배열로 리턴하세요."
   },
   initialFiles: [
     {
       name: 'index.ts',
       path: 'index.ts',
-      content: `export function hasPathDFS(
-  graph: Record<string, string[]>,
-  start: string,
-  target: string,
-  visited: Set<string> = new Set()
-): boolean {
-  // DFS 알고리즘을 사용해 start 노드에서 target 노드로 가는 경로 유무를 구하세요.
-  if (start === target) return true;
-  if (visited.has(start)) return false;
-  
-  visited.add(start);
-  
-  return false;
+      content: `export function developFeatures(progresses: number[], speeds: number[]): number[] {
+  // 남은 기능 개발 일수를 큐처럼 접근하여 배포 그룹별 개수를 반환하세요.
+  return [];
 }`,
       language: 'typescript'
     }
@@ -49,14 +37,14 @@ export const week_6_4: CurriculumStep = {
       {
         type: 'includes',
         target: 'index.ts',
-        pattern: 'hasPathDFS(',
-        message: '재귀 호출을 위해 함수 내부에서 hasPathDFS()를 다시 호출해야 합니다.'
+        pattern: 'developFeatures',
+        message: 'developFeatures 구현이 포함되어야 합니다.'
       },
       {
-        type: 'includes',
+        type: 'regex',
         target: 'index.ts',
-        pattern: '.has(',
-        message: '방문 체크를 위해 Set의 has() 메서드를 사용해야 합니다.'
+        pattern: /Math\.ceil/,
+        message: '알고리즘의 올바른 구현 규칙을 준수해야 합니다.'
       }
     ],
     dynamicChecks: []
@@ -64,27 +52,33 @@ export const week_6_4: CurriculumStep = {
   hints: [
     {
       level: 1,
-      content: '현재 `start` 노드의 이웃 노드들을 `graph[start]`로 가져온 뒤, 이웃들 중 하나라도 `hasPathDFS(graph, neighbor, target, visited)`가 `true`를 반환하면 최종적으로 `true`를 반환해야 합니다.'
+      content: '첫 번째 완성 일수를 `maxDay`로 삼고, 다음 일수들이 `maxDay`보다 작거나 같은지 검사하며 카운트를 늘리세요.'
+    },
+    {
+      level: 2,
+      content: '`maxDay`보다 큰 일수를 만나면 지금까지 쌓인 카운트를 push하고 `maxDay`를 그 값으로 교체하세요.'
     },
     {
       level: 3,
       content: '정답 코드 예시입니다.',
-      codeSnippet: `export function shortestPath(graph: Record<number, number[]>, start: number, target: number): number {
-  if (start === target) return 0;
-  const queue: [number, number][] = [[start, 0]];
-  const visited = new Set<number>([start]);
-  while (queue.length > 0) {
-    const [node, dist] = queue.shift()!;
-    if (node === target) return dist;
-    const neighbors = graph[node] || [];
-    for (const neighbor of neighbors) {
-      if (!visited.has(neighbor)) {
-        visited.add(neighbor);
-        queue.push([neighbor, dist + 1]);
-      }
+      codeSnippet: `export function developFeatures(progresses: number[], speeds: number[]): number[] {
+  const days = progresses.map((p, i) => Math.ceil((100 - p) / speeds[i]));
+  const result: number[] = [];
+  
+  let maxDay = days[0];
+  let count = 1;
+
+  for (let i = 1; i < days.length; i++) {
+    if (days[i] <= maxDay) {
+      count++;
+    } else {
+      result.push(count);
+      count = 1;
+      maxDay = days[i];
     }
   }
-  return -1;
+  result.push(count);
+  return result;
 }`
     }
   ]

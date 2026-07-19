@@ -121,7 +121,7 @@ import HintModal from '@/components/ui/HintModal.vue'
 import CongratulationsModal from '@/components/ui/CongratulationsModal.vue'
 import { useCurriculum } from '@/composables/use-curriculum'
 import { usePanelResize } from '@/composables/use-panel-resize'
-import { LEVEL_STEP_COUNTS } from '@/data/curriculum-steps'
+import { CURRICULUMS } from '@/data/curriculum-steps'
 // import { useRuntime } from '@/composables/use-runtime'
 import { useMockRuntime as useRuntime } from '@/composables/use-mock-runtime'
 import { useValidator } from '@/composables/use-validator'
@@ -185,6 +185,9 @@ const {
 } = useCurriculum()
 
 const totalSteps = computed(() => allSteps.value.length)
+const activeCurriculum = computed(() => {
+  return CURRICULUMS.find(c => c.id === activeCurriculumId.value)
+})
 const currentStepNumber = computed(() => {
   if (!currentStep.value) return 0
   return allSteps.value.findIndex(s => s.id === currentStep.value?.id) + 1
@@ -817,8 +820,10 @@ async function handleNextLevel() {
   
   // 다음 주차의 첫 번째 스텝 인덱스 계산
   let firstStepIndex = 0
-  for (let level = 1; level < nextLevel; level++) {
-    firstStepIndex += LEVEL_STEP_COUNTS[level as keyof typeof LEVEL_STEP_COUNTS] || 0
+  if (activeCurriculum.value) {
+    for (let level = 1; level < nextLevel; level++) {
+      firstStepIndex += activeCurriculum.value.levelCounts[level] || 0
+    }
   }
   
   // 다음 주차의 첫 번째 스텝 찾기

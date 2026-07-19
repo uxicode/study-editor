@@ -74,7 +74,7 @@
                 @click="handleStepClick(step)"
               >
                 <div class="step-card-left">
-                  <span class="step-num">Step {{ getStepIndexInWeek(step.id) }}</span>
+                  <span class="step-num">Step {{ getStepIndexInWeek(step.id, week.steps) }}</span>
                   <span class="step-name">{{ cleanTitle(step.title) }}</span>
                 </div>
 
@@ -129,6 +129,7 @@ import { useRouter } from 'vue-router'
 import { useCurriculum } from '@/composables/use-curriculum'
 import { useAuthStore } from '@/stores/auth-store'
 import type { CurriculumStep } from '@/types/curriculum'
+import { CURRICULUMS } from '@/data/curriculum-steps'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -136,7 +137,8 @@ const {
   currentStep,
   allSteps,
   userProgress,
-  loadStep
+  loadStep,
+  activeCurriculumId
 } = useCurriculum()
 
 const isOpen = ref(false)
@@ -152,7 +154,10 @@ const weekTitlesMap: Record<string, string> = {
   'week-3': '3주차: Prisma ORM & 아키텍처',
   'week-4': '4주차: 트랜잭션 & 성능 최적화',
   'week-5': '1주차: 정규식 & 데이터 처리',
-  'week-6': '1주차: 필수 알고리즘',
+  'week-6-level-1': '1주차: 스택 & 큐',
+  'week-6-level-2': '2주차: 그래프 & DFS',
+  'week-6-level-3': '3주차: 최단 경로 & BFS',
+  'week-6-level-4': '4주차: 동적 계획법 (DP)',
   'week-7': '1주차: Next.js & React Hooks',
   'week-8': '2주차: 전역 상태 관리',
   'week-9': '3주차: 로그인 및 고급 인증'
@@ -160,27 +165,42 @@ const weekTitlesMap: Record<string, string> = {
 
 // 활성 커리큘럼의 스텝 동적 그룹화
 const weeks = computed(() => {
-  const groupsMap = new Map<string, { weekNum: number; title: string; steps: CurriculumStep[] }>()
-  
-  allSteps.value.forEach((step) => {
-    const match = step.id.match(/^(week-\d+)/)
-    if (!match) return
-    const weekKey = match[1]
-    
-    if (!groupsMap.has(weekKey)) {
-      const weekIndexInCurriculum = groupsMap.size + 1
-      const title = weekTitlesMap[weekKey] || `${weekIndexInCurriculum}주차`
-      groupsMap.set(weekKey, {
-        weekNum: weekIndexInCurriculum,
-        title,
-        steps: []
-      })
+  const activeCurriculum = CURRICULUMS.find(c => c.id === activeCurriculumId.value)
+  if (!activeCurriculum) return []
+
+  const result: { weekNum: number; title: string; steps: CurriculumStep[] }[] = []
+  let stepOffset = 0
+
+  const levels = Object.keys(activeCurriculum.levelCounts)
+    .map(Number)
+    .sort((a, b) => a - b)
+
+  levels.forEach((level, idx) => {
+    const count = activeCurriculum.levelCounts[level]
+    const stepsInLevel = allSteps.value.slice(stepOffset, stepOffset + count)
+    stepOffset += count
+
+    let titleKey = ''
+    if (activeCurriculumId.value === 'backend') {
+      titleKey = `week-${level}`
+    } else if (activeCurriculumId.value === 'regex') {
+      titleKey = 'week-5'
+    } else if (activeCurriculumId.value === 'nextjs') {
+      titleKey = `week-${level + 6}`
+    } else if (activeCurriculumId.value === 'algorithm') {
+      titleKey = `week-6-level-${level}`
     }
-    
-    groupsMap.get(weekKey)!.steps.push(step)
+
+    const title = weekTitlesMap[titleKey] || `${idx + 1}주차`
+
+    result.push({
+      weekNum: idx + 1,
+      title,
+      steps: stepsInLevel
+    })
   })
 
-  return Array.from(groupsMap.values())
+  return result
 })
 
 const completedCount = computed(() => {
@@ -208,7 +228,8 @@ const currentWeekName = computed(() => {
 
 const currentStepInWeekNumber = computed(() => {
   if (!currentStep.value) return ''
-  return getStepIndexInWeek(currentStep.value.id)
+  const activeWeek = weeks.value.find(w => w.steps.some(s => s.id === currentStep.value?.id))
+  return getStepIndexInWeek(currentStep.value.id, activeWeek?.steps)
 })
 
 const isCurrentStepCompleted = computed(() => {
@@ -216,11 +237,18 @@ const isCurrentStepCompleted = computed(() => {
   return userProgress.value.completedSteps.includes(currentStep.value.id)
 })
 
-function getStepIndexInWeek(stepId: string): string {
+function getStepIndexInWeek(stepId: string, weekSteps?: CurriculumStep[]): string {
   const parts = stepId.split('-')
   if (parts.length < 3) return ''
   const val = parts[2]
   if (val === 'final') return '종합'
+  
+  if (weekSteps) {
+    const idx = weekSteps.findIndex(s => s.id === stepId)
+    if (idx >= 0) {
+      return val === 'final' ? '종합' : String(idx + 1)
+    }
+  }
   return val
 }
 
