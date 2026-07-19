@@ -102,11 +102,31 @@ export function detectCodeSnippetType(codeSnippet: string): CodeSnippetType | nu
     }
   }
 
-  // JavaScript/Node 코드인지 확인
+  // SQL 코드인지 확인 (CREATE TABLE, ALTER TABLE 등)
+  if (codeSnippet.includes('CREATE TABLE') || 
+      codeSnippet.includes('ALTER TABLE') || 
+      codeSnippet.includes('CREATE INDEX') ||
+      codeSnippet.includes('CREATE UNIQUE INDEX') ||
+      codeSnippet.toLowerCase().includes('select ') ||
+      codeSnippet.toLowerCase().includes('insert into') ||
+      codeSnippet.trim().startsWith('--')) {
+    return {
+      targetFile: 'schema.sql',
+      isPartialCode: false
+    }
+  }
+
+  // JavaScript/Node/TypeScript/React 코드인지 확인
   if (codeSnippet.includes('prisma.') || 
       codeSnippet.includes('PrismaClient') ||
       codeSnippet.includes('import') ||
-      codeSnippet.includes('async function')) {
+      codeSnippet.includes('export') ||
+      codeSnippet.includes('async function') ||
+      codeSnippet.includes('const ') ||
+      codeSnippet.includes('function') ||
+      codeSnippet.includes('useState') ||
+      codeSnippet.includes('create(') ||
+      codeSnippet.includes('jwt.')) {
     const isPartialCode = !(codeSnippet.includes('import') && codeSnippet.includes('async function'))
     return {
       targetFile: 'app.js',
@@ -114,5 +134,9 @@ export function detectCodeSnippetType(codeSnippet: string): CodeSnippetType | nu
     }
   }
 
-  return null
+  // 기본 fallback
+  return {
+    targetFile: 'app.js',
+    isPartialCode: false
+  }
 }

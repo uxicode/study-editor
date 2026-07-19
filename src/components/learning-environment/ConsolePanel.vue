@@ -15,6 +15,7 @@
         ✓ 검증 결과
       </button>
       <button
+        v-if="showDatabaseTab"
         :class="['console-tab', { active: activeTab === 'database' }]"
         @click="activeTab = 'database'"
       >
@@ -167,7 +168,20 @@ interface Props {
 
 const props = defineProps<Props>()
 
+import { useCurriculum } from '@/composables/use-curriculum'
+const { activeCurriculumId } = useCurriculum()
+
 const activeTab = ref<'output' | 'validation' | 'database'>('output')
+
+const showDatabaseTab = computed(() => {
+  return activeCurriculumId.value === 'backend'
+})
+
+watch(showDatabaseTab, (newShow) => {
+  if (!newShow && activeTab.value === 'database') {
+    activeTab.value = 'output'
+  }
+})
 
 // computed로 dbSnapshot을 안전하게 접근
 const dbSnapshot = computed(() => props.dbSnapshot)
@@ -190,6 +204,7 @@ watch(
   () => props.dbSnapshot,
   (newSnapshot) => {
     if (!newSnapshot) return
+    if (!showDatabaseTab.value) return
     const hasTables = (newSnapshot.tables?.length ?? 0) > 0
     const hasSchemaSQL = !!newSnapshot.schemaSQL?.trim()
     if (hasTables || hasSchemaSQL) {

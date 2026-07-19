@@ -70,7 +70,19 @@ export function useMockRuntime() {
         output += analyzeFastifyCode(serverFile, logs)
       }
 
-      if (!appFile && !serverFile && sqlFiles.length === 0) {
+      // JS Core / Algorithm / React / State Management / Auth 분석
+      const jsTsFiles = files.filter(f => f.name.endsWith('.js') || f.name.endsWith('.ts') || f.name.endsWith('.jsx') || f.name.endsWith('.tsx'))
+      let analyzedJsTs = false
+      for (const file of jsTsFiles) {
+        if (file.name === 'server.ts' || file.name === 'server.js') continue // Fastify가 이미 처리함
+        if (file.name === 'app.js' || file.name === 'app.ts' || file.name === 'index.js') {
+          // app.ts가 Prisma 용도로 처리될 수 있으나 일반 분석도 해줌
+        }
+        output += analyzeJsTsCode(file, logs)
+        analyzedJsTs = true
+      }
+
+      if (!appFile && !serverFile && sqlFiles.length === 0 && !analyzedJsTs) {
         output += '✓ 코드가 올바르게 작성되었습니다.\n'
       }
 
@@ -265,4 +277,84 @@ function analyzeSqlCode(file: RuntimeFile, logs: string[]): string {
     out += `EXPLAIN 분석: ${explainCount}개\n`
   }
   return out
+}
+
+function analyzeJsTsCode(file: RuntimeFile, logs: string[]): string {
+  logs.push(`📝 ${file.name} 분석 (JavaScript/TypeScript):`)
+  const content = file.content
+
+  // 1. 정규식 분석
+  const regexLiteralRe = /\/[^\/\n]+\/[gimy]*/g
+  const regexMatches = content.match(regexLiteralRe)
+  if (regexMatches) {
+    logs.push(`  ✓ 정규식 패턴 발견: ${regexMatches.join(', ')}`)
+  }
+  if (content.includes('RegExp(') || content.includes('.test(') || content.includes('.exec(') || content.includes('.match(')) {
+    logs.push('  ✓ 정규 표현식 메서드 사용')
+  }
+
+  // 2. 배열/객체 메서드 분석
+  const arrayMethods = ['map', 'filter', 'reduce', 'find', 'findIndex', 'some', 'every', 'flatMap', 'forEach', 'push', 'pop', 'shift', 'unshift']
+  arrayMethods.forEach((method) => {
+    if (content.includes(`.${method}(`)) {
+      logs.push(`  ✓ 배열 메서드 .${method}() 사용`)
+    }
+  })
+
+  const objectMethods = ['keys', 'values', 'entries', 'assign', 'freeze']
+  objectMethods.forEach((method) => {
+    if (content.includes(`Object.${method}(`)) {
+      logs.push(`  ✓ 객체 메서드 Object.${method}() 사용`)
+    }
+  })
+
+  // 3. React Hooks 분석
+  const reactHooks = ['useState', 'useEffect', 'useMemo', 'useCallback', 'useRef', 'useReducer', 'useContext']
+  reactHooks.forEach((hook) => {
+    if (content.includes(`${hook}(`)) {
+      logs.push(`  ✓ React Hook ${hook}() 사용`)
+    }
+  })
+  if (content.includes('"use client"') || content.includes("'use client'")) {
+    logs.push('  ✓ 클라이언트 컴포넌트 선언 ("use client")')
+  }
+
+  // 4. Zustand 분석
+  if (content.includes('create(') && (content.includes('zustand') || content.includes('(set) =>') || content.includes('((set) =>'))) {
+    logs.push('  ✓ Zustand 스토어 생성 확인')
+  }
+  if (content.includes('persist(')) {
+    logs.push('  ✓ Zustand Persist 미들웨어 적용 확인')
+  }
+
+  // 5. TanStack Query 분석
+  if (content.includes('useQuery(') || content.includes('useQuery({')) {
+    logs.push('  ✓ TanStack Query useQuery() 사용 확인')
+  }
+  if (content.includes('useMutation(') || content.includes('useMutation({')) {
+    logs.push('  ✓ TanStack Query useMutation() 사용 확인')
+  }
+  if (content.includes('queryKey:') || content.includes('queryKey :')) {
+    logs.push('  ✓ Query Key 선언 확인')
+  }
+  if (content.includes('invalidateQueries(')) {
+    logs.push('  ✓ 쿼리 무효화(invalidateQueries) 호출 확인')
+  }
+
+  // 6. 인증 및 보안 분석
+  if (content.includes('jwt.sign') || content.includes('jwt.verify') || content.includes('jsonwebtoken')) {
+    logs.push('  ✓ JWT 토큰 생성/검증 사용 확인')
+  }
+  if (content.includes('NextResponse.next(') || content.includes('NextResponse.redirect(')) {
+    logs.push('  ✓ Next.js 미들웨어 응답 처리 확인')
+  }
+  if (content.includes('cookies(') || content.includes('req.cookies')) {
+    logs.push('  ✓ 쿠키 세션 처리 확인')
+  }
+  if (content.includes('zod') || content.includes('z.object(')) {
+    logs.push('  ✓ Zod 스키마 유효성 검증 확인')
+  }
+
+  logs.push('')
+  return `✓ ${file.name} 분석이 완료되었습니다.\n`
 }

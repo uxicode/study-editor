@@ -20,7 +20,7 @@
       <!-- 단계 헤더 -->
       <div class="step-header">
         <span class="step-badge">{{ step.category }}</span>
-        <h2 class="step-title">{{ step.title }}</h2>
+        <h2 class="step-title">Step {{ currentStepNumber }}. {{ cleanTitle(step.title) }}</h2>
       </div>
 
       <!-- 미션 -->
@@ -46,9 +46,9 @@
       </section>
 
       <!-- 연습문제 -->
-      <section v-if="step.content.exercise" class="content-section exercise-section">
+      <section v-if="displayExercise" class="content-section exercise-section">
         <h3 class="section-title">📝 연습문제</h3>
-        <div class="section-content" v-html="formatMarkdown(step.content.exercise)"></div>
+        <div class="section-content" v-html="formatMarkdown(displayExercise)"></div>
       </section>
 
       <!-- 예상 출력 -->
@@ -115,9 +115,26 @@ function formatMarkdown(text: string): string {
   return parseMarkdown(text)
 }
 
+function cleanTitle(title: string): string {
+  return title.replace(/^\d+주차\s*·\s*/, '')
+}
+
 const progressPercentage = computed(() => {
   if (props.totalSteps === 0) return 0
   return (props.completedSteps.length / props.totalSteps) * 100
+})
+
+const displayExercise = computed(() => {
+  if (!props.step) return ''
+  if (props.step.content.exercise) {
+    return props.step.content.exercise
+  }
+  if (props.step.validator && props.step.validator.staticChecks) {
+    return props.step.validator.staticChecks
+      .map((check, index) => `${index + 1}. ${check.message}`)
+      .join('\n')
+  }
+  return ''
 })
 </script>
 

@@ -1,57 +1,74 @@
 import { ref, computed } from 'vue'
-import type { CurriculumStep, UserProgress } from '@/types/curriculum'
-import { CURRICULUM_STEPS, LEVEL_STEP_COUNTS } from '@/data/curriculum-steps'
+import type { CurriculumStep } from '@/types/curriculum'
+import { CURRICULUMS, type CurriculumType } from '@/data/curriculum-steps'
 import { useAuthStore } from '@/stores/auth-store'
 import * as progressService from '@/services/progress.service'
 
-const MAX_LEVEL = 4
-type LevelKey = keyof typeof LEVEL_STEP_COUNTS
+interface UserProgress {
+  completedSteps: string[]
+  currentStep: string // 하위 호환용 (마지막으로 열었던 스텝)
+  currentSteps: Record<string, string> // 각 커리큘럼별 현재 스텝
+  activeCurriculum: CurriculumType
+  attempts: Record<string, number>
+}
 
-/** 레벨 1 ~ targetLevel 까지의 누적 스텝 수 */
-function getCumulativeStepsThroughLevel(targetLevel: number): number {
-  let sum = 0
-  for (let level = 1; level <= targetLevel && level <= MAX_LEVEL; level++) {
-    sum += LEVEL_STEP_COUNTS[level as LevelKey] ?? 0
+const activeCurriculumId = ref<CurriculumType>('backend')
+const currentStepId = ref<string>('week-1-1')
+
+const userProgress = ref<UserProgress>({
+  completedSteps: [],
+  currentStep: 'week-1-1',
+  currentSteps: {
+    backend: 'week-1-1',
+    regex: 'week-5-1',
+    algorithm: 'week-6-1',
+    nextjs: 'week-7-1'
+  },
+  activeCurriculum: 'backend',
+  attempts: {}
+})
+
+function sanitizeProgress(input: Partial<UserProgress>): UserProgress {
+  const completed = input.completedSteps ?? []
+  const activeCurr = (input.activeCurriculum as CurriculumType) ?? 'backend'
+  
+  // 기본 currentSteps 맵
+  const defaultCurrentSteps: Record<string, string> = {
+    backend: 'week-1-1',
+    regex: 'week-5-1',
+    algorithm: 'week-6-1',
+    nextjs: 'week-7-1'
   }
-  return sum
-}
 
-const FIRST_STEP_ID = 'week-1-1'
-
-const VALID_STEP_IDS = new Set(CURRICULUM_STEPS.map((s) => s.id))
-
-/** 알 수 없는 step ID (이전 커리큘럼의 잔재 등) 를 안전하게 first step 으로 정규화한다. */
-function normalizeStepId(stepId: string | undefined | null): string {
-  if (stepId && VALID_STEP_IDS.has(stepId)) return stepId
-  return FIRST_STEP_ID
-}
-
-function sanitizeProgress(input: UserProgress): UserProgress {
   return {
-    completedSteps: (input.completedSteps ?? []).filter((id) => VALID_STEP_IDS.has(id)),
-    currentStep: normalizeStepId(input.currentStep),
+    completedSteps: completed,
+    currentStep: input.currentStep ?? 'week-1-1',
+    currentSteps: {
+      ...defaultCurrentSteps,
+      ...(input.currentSteps ?? {})
+    },
+    activeCurriculum: activeCurr,
     attempts: input.attempts ?? {}
   }
 }
 
-const currentStepId = ref<string>('')
-const userProgress = ref<UserProgress>({
-  completedSteps: [],
-  currentStep: FIRST_STEP_ID,
-  attempts: {}
-})
-
 export function useCurriculum() {
   const isLoadingStep = ref(false)
 
-  const currentStep = computed<CurriculumStep | null>(() => {
-    return CURRICULUM_STEPS.find(step => step.id === currentStepId.value) || null
+  const activeCurriculum = computed(() => {
+    return CURRICULUMS.find(c => c.id === activeCurriculumId.value) || CURRICULUMS[0]
   })
 
-  const allSteps = computed(() => CURRICULUM_STEPS)
+  const allSteps = computed(() => {
+    return activeCurriculum.value.steps
+  })
+
+  const currentStep = computed<CurriculumStep | null>(() => {
+    return activeCurriculum.value.steps.find(step => step.id === currentStepId.value) || activeCurriculum.value.steps[0] || null
+  })
 
   const currentStepIndex = computed(() => {
-    return CURRICULUM_STEPS.findIndex(step => step.id === currentStepId.value)
+    return activeCurriculum.value.steps.findIndex(step => step.id === currentStepId.value)
   })
 
   const canGoNext = computed(() => {
@@ -62,16 +79,37 @@ export function useCurriculum() {
     return currentStepIndex.value > 0
   })
 
+  const completedStepsInActiveCurriculum = computed(() => {
+    return activeCurriculum.value.steps.filter(step => userProgress.value.completedSteps.includes(step.id))
+  })
+
+  const isAllStepsCompleted = computed(() => {
+    return completedStepsInActiveCurriculum.value.length === activeCurriculum.value.steps.length
+  })
+
+  const currentLevel = computed(() => {
+    const completedCount = completedStepsInActiveCurriculum.value.length
+    let sum = 0
+    const keys = Object.keys(activeCurriculum.value.levelCounts).map(Number).sort((a, b) => a - b)
+    for (const level of keys) {
+      sum += activeCurriculum.value.levelCounts[level]
+      if (completedCount < sum) return level
+    }
+    return keys[keys.length - 1] || 1
+  })
+
   async function loadStep(stepId: string) {
     isLoadingStep.value = true
     try {
-      const safeId = normalizeStepId(stepId)
-      if (safeId !== stepId) {
-        console.warn(`알 수 없는 step id "${stepId}" — 첫 스텝으로 폴백합니다.`)
-      }
       await new Promise((resolve) => setTimeout(resolve, 300))
-      currentStepId.value = safeId
-      userProgress.value.currentStep = safeId
+      currentStepId.value = stepId
+      
+      // 현재 커리큘럼의 저장된 스텝 업데이트
+      if (!userProgress.value.currentSteps) {
+        userProgress.value.currentSteps = {}
+      }
+      userProgress.value.currentSteps[activeCurriculumId.value] = stepId
+      userProgress.value.currentStep = stepId
       saveProgress()
     } finally {
       isLoadingStep.value = false
@@ -80,15 +118,15 @@ export function useCurriculum() {
 
   function goToNextStep() {
     const nextIndex = currentStepIndex.value + 1
-    if (nextIndex < CURRICULUM_STEPS.length) {
-      loadStep(CURRICULUM_STEPS[nextIndex].id)
+    if (nextIndex < activeCurriculum.value.steps.length) {
+      loadStep(activeCurriculum.value.steps[nextIndex].id)
     }
   }
 
   function goToPreviousStep() {
     const prevIndex = currentStepIndex.value - 1
     if (prevIndex >= 0) {
-      loadStep(CURRICULUM_STEPS[prevIndex].id)
+      loadStep(activeCurriculum.value.steps[prevIndex].id)
     }
   }
 
@@ -99,21 +137,9 @@ export function useCurriculum() {
     }
   }
 
-  const isAllStepsCompleted = computed(() => {
-    return userProgress.value.completedSteps.length === CURRICULUM_STEPS.length
-  })
-
-  /** 완료한 스텝 수 기준 현재 레벨 (1~4). 반응형이므로 computed 유지 */
-  const currentLevel = computed(() => {
-    const completedCount = userProgress.value.completedSteps.length
-    for (let level = 1; level <= MAX_LEVEL; level++) {
-      if (completedCount < getCumulativeStepsThroughLevel(level)) return level
-    }
-    return MAX_LEVEL
-  })
-
   function restartCurriculum() {
-    loadStep(FIRST_STEP_ID)
+    const firstStepId = activeCurriculum.value.steps[0]?.id || 'week-1-1'
+    loadStep(firstStepId)
   }
 
   function incrementAttempt(stepId: string) {
@@ -124,17 +150,38 @@ export function useCurriculum() {
     saveProgress()
   }
 
+  async function changeCurriculum(curriculumId: CurriculumType) {
+    activeCurriculumId.value = curriculumId
+    userProgress.value.activeCurriculum = curriculumId
+    
+    // 이전에 이 커리큘럼에서 저장된 스텝 불러오기, 없으면 첫 스텝 로드
+    if (!userProgress.value.currentSteps) {
+      userProgress.value.currentSteps = {}
+    }
+    const savedStep = userProgress.value.currentSteps[curriculumId]
+    const targetCurriculum = CURRICULUMS.find(c => c.id === curriculumId) || CURRICULUMS[0]
+    const defaultStep = targetCurriculum.steps[0]?.id || 'week-1-1'
+    
+    const targetStep = savedStep || defaultStep
+    await loadStep(targetStep)
+  }
+
   function saveProgress() {
-    // localStorage 는 항상 백업으로 동기 저장한다 (Supabase 실패 / 로그아웃 시에도 데이터 보존)
     try {
       localStorage.setItem('userProgress', JSON.stringify(userProgress.value))
     } catch {
-      // 시크릿 모드 등 localStorage 접근 실패는 무시
+      // ignore
     }
 
     const authStore = useAuthStore()
     if (authStore.isAuthenticated) {
-      progressService.saveProgress(userProgress.value).catch((e) => {
+      // Supabase 테이블 저장을 위해 하위 호환 가능한 필드 변환
+      const dbPayload = {
+        completed_steps: userProgress.value.completedSteps,
+        current_step: userProgress.value.currentStep,
+        attempts: userProgress.value.attempts
+      }
+      progressService.saveProgress(dbPayload as any).catch((e) => {
         console.warn('Supabase 진행상황 저장 실패 (localStorage 에 보관됨):', e?.message ?? e)
       })
     }
@@ -142,14 +189,13 @@ export function useCurriculum() {
 
   async function loadProgress() {
     const authStore = useAuthStore()
-    let loaded: UserProgress | null = null
+    let loaded: any = null
 
     if (authStore.isAuthenticated) {
       try {
         loaded = await progressService.getProgress()
       } catch (e) {
-        const message = e instanceof Error ? e.message : String(e)
-        console.warn('Supabase 진행상황 로드 실패 — localStorage 로 폴백합니다:', message)
+        console.warn('Supabase 진행상황 로드 실패 — localStorage 로 폴백합니다:', e)
       }
     }
 
@@ -157,27 +203,60 @@ export function useCurriculum() {
       const saved = localStorage.getItem('userProgress')
       if (saved) {
         try {
-          loaded = JSON.parse(saved) as UserProgress
+          loaded = JSON.parse(saved)
         } catch (e) {
           console.error('localStorage 진행상황 파싱 실패:', e)
         }
       }
     }
 
-    userProgress.value = loaded ? sanitizeProgress(loaded) : sanitizeProgress(userProgress.value)
+    if (loaded) {
+      // Supabase 에서 로드된 경우 db 필드에서 변환 필요
+      const completed = loaded.completed_steps ?? loaded.completedSteps ?? []
+      const current = loaded.current_step ?? loaded.currentStep ?? 'week-1-1'
+      const attempts = loaded.attempts ?? {}
+      
+      const parsed: Partial<UserProgress> = {
+        completedSteps: completed,
+        currentStep: current,
+        currentSteps: loaded.currentSteps ?? {
+          backend: current.startsWith('week-1') || current.startsWith('week-2') || current.startsWith('week-3') || current.startsWith('week-4') ? current : 'week-1-1',
+          regex: current.startsWith('week-5') ? current : 'week-5-1',
+          algorithm: current.startsWith('week-6') ? current : 'week-6-1',
+          nextjs: current.startsWith('week-7') || current.startsWith('week-8') || current.startsWith('week-9') ? current : 'week-7-1'
+        },
+        activeCurriculum: loaded.activeCurriculum ?? (
+          current.startsWith('week-5') ? 'regex' :
+          current.startsWith('week-6') ? 'algorithm' :
+          current.startsWith('week-7') || current.startsWith('week-8') || current.startsWith('week-9') ? 'nextjs' : 'backend'
+        ),
+        attempts
+      }
+      userProgress.value = sanitizeProgress(parsed)
+    } else {
+      userProgress.value = sanitizeProgress(userProgress.value)
+    }
+
+    // 로드된 activeCurriculumId 및 currentStepId 반영
+    activeCurriculumId.value = userProgress.value.activeCurriculum
+    const targetCurriculum = CURRICULUMS.find(c => c.id === activeCurriculumId.value) || CURRICULUMS[0]
+    currentStepId.value = userProgress.value.currentSteps[activeCurriculumId.value] || targetCurriculum.steps[0]?.id || 'week-1-1'
   }
 
   function resetProgress() {
-    userProgress.value = {
+    userProgress.value = sanitizeProgress({
       completedSteps: [],
-      currentStep: FIRST_STEP_ID,
+      currentStep: 'week-1-1',
       attempts: {}
-    }
+    })
+    activeCurriculumId.value = 'backend'
+    currentStepId.value = 'week-1-1'
     saveProgress()
-    loadStep(FIRST_STEP_ID)
   }
 
   return {
+    activeCurriculumId,
+    activeCurriculum,
     currentStep,
     allSteps,
     isLoadingStep,
@@ -193,6 +272,7 @@ export function useCurriculum() {
     resetProgress,
     isAllStepsCompleted,
     currentLevel,
-    restartCurriculum
+    restartCurriculum,
+    changeCurriculum
   }
 }

@@ -32,44 +32,123 @@ import { week_4_4 } from './steps/week-4-4'
 import { week_4_5 } from './steps/week-4-5'
 import { week_4_final } from './steps/week-4-final'
 
+// Week 5 — Regex & JS Core
+import { week_5_1 } from './steps/week-5-1'
+import { week_5_2 } from './steps/week-5-2'
+import { week_5_3 } from './steps/week-5-3'
+import { week_5_4 } from './steps/week-5-4'
+import { week_5_5 } from './steps/week-5-5'
+import { week_5_final } from './steps/week-5-final'
+
+// Week 6 — Algorithms
+import { week_6_1 } from './steps/week-6-1'
+import { week_6_2 } from './steps/week-6-2'
+import { week_6_3 } from './steps/week-6-3'
+import { week_6_4 } from './steps/week-6-4'
+import { week_6_5 } from './steps/week-6-5'
+import { week_6_final } from './steps/week-6-final'
+
+// Week 7 — Next.js & React Hooks
+import { week_7_1 } from './steps/week-7-1'
+import { week_7_2 } from './steps/week-7-2'
+import { week_7_3 } from './steps/week-7-3'
+import { week_7_4 } from './steps/week-7-4'
+import { week_7_5 } from './steps/week-7-5'
+import { week_7_final } from './steps/week-7-final'
+
+// Week 8 — Zustand & TanStack Query
+import { week_8_1 } from './steps/week-8-1'
+import { week_8_2 } from './steps/week-8-2'
+import { week_8_3 } from './steps/week-8-3'
+import { week_8_4 } from './steps/week-8-4'
+import { week_8_5 } from './steps/week-8-5'
+import { week_8_final } from './steps/week-8-final'
+
+// Week 9 — Authentication & Security
+import { week_9_1 } from './steps/week-9-1'
+import { week_9_2 } from './steps/week-9-2'
+import { week_9_3 } from './steps/week-9-3'
+import { week_9_4 } from './steps/week-9-4'
+import { week_9_5 } from './steps/week-9-5'
+import { week_9_final } from './steps/week-9-final'
+
+export type CurriculumType = 'backend' | 'regex' | 'algorithm' | 'nextjs'
+
+export interface Curriculum {
+  id: CurriculumType
+  title: string
+  icon: string
+  description: string
+  steps: CurriculumStep[]
+  levelCounts: Record<number, number>
+}
+
+export const CURRICULUMS: Curriculum[] = [
+  {
+    id: 'backend',
+    title: '백엔드 코어',
+    icon: '💻',
+    description: 'Fastify, MySQL DDL, Prisma ORM 및 레이어드 아키텍처',
+    steps: [
+      week_1_1, week_1_2, week_1_3, week_1_4, week_1_5, week_1_final,
+      week_2_1, week_2_2, week_2_3, week_2_4, week_2_5, week_2_final,
+      week_3_1, week_3_2, week_3_3, week_3_4, week_3_5, week_3_final,
+      week_4_1, week_4_2, week_4_3, week_4_4, week_4_5, week_4_final
+    ],
+    levelCounts: { 1: 6, 2: 6, 3: 6, 4: 6 }
+  },
+  {
+    id: 'regex',
+    title: '정규식 & 데이터 처리',
+    icon: '🔍',
+    description: '텍스트 정규식 분석 및 자바스크립트 고차 함수 데이터 처리',
+    steps: [
+      week_5_1, week_5_2, week_5_3, week_5_4, week_5_5, week_5_final
+    ],
+    levelCounts: { 1: 6 }
+  },
+  {
+    id: 'algorithm',
+    title: '필수 알고리즘',
+    icon: '🧮',
+    description: '정렬, 스택/큐, 해시맵, 탐색(DFS/BFS), DP 기초',
+    steps: [
+      week_6_1, week_6_2, week_6_3, week_6_4, week_6_5, week_6_final
+    ],
+    levelCounts: { 1: 6 }
+  },
+  {
+    id: 'nextjs',
+    title: 'Next.js & 프론트엔드',
+    icon: '⚛️',
+    description: 'App Router, React Hooks, Zustand, TanStack Query 및 통합 인증',
+    steps: [
+      week_7_1, week_7_2, week_7_3, week_7_4, week_7_5, week_7_final,
+      week_8_1, week_8_2, week_8_3, week_8_4, week_8_5, week_8_final,
+      week_9_1, week_9_2, week_9_3, week_9_4, week_9_5, week_9_final
+    ],
+    levelCounts: { 1: 6, 2: 6, 3: 6 }
+  }
+]
+
 export const CURRICULUM_STEPS: CurriculumStep[] = [
-  // Week 1
-  week_1_1,
-  week_1_2,
-  week_1_3,
-  week_1_4,
-  week_1_5,
-  week_1_final,
-  // Week 2
-  week_2_1,
-  week_2_2,
-  week_2_3,
-  week_2_4,
-  week_2_5,
-  week_2_final,
-  // Week 3
-  week_3_1,
-  week_3_2,
-  week_3_3,
-  week_3_4,
-  week_3_5,
-  week_3_final,
-  // Week 4
-  week_4_1,
-  week_4_2,
-  week_4_3,
-  week_4_4,
-  week_4_5,
-  week_4_final
+  ...CURRICULUMS[0].steps,
+  ...CURRICULUMS[1].steps,
+  ...CURRICULUMS[2].steps,
+  ...CURRICULUMS[3].steps
 ]
 
 /**
- * 주차별 스텝 개수 (각 주 5개 기본 + 1개 종합 = 6개).
- * 키 이름은 기존 `LEVEL_STEP_COUNTS` 를 유지하여 `useCurriculum` 의 currentLevel 계산 로직과 호환된다.
+ * 주차별 스텝 개수 (하위 호환성용)
  */
 export const LEVEL_STEP_COUNTS = {
   1: 6,
   2: 6,
   3: 6,
-  4: 6
+  4: 6,
+  5: 6,
+  6: 6,
+  7: 6,
+  8: 6,
+  9: 6
 } as const

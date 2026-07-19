@@ -8,7 +8,7 @@
       <ContentPanel
         :step="currentStep"
         :is-loading="isLoadingStep"
-        :current-step-number="currentStep?.order || 0"
+        :current-step-number="currentStepNumber"
         :total-steps="totalSteps"
         :completed-steps="completedSteps"
         :is-authenticated="authStore.isAuthenticated"
@@ -170,6 +170,7 @@ const {
 })
 
 const {
+  activeCurriculumId,
   currentStep, 
   allSteps, 
   isLoadingStep, 
@@ -184,6 +185,10 @@ const {
 } = useCurriculum()
 
 const totalSteps = computed(() => allSteps.value.length)
+const currentStepNumber = computed(() => {
+  if (!currentStep.value) return 0
+  return allSteps.value.findIndex(s => s.id === currentStep.value?.id) + 1
+})
 const completedSteps = computed(() => userProgress.value.completedSteps)
 const { executeCode, isExecuting } = useRuntime()
 const { validateStep } = useValidator()
@@ -201,10 +206,13 @@ const showCongratsModal = ref(false)
 const previousLevel = ref(1)
 
 const canGoPrevious = computed(() => {
-  return currentStep.value && currentStep.value.order > 1
+  return currentStepNumber.value > 1
 })
 
 const canGoNext = computed(() => {
+  if (currentStep.value && completedSteps.value.includes(currentStep.value.id)) {
+    return true
+  }
   if (!validationResult.value) {
     return false
   }
@@ -665,6 +673,10 @@ async function syncDataFromPrismaOutput(output: string): Promise<void> {
 
 // 데이터베이스 스냅샷 업데이트
 async function updateDatabaseSnapshot() {
+  if (activeCurriculumId.value !== 'backend') {
+    dbSnapshot.value = null
+    return
+  }
   try {
     const { schemaSQL, source } = await syncSchemaToDatabase()
     const snapshot = await getSnapshot()
@@ -839,6 +851,16 @@ watch(
   async (newKey, oldKey) => {
     if (newKey !== oldKey) {
       await updateDatabaseSnapshot()
+    }
+  }
+)
+
+// 스텝 변경 감지하여 에디터 상태 및 DB 스냅샷 초기화
+watch(
+  () => currentStep.value?.id,
+  async (newId, oldId) => {
+    if (newId && oldId && newId !== oldId) {
+      await resetState()
     }
   }
 )
