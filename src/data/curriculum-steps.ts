@@ -32,13 +32,34 @@ import { week_4_4 } from './steps/week-4-4'
 import { week_4_5 } from './steps/week-4-5'
 import { week_4_final } from './steps/week-4-final'
 
-// Week 5 — Regex & JS Core
-import { week_5_1 } from './steps/week-5-1'
-import { week_5_2 } from './steps/week-5-2'
+// Regex Level 1 — 기본 (메타문자 · 문자 클래스 · 수량자 · 앵커 · 플래그)
+import { regex_1_1 } from './steps/regex-1-1'
+import { regex_1_2 } from './steps/regex-1-2'
+import { regex_1_3 } from './steps/regex-1-3'
+import { regex_1_4 } from './steps/regex-1-4'
+import { regex_1_5 } from './steps/regex-1-5'
+import { regex_1_final } from './steps/regex-1-final'
+
+// Regex Level 2 — 중급 (캡처 그룹 · 비캡처 · Lookahead · String 메서드)
+import { regex_2_1 } from './steps/regex-2-1'
+import { regex_2_2 } from './steps/regex-2-2'
+import { regex_2_3 } from './steps/regex-2-3'
+import { regex_2_4 } from './steps/regex-2-4'
+import { regex_2_5 } from './steps/regex-2-5'
+import { regex_2_final } from './steps/regex-2-final'
+
+// Regex Level 3 — 고급 (Named 그룹 · URL 파싱 · 동적 패턴 · CSV · 로그 분석)
+import { regex_3_1 } from './steps/regex-3-1'
+import { regex_3_2 } from './steps/regex-3-2'
+import { regex_3_3 } from './steps/regex-3-3'
+import { regex_3_4 } from './steps/regex-3-4'
+import { regex_3_5 } from './steps/regex-3-5'
+import { regex_3_final } from './steps/regex-3-final'
+
+// Week 5 — 데이터 처리 (map · filter · reduce · find · Object 메서드)
 import { week_5_3 } from './steps/week-5-3'
 import { week_5_4 } from './steps/week-5-4'
 import { week_5_5 } from './steps/week-5-5'
-import { week_5_final } from './steps/week-5-final'
 
 // Week 6 — Algorithms
 import { week_6_1 } from './steps/week-6-1'
@@ -111,11 +132,18 @@ export const CURRICULUMS: Curriculum[] = [
     id: 'regex',
     title: '정규식 & 데이터 처리',
     icon: '🔍',
-    description: '텍스트 정규식 분석 및 자바스크립트 고차 함수 데이터 처리',
+    description: '정규 표현식 기초부터 고급 패턴까지 + 자바스크립트 고차 함수 데이터 처리',
     steps: [
-      week_5_1, week_5_2, week_5_3, week_5_4, week_5_5, week_5_final
+      // Level 1: 기본
+      regex_1_1, regex_1_2, regex_1_3, regex_1_4, regex_1_5, regex_1_final,
+      // Level 2: 중급
+      regex_2_1, regex_2_2, regex_2_3, regex_2_4, regex_2_5, regex_2_final,
+      // Level 3: 고급
+      regex_3_1, regex_3_2, regex_3_3, regex_3_4, regex_3_5, regex_3_final,
+      // 데이터 처리
+      week_5_3, week_5_4, week_5_5,
     ],
-    levelCounts: { 1: 6 }
+    levelCounts: { 1: 6, 2: 6, 3: 9 }
   },
   {
     id: 'algorithm',
@@ -159,7 +187,7 @@ export const LEVEL_STEP_COUNTS = {
   2: 6,
   3: 6,
   4: 6,
-  5: 6,
+  5: 21,  // regex 18 + 데이터처리 3
   6: 16,
   7: 6,
   8: 6,
