@@ -88,7 +88,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import type { Provider } from '@supabase/supabase-js'
+import type { Provider } from '@/services/auth.service'
 import { useAuthStore } from '@/stores/auth-store'
 import { loginWithOAuth, resendVerificationEmail } from '@/services/auth.service'
 import { useRouter } from 'vue-router'

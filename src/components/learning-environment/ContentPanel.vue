@@ -290,45 +290,58 @@ const displayExercise = computed(() => {
     color: #9ca3af;
   }
 
+  :deep(pre.code-block), :deep(pre) {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin: 16px 0;
+    overflow-x: auto;
+    font-family: 'Fira Code', 'Consolas', 'Monaco', monospace;
+    font-size: 13px;
+    line-height: 1.5;
+
+    code {
+      background: transparent;
+      padding: 0;
+      border-radius: 0;
+      color: #0f172a;
+      white-space: pre;
+    }
+
+    :global(.dark) & {
+      background: #0f172a;
+      border-color: #334155;
+
+      code {
+        color: #f8fafc;
+      }
+    }
+  }
+
   :deep(code) {
     background: #f3f4f6;
     padding: 2px 6px;
     border-radius: 4px;
     font-family: 'Monaco', 'Courier New', monospace;
     font-size: 13px;
-    // white-space: pre-wrap; // 공백 보존 (여러 공백도 유지)
-    // word-break: break-word; // 긴 단어 줄바꿈
 
     :global(.dark) & {
       background: #374151;
+      color: #f3f4f6;
     }
   }
 
-  // 코드 블록 (pre > code)은 공백과 줄바꿈 모두 보존
-  :deep(pre code) {
-    // white-space: pre;
-    // word-break: normal;
-    display: block;
-    padding: 12px;
-    overflow-x: auto;
-    h1 { font-size: 24px; }
-    h2 { font-size: 20px; }
-    h3 { font-size: 18px; }
-    h4 { font-size: 16px; }
-    h5 { font-size: 14px; }
-    h6 { font-size: 12px; }
-    
-    h1, h2, h3, h4, h5, h6 {
-      margin-top: 10px;
-      margin-bottom: 10px;
-    }
-    p {
-      margin-top: 12px;
-      margin-bottom: 12px;
-    }
-    ul {
-      margin-top: 12px;
-      margin-bottom: 12px;
+  :deep(blockquote) {
+    border-left: 4px solid #3b82f6;
+    background: #eff6ff;
+    padding: 12px 16px;
+    margin: 16px 0;
+    border-radius: 0 8px 8px 0;
+
+    :global(.dark) & {
+      background: #1e3a8a33;
+      border-left-color: #60a5fa;
     }
   }
 

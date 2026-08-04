@@ -24,7 +24,7 @@ export const week_7_final: CurriculumStep = {
       'useState를 사용해 users 및 newName 상태를 관리할 것',
       'useCallback을 사용해 handleAddUser 함수를 메모이제이션 처리할 것'
     ],
-    exercise: "1. 창의 너비를 실시간 감지하는 커스텀 훅 `useWindowSize.ts`를 구현하세요.\n2. 브라우저 resize 이벤트가 발생할 때마다 상태를 업데이트하고, 이벤트를 클린업하도록 작성하세요."
+    exercise: "1. `Dashboard.tsx` 파일 최상단에 `\"use client\"` 지시어를 추가하세요.\n2. `useState`를 사용해 `users` 상태를 주입하고, `useCallback`을 활용해 신규 유저 추가 핸들러인 `handleAddUser`를 구현하세요."
   },
   initialFiles: [
     {
@@ -94,26 +94,44 @@ export default function Dashboard({ initialUsers }: DashboardProps) {
     {
       level: 3,
       content: '정답 코드 예시입니다.',
-      codeSnippet: `import { useState, useEffect } from 'react';
+      codeSnippet: `"use client";
+import React, { useState, useCallback } from 'react';
 
-export function useWindowSize() {
-  const [windowSize, setWindowSize] = useState({
-    width: typeof window !== 'undefined' ? window.innerWidth : 0,
-    height: typeof window !== 'undefined' ? window.innerHeight : 0
-  });
+export interface User {
+  id: string;
+  name: string;
+}
 
-  useEffect(() => {
-    function handleResize() {
-      setWindowSize({
-        width: window.innerWidth,
-        height: window.innerHeight
-      });
-    }
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
+interface DashboardProps {
+  initialUsers: User[];
+}
 
-  return windowSize;
+export default function Dashboard({ initialUsers }: DashboardProps) {
+  const [users, setUsers] = useState<User[]>(initialUsers);
+  const [newName, setNewName] = useState('');
+
+  const handleAddUser = useCallback(() => {
+    if (!newName.trim()) return;
+    setUsers(prev => [...prev, { id: Date.now().toString(), name: newName }]);
+    setNewName('');
+  }, [newName]);
+
+  return (
+    <div className="dashboard">
+      <input
+        type="text"
+        value={newName}
+        onChange={(e) => setNewName(e.target.value)}
+        placeholder="New user name..."
+      />
+      <button onClick={handleAddUser}>Add User</button>
+      <ul>
+        {users.map(user => (
+          <li key={user.id}>{user.name}</li>
+        ))}
+      </ul>
+    </div>
+  );
 }`
     }
   ]

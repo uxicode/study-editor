@@ -24,6 +24,29 @@ self.MonacoEnvironment = {
   }
 }
 
+// React JSX 및 TSX 구문 분석 설정
+const compilerOptions: monaco.languages.typescript.CompilerOptions = {
+  jsx: monaco.languages.typescript.JsxEmit.React,
+  jsxFactory: 'React.createElement',
+  reactNamespace: 'React',
+  allowNonTsExtensions: true,
+  allowJs: true,
+  target: monaco.languages.typescript.ScriptTarget.Latest
+}
+
+monaco.languages.typescript.typescriptDefaults.setCompilerOptions(compilerOptions)
+monaco.languages.typescript.javascriptDefaults.setCompilerOptions(compilerOptions)
+
+// 모듈 타입 관련 세맨틱 진단 에러('react' 모듈 미발견 등) 및 JSX 구문 에러 경고 완화
+monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions({
+  noSemanticValidation: true,
+  noSyntaxValidation: true
+})
+monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions({
+  noSemanticValidation: true,
+  noSyntaxValidation: true
+})
+
 // Prisma 언어 지원 추가
 monaco.languages.register({ id: 'prisma' })
 

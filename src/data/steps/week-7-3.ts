@@ -32,7 +32,7 @@ export const week_7_3: CurriculumStep = {
       'useEffect를 사용해 첫 마운트 완료 시점에 inputRef.current.focus()를 호출할 것',
       '상태 제어를 돕는 useToggle 커스텀 훅을 만들어 컴포넌트에 적용할 것'
     ],
-    exercise: "1. `UserSearch.tsx`에서 검색어(`query`)와 사용자 목록(`users`)을 매개변수로 삼아 조건에 맞게 계산량을 최소화하는 `useMemo` 필터링 로직을 작성하세요.\n2. 텍스트 인풋 값이 바뀔 때마다 필터링이 알맞게 작동하도록 의존성 배열을 올바르게 등록하세요."
+    exercise: "1. `FocusManager.tsx`에서 `useRef`를 지정하여 `input` 요소의 레퍼런스를 참조하세요.\n2. 마운트 시 `useEffect`를 사용해 `inputRef.current?.focus()`를 호출하고, `useToggle` 커스텀 훅을 구현해 인풋 표시 여부를 토글하도록 구성하세요."
   },
   initialFiles: [
     {
@@ -93,35 +93,28 @@ export default function FocusManager() {
       level: 3,
       content: '정답 코드 예시입니다.',
       codeSnippet: `"use client";
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
-interface User {
-  id: number;
-  name: string;
+function useToggle(initialValue = false) {
+  const [value, setValue] = useState(initialValue);
+  const toggle = () => setValue(v => !v);
+  return [value, toggle] as const;
 }
 
-export default function UserSearch({ users }: { users: User[] }) {
-  const [query, setQuery] = useState('');
+export default function FocusManager() {
+  const [isInputVisible, toggleInput] = useToggle(true);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  const filteredUsers = useMemo(() => {
-    return users.filter(user => 
-      user.name.toLowerCase().includes(query.toLowerCase())
-    );
-  }, [users, query]);
+  useEffect(() => {
+    if (isInputVisible) {
+      inputRef.current?.focus();
+    }
+  }, [isInputVisible]);
 
   return (
     <div>
-      <input 
-        type="text" 
-        value={query} 
-        onChange={(e) => setQuery(e.target.value)} 
-        placeholder="Search users..."
-      />
-      <ul>
-        {filteredUsers.map(user => (
-          <li key={user.id}>{user.name}</li>
-        ))}
-      </ul>
+      {isInputVisible && <input ref={inputRef} type="text" placeholder="Focus me!" />}
+      <button onClick={toggleInput}>Toggle Input Display</button>
     </div>
   );
 }`

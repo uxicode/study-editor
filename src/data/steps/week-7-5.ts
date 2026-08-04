@@ -32,7 +32,7 @@ export const week_7_5: CurriculumStep = {
       'GET 함수 구조 내에 request(첫 번째 인자)와 { params }(두 번째 인자)를 올바르게 정의할 것',
       'params.id 값을 식별하여 NextResponse.json() 형태로 유저 데이터 혹은 에러를 반환할 것'
     ],
-    exercise: "1. `FocusInput.tsx` 컴포넌트에서 DOM 입력 요소를 조작하기 위한 `useRef` 인스턴스를 선언하고 인풋 태그의 ref 속성에 할당하세요.\n2. 포커스 버튼 클릭 시 `inputRef.current?.focus()` 메서드가 실행되는 클릭 핸들러를 바인딩하세요."
+    exercise: "1. `app/api/users/[id]/route.ts` 파일에서 Next.js GET Route Handler 함수 구조를 구현하세요.\n2. URL 파라미터 `params.id`로 유저를 검색하고 결과를 `NextResponse.json()`으로 반환하세요."
   },
   initialFiles: [
     {
@@ -90,22 +90,22 @@ export async function GET(
     {
       level: 3,
       content: '정답 코드 예시입니다.',
-      codeSnippet: `"use client";
-import React, { useRef } from 'react';
+      codeSnippet: `import { NextResponse } from 'next/server';
 
-export default function FocusInput() {
-  const inputRef = useRef<HTMLInputElement>(null);
+const MOCK_USERS: Record<string, { name: string; role: string }> = {
+  '1': { name: 'Alice', role: 'admin' },
+  '2': { name: 'Bob', role: 'developer' }
+};
 
-  const handleFocus = () => {
-    inputRef.current?.focus();
-  };
-
-  return (
-    <div>
-      <input ref={inputRef} type="text" placeholder="Focus me!" />
-      <button onClick={handleFocus}>Focus Input</button>
-    </div>
-  );
+export async function GET(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  const user = MOCK_USERS[params.id];
+  if (!user) {
+    return NextResponse.json({ error: 'Not Found' }, { status: 404 });
+  }
+  return NextResponse.json(user);
 }`
     }
   ]

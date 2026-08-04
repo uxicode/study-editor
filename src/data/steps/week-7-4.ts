@@ -31,7 +31,7 @@ export const week_7_4: CurriculumStep = {
       'ProductCardProps 인터페이스를 선언하고 product(객체)와 onSelect(함수) 속성을 정의할 것',
       '컴포넌트 인자 구조 분해 시 선언한 ProductCardProps 타입을 명시적으로 어노테이션할 것'
     ],
-    exercise: "1. `ItemList.tsx` 컴포넌트에서 아이템을 삭제하는 핸들러 함수를 `useCallback` 훅으로 래핑하세요.\n2. 하위 리스트 컴포넌트들의 불필요한 리렌더링을 막기 위해 의존성 배열에 `setItems` 변경 감지를 명시하세요."
+    exercise: "1. `ProductCard.tsx`에서 `Product` 및 `ProductCardProps` 인터페이스를 선언하세요.\n2. 컴포넌트 매개변수 구조분해 할당 부분에 `ProductCardProps` 타입을 지정하고 클릭 시 `onSelect(product.id)`가 실행되도록 구현하세요."
   },
   initialFiles: [
     {
@@ -91,25 +91,25 @@ export default function ProductCard() {
     {
       level: 3,
       content: '정답 코드 예시입니다.',
-      codeSnippet: `"use client";
-import React, { useState, useCallback } from 'react';
+      codeSnippet: `import React from 'react';
 
-export default function ItemList() {
-  const [items, setItems] = useState<string[]>(['Apple', 'Banana', 'Cherry']);
+export interface Product {
+  id: string;
+  name: string;
+  price: number;
+}
 
-  const handleDelete = useCallback((itemToRemove: string) => {
-    setItems(prevItems => prevItems.filter(item => item !== itemToRemove));
-  }, []);
+export interface ProductCardProps {
+  product: Product;
+  onSelect: (productId: string) => void;
+}
 
+export default function ProductCard({ product, onSelect }: ProductCardProps) {
   return (
-    <ul>
-      {items.map(item => (
-        <li key={item}>
-          {item}
-          <button onClick={() => handleDelete(item)}>Delete</button>
-        </li>
-      ))}
-    </ul>
+    <div className="product-card" onClick={() => onSelect(product.id)}>
+      <h3>{product.name}</h3>
+      <p>\${product.price}</p>
+    </div>
   );
 }`
     }

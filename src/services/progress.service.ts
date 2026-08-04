@@ -1,63 +1,69 @@
-import { supabase } from '@/lib/supabase'
+import { db, type UserProgressEntity } from '@/lib/db'
+import * as authService from '@/services/auth.service'
 import type { UserProgress } from '@/types/curriculum'
-
-const TABLE = 'user_progress'
-
-interface ProgressRow {
-  user_id: string
-  completed_steps: string[]
-  current_step: string
-  attempts: Record<string, number>
-  updated_at?: string
-}
 
 const FIRST_STEP_ID = 'week-1-1'
 
-function emptyProgress(): UserProgress {
+export interface ExtendedUserProgress extends UserProgress {
+  currentSteps?: Record<string, string>
+  activeCurriculum?: string
+}
+
+function emptyProgress(): ExtendedUserProgress {
   return {
     completedSteps: [],
     currentStep: FIRST_STEP_ID,
+    currentSteps: {
+      backend: 'week-1-1',
+      regex: 'week-5-1',
+      algorithm: 'week-6-1',
+      nextjs: 'week-7-1'
+    },
+    activeCurriculum: 'backend',
     attempts: {}
   }
 }
 
-function toUserProgress(row: ProgressRow | null): UserProgress {
-  if (!row) return emptyProgress()
+function toUserProgress(entity: UserProgressEntity | null | undefined): ExtendedUserProgress {
+  if (!entity) return emptyProgress()
   return {
-    completedSteps: row.completed_steps ?? [],
-    currentStep: row.current_step ?? FIRST_STEP_ID,
-    attempts: row.attempts ?? {}
+    completedSteps: entity.completedSteps ?? [],
+    currentStep: entity.currentStep ?? FIRST_STEP_ID,
+    currentSteps: entity.currentSteps ?? {
+      backend: 'week-1-1',
+      regex: 'week-5-1',
+      algorithm: 'week-6-1',
+      nextjs: 'week-7-1'
+    },
+    activeCurriculum: entity.activeCurriculum ?? 'backend',
+    attempts: entity.attempts ?? {}
   }
 }
 
 async function getCurrentUserId(): Promise<string> {
-  const { data, error } = await supabase.auth.getUser()
-  if (error || !data.user) {
+  const user = await authService.fetchMe()
+  if (!user) {
     throw new Error('로그인 상태가 아닙니다.')
   }
-  return data.user.id
+  return user.id
 }
 
-export async function getProgress(): Promise<UserProgress> {
+export async function getProgress(): Promise<ExtendedUserProgress> {
   const userId = await getCurrentUserId()
-  const { data, error } = await supabase
-    .from(TABLE)
-    .select('user_id, completed_steps, current_step, attempts')
-    .eq('user_id', userId)
-    .maybeSingle()
-
-  if (error) throw new Error(error.message)
-  return toUserProgress(data as ProgressRow | null)
+  const entity = await db.userProgress.get(userId)
+  return toUserProgress(entity)
 }
 
-export async function saveProgress(progress: UserProgress): Promise<void> {
+export async function saveProgress(progress: ExtendedUserProgress): Promise<void> {
   const userId = await getCurrentUserId()
-  const row: ProgressRow = {
-    user_id: userId,
-    completed_steps: progress.completedSteps,
-    current_step: progress.currentStep,
-    attempts: progress.attempts
+  const entity: UserProgressEntity = {
+    userId,
+    completedSteps: progress.completedSteps ?? [],
+    currentStep: progress.currentStep ?? FIRST_STEP_ID,
+    currentSteps: progress.currentSteps ?? {},
+    activeCurriculum: progress.activeCurriculum ?? 'backend',
+    attempts: progress.attempts ?? {},
+    updatedAt: new Date().toISOString()
   }
-  const { error } = await supabase.from(TABLE).upsert(row, { onConflict: 'user_id' })
-  if (error) throw new Error(error.message)
+  await db.userProgress.put(entity)
 }

@@ -175,14 +175,8 @@ export function useCurriculum() {
 
     const authStore = useAuthStore()
     if (authStore.isAuthenticated) {
-      // Supabase 테이블 저장을 위해 하위 호환 가능한 필드 변환
-      const dbPayload = {
-        completed_steps: userProgress.value.completedSteps,
-        current_step: userProgress.value.currentStep,
-        attempts: userProgress.value.attempts
-      }
-      progressService.saveProgress(dbPayload as any).catch((e) => {
-        console.warn('Supabase 진행상황 저장 실패 (localStorage 에 보관됨):', e?.message ?? e)
+      progressService.saveProgress(userProgress.value as any).catch((e) => {
+        console.warn('Dexie DB 진행상황 저장 실패 (localStorage 에 보관됨):', e?.message ?? e)
       })
     }
   }
@@ -195,7 +189,7 @@ export function useCurriculum() {
       try {
         loaded = await progressService.getProgress()
       } catch (e) {
-        console.warn('Supabase 진행상황 로드 실패 — localStorage 로 폴백합니다:', e)
+        console.warn('Dexie DB 진행상황 로드 실패 — localStorage 로 폴백합니다:', e)
       }
     }
 
@@ -211,7 +205,7 @@ export function useCurriculum() {
     }
 
     if (loaded) {
-      // Supabase 에서 로드된 경우 db 필드에서 변환 필요
+      // Dexie DB 에서 로드된 경우 db 필드에서 변환 필요
       const completed = loaded.completed_steps ?? loaded.completedSteps ?? []
       const current = loaded.current_step ?? loaded.currentStep ?? 'week-1-1'
       const attempts = loaded.attempts ?? {}

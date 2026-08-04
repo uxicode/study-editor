@@ -158,8 +158,13 @@ function loadFile(fileName: string) {
   // 언어 결정
   const language = getLanguageFromFileName(fileName)
 
-  // 새 모델 생성
-  currentModel = monaco.editor.createModel(file.content, language)
+  // 새 모델 생성 (URI를 지정해야 Monaco가 .jsx/.tsx 확장자를 인식하여 React JSX 파싱을 정상 수행함)
+  const fileUri = monaco.Uri.parse(`inmemory://model/${fileName}`)
+  const existingModel = monaco.editor.getModel(fileUri)
+  if (existingModel) {
+    existingModel.dispose()
+  }
+  currentModel = monaco.editor.createModel(file.content, language, fileUri)
   editor.setModel(currentModel)
   
   // 읽기 전용 설정
@@ -183,7 +188,9 @@ function getLanguageFromFileName(fileName: string): string {
   
   const languageMap: Record<string, string> = {
     js: 'javascript',
+    jsx: 'javascript',
     ts: 'typescript',
+    tsx: 'typescript',
     prisma: 'prisma',
     json: 'json',
     sql: 'sql'
@@ -197,7 +204,9 @@ function getFileIcon(fileName: string): string {
   
   const iconMap: Record<string, string> = {
     js: '📄',
+    jsx: '⚛️',
     ts: '📘',
+    tsx: '⚛️',
     prisma: '🔷',
     json: '📋',
     sql: '🗄️'

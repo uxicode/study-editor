@@ -1,120 +1,135 @@
 /**
- * 간단한 마크다운 파서
- * 실제 프로덕션에서는 markdown-it 같은 라이브러리 사용 권장
+ * 견고한 마크다운 파서 유틸리티
  */
 
+/**
+ * HTML 특수문자 이스케이프 (코드 블록/인라인 코드 내부 태그가 실제 DOM 요소로 렌더링되는 것 방지)
+ */
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;')
+}
+
 export function parseMarkdown(text: string): string {
+  if (!text) return ''
+
   let result = normalizeMarkdown(text)
-  
-  // 코드 블록을 임시로 보호 (테이블 변환 시 코드 블록 안의 테이블은 변환하지 않음)
+
+  // 1. 코드 블록(```) 임시 보호 및 100% HTML 이스케이프 처리
+  // 언어 지정 뒤의 공백, \r\n, 어떤 언어 명칭이 오더라도 모두 유연하게 매칭
   const codeBlockPlaceholders: string[] = []
-  result = result.replace(/```(\w+)?\n([\s\S]*?)```/g, (match) => {
+  result = result.replace(/```[ \t]*([^\n]*)\n([\s\S]*?)```/g, (_match, _lang, code) => {
     const placeholder = `__CODE_BLOCK_${codeBlockPlaceholders.length}__`
-    codeBlockPlaceholders.push(match)
+    const escapedCode = escapeHtml(code.replace(/\s+$/, ''))
+    codeBlockPlaceholders.push(`<pre class="code-block"><code>${escapedCode}</code></pre>`)
     return placeholder
   })
-  
-  // 테이블 변환 (줄 단위로 처리)
+
+  // 2. 인라인 코드(`...`) 임시 보호 및 HTML 이스케이프 처리
+  const inlineCodePlaceholders: string[] = []
+  result = result.replace(/`([^`\n]+)`/g, (_match, code) => {
+    const placeholder = `__INLINE_CODE_${inlineCodePlaceholders.length}__`
+    const escapedCode = escapeHtml(code)
+    inlineCodePlaceholders.push(`<code>${escapedCode}</code>`)
+    return placeholder
+  })
+
+  // 3. 마크다운 테이블 변환
   const lines = result.split('\n')
   const output: string[] = []
   let inTable = false
   let tableRows: string[] = []
-  
+
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i]
     const isTableRow = line.trim().startsWith('|') && line.trim().endsWith('|')
     const isSeparator = /^\|[\s\-:|]+\|$/.test(line.trim())
-    
+
     if (isTableRow && !isSeparator) {
-      // 테이블 행 시작
       if (!inTable) {
         inTable = true
         tableRows = []
       }
       tableRows.push(line)
     } else if (isSeparator && inTable) {
-      // 구분선은 무시 (헤더와 데이터 행 구분용)
       continue
     } else {
-      // 테이블이 끝남
       if (inTable && tableRows.length > 0) {
-        // 테이블 HTML 생성
-        const tableHTML = convertTableToHTML(tableRows)
-        output.push(tableHTML)
+        output.push(convertTableToHTML(tableRows))
         tableRows = []
         inTable = false
       }
       output.push(line)
     }
   }
-  
-  // 마지막 테이블 처리
+
   if (inTable && tableRows.length > 0) {
-    const tableHTML = convertTableToHTML(tableRows)
-    output.push(tableHTML)
+    output.push(convertTableToHTML(tableRows))
   }
-  
+
   result = output.join('\n')
-  
-  // 코드 블록 복원
-  codeBlockPlaceholders.forEach((codeBlock, index) => {
-    result = result.replace(`__CODE_BLOCK_${index}__`, codeBlock)
-  })
-  
-  // 코드 블록 변환
-  result = result.replace(/```(\w+)?\n([\s\S]*?)```/g, (_match, _lang, code) => {
-    const formatted = formatCodeContent(code)
-    return `<pre><code>${formatted}</code></pre>`
-  })
-  
-  // 테이블을 임시로 보호 (줄바꿈 변환 시 테이블 내부 줄바꿈이 변환되지 않도록)
+
+  // 4. 생성된 HTML 테이블 임시 보호
   const tablePlaceholders: string[] = []
   result = result.replace(/<table>[\s\S]*?<\/table>/g, (match) => {
     const placeholder = `__TABLE_${tablePlaceholders.length}__`
     tablePlaceholders.push(match)
     return placeholder
   })
-  // console.log('result', result);
 
-  // 나머지 변환 (헤더는 줄 앞 공백/들여쓰기 허용 - step content가 템플릿 리터럴로 들여쓰기됨)
+  // 5. 일반 마크다운 요소 변환
   result = result
-    // 헤더: ^\s* 로 줄 시작 후 공백 허용
+    // 헤더 (h1 ~ h3)
     .replace(/^\s*###\s+(.*)$/gim, '<h3>$1</h3>')
     .replace(/^\s*##\s+(.*)$/gim, '<h2>$1</h2>')
     .replace(/^\s*#\s+(.*)$/gim, '<h1>$1</h1>')
-    // 볼드
+    // 인용구 (Blockquote)
+    .replace(/^\s*>\s+(.*)$/gim, '<blockquote>$1</blockquote>')
+    // 볼드 및 이탤릭
     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-    // 이탤릭
     .replace(/\*(.*?)\*/g, '<em>$1</em>')
-    // 인라인 코드
-    .replace(/`([\s\S]*?)`/g, (_match, code) => {
-      const formatted = formatCodeContent(code)
-      return `<code>${formatted}</code>`
-    })
+    // 순서 없는 리스트 항목 (- 또는 *)
+    .replace(/^\s*[\-\*]\s+(.*)$/gim, '<li>$1</li>')
     // 링크
-    .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank">$1</a>')
-    // 줄바꿈
+    .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
+
+  // 연속된 <li> 항목들을 <ul> 로 감싸기
+  result = result.replace(/(<li>[\s\S]*?<\/li>\n?)+/g, (match) => `<ul>${match}</ul>`)
+
+  // 줄바꿈 변환
+  result = result
     .replace(/\n\n/g, '<br><br>')
     .replace(/\n/g, '<br>')
-    // 헤더(h1~h3) 바로 뒤 과도한 공백 줄바꿈 정리
-    .replace(/(<\/h[1-3]>)<br><br>/g, '$1<br>')
-  
-  // 테이블 복원
+    // 블록 요소 주변의 불필요한 <br> 정리
+    .replace(/(<\/h[1-3]>)<br>/g, '$1')
+    .replace(/(<\/blockquote>)<br>/g, '$1')
+    .replace(/(<\/ul>)<br>/g, '$1')
+    .replace(/(<\/pre>)<br>/g, '$1')
+
+  // 6. 보호했던 테이블, 인라인 코드, 코드 블록 순서대로 완벽 복원
   tablePlaceholders.forEach((table, index) => {
     result = result.replace(`__TABLE_${index}__`, table)
   })
-  
+
+  inlineCodePlaceholders.forEach((codeHTML, index) => {
+    result = result.replace(`__INLINE_CODE_${index}__`, codeHTML)
+  })
+
+  codeBlockPlaceholders.forEach((codeHTML, index) => {
+    result = result.replace(`__CODE_BLOCK_${index}__`, codeHTML)
+  })
+
   return result
 }
 
 function normalizeMarkdown(text: string): string {
-  // Windows 개행 정규화
   const normalized = text.replace(/\r\n/g, '\n')
-
-  // 템플릿 문자열에서 흔히 생기는 첫/끝 개행 제거
   const trimmed = normalized.replace(/^\n+/, '').replace(/\n+$/, '')
 
-  // 공통 들여쓰기(dedent) 제거
   const lines = trimmed.split('\n')
   const indents = lines
     .filter(line => line.trim().length > 0)
@@ -129,34 +144,33 @@ function normalizeMarkdown(text: string): string {
 }
 
 /**
- * 테이블 행 배열을 HTML 테이블로 변환
+ * 마크다운 테이블 배열을 HTML 테이블로 변환
  */
 function convertTableToHTML(rows: string[]): string {
   if (rows.length === 0) return ''
-  
-  // 첫 번째 행을 헤더로 처리
+
   const headerRow = rows[0]
-  const headerCells = headerRow.split('|')
-    .map((cell: string) => cell.trim())
-    .filter((cell: string) => cell.length > 0)
-  
-  const headerHTML = `<tr>${headerCells.map((cell: string) => `<th>${cell}</th>`).join('')}</tr>`
-  
-  // 나머지 행을 데이터 행으로 처리
-  const dataRows = rows.slice(1).map((row: string) => {
-    const cells = row.split('|')
-      .map((cell: string) => cell.trim())
-      .filter((cell: string) => cell.length > 0)
-    
-    // 셀 개수가 헤더와 다르면 빈 셀 추가
+  const headerCells = headerRow
+    .split('|')
+    .map(cell => cell.trim())
+    .filter(cell => cell.length > 0)
+
+  const headerHTML = `<thead><tr>${headerCells.map(cell => `<th>${escapeHtml(cell)}</th>`).join('')}</tr></thead>`
+
+  const dataRows = rows.slice(1).map(row => {
+    const cells = row
+      .split('|')
+      .map(cell => cell.trim())
+      .filter(cell => cell.length > 0)
+
     while (cells.length < headerCells.length) {
       cells.push('')
     }
-    
-    return `<tr>${cells.map((cell: string) => `<td>${cell}</td>`).join('')}</tr>`
+
+    return `<tr>${cells.map(cell => `<td>${escapeHtml(cell)}</td>`).join('')}</tr>`
   }).join('')
-  
-  return `<table>${headerHTML}${dataRows}</table>`
+
+  return `<table>${headerHTML}<tbody>${dataRows}</tbody></table>`
 }
 
 export function stripMarkdown(text: string): string {
@@ -166,50 +180,4 @@ export function stripMarkdown(text: string): string {
     .replace(/`(.*?)`/g, '$1')
     .replace(/\[(.*?)\]\((.*?)\)/g, '$1')
     .replace(/^#+\s+/gm, '')
-}
-
-/**
- * 코드 내용 포맷팅
- * - 여는 중괄호(`{`) 이후부터 닫는 중괄호(`}`) 전까지의 줄을 들여쓰기
- * - 예: model ModelName {\nfield...\n@attr...\n} 형태에서 중간 줄만 들여쓰기
- */
-function formatCodeContent(code: string): string {
-  const lines = code.split('\n')
-  const formatted: string[] = []
-  let inBraceBlock = false
-  const indent = '  ' // 들여쓰기 2칸
-
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i]
-    const trimmed = line.trim()
-
-    // 빈 줄은 그대로 유지
-    if (trimmed.length === 0) {
-      formatted.push('')
-      continue
-    }
-
-    if (!inBraceBlock) {
-      // 블록 밖: {로 끝나는 줄은 그대로 출력하고 블록 시작 표시
-      formatted.push(trimmed)
-      
-      if (trimmed.endsWith('{')) {
-        inBraceBlock = true
-      }
-      continue
-    }
-
-    // 블록 안에 있는 경우
-    if (trimmed === '}') {
-      // 닫는 중괄호 줄은 들여쓰기하지 않고 블록 종료
-      formatted.push(trimmed)
-      inBraceBlock = false
-      continue
-    }
-
-    // 중괄호 블록 내부 실제 코드 줄: 들여쓰기 적용
-    formatted.push(`${indent}${trimmed}`)
-  }
-
-  return formatted.join('\n')
 }

@@ -54,7 +54,7 @@ onMounted(async () => {
     return
   }
 
-  // supabase 클라이언트(detectSessionInUrl) 가 토큰을 추출할 때까지 기다린다.
+  // Dexie DB 인증 세션이 있는지 확인한다.
   await authStore.initAuth()
   if (authStore.isAuthenticated) {
     finishSuccess()
