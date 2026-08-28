@@ -5,11 +5,19 @@ export interface RuntimeFile {
   readonly?: boolean
 }
 
+export interface ConsoleLogEntry {
+  id: string
+  type: 'log' | 'info' | 'warn' | 'error'
+  args: string[]
+  timestamp: string
+}
+
 export interface ExecutionResult {
   success: boolean
   output: string
   error?: string
   logs: string[]
+  consoleLogs?: ConsoleLogEntry[]
   queryLogs?: PrismaQueryLog[]
 }
 

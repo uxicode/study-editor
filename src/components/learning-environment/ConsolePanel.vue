@@ -9,6 +9,13 @@
         📋 출력
       </button>
       <button
+        :class="['console-tab', { active: activeTab === 'console' }]"
+        @click="activeTab = 'console'"
+      >
+        💻 콘솔
+        <span v-if="consoleLogs.length > 0" class="badge">{{ consoleLogs.length }}</span>
+      </button>
+      <button
         :class="['console-tab', { active: activeTab === 'validation' }]"
         @click="activeTab = 'validation'"
       >
@@ -45,6 +52,41 @@
             <div class="logs-header">📝 로그</div>
             <div class="log-item" v-for="(log, idx) in executionResult.logs" :key="idx">
               {{ log }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 콘솔 탭 -->
+      <div v-if="activeTab === 'console'" class="tab-panel">
+        <div class="console-panel-header">
+          <span class="console-panel-title">💻 콘솔 출력</span>
+          <button v-if="consoleLogs.length > 0" class="btn-clear" @click="clearConsole" title="콘솔 비우기">
+            🧹 지우기
+          </button>
+        </div>
+
+        <div v-if="consoleLogs.length === 0" class="empty-message">
+          콘솔 출력이 없습니다.
+          <div class="empty-hint">
+            코드 에디터에 <code>console.log()</code>, <code>console.error()</code> 등을 작성하고 정답 확인/실행을 해보세요!
+          </div>
+        </div>
+        <div v-else class="console-logs-list">
+          <div
+            v-for="entry in consoleLogs"
+            :key="entry.id"
+            :class="['console-log-item', entry.type]"
+          >
+            <span class="log-timestamp">{{ entry.timestamp }}</span>
+            <span class="log-type-icon">
+              <template v-if="entry.type === 'log'">💬</template>
+              <template v-else-if="entry.type === 'info'">ℹ️</template>
+              <template v-else-if="entry.type === 'warn'">⚠️</template>
+              <template v-else-if="entry.type === 'error'">❌</template>
+            </span>
+            <div class="log-args">
+              <span v-for="(arg, idx) in entry.args" :key="idx" class="arg-item">{{ arg }}</span>
             </div>
           </div>
         </div>
@@ -157,7 +199,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import type { ExecutionResult, ValidationResult, DBSnapshot } from '@/types/runtime'
+import type { ExecutionResult, ValidationResult, DBSnapshot, ConsoleLogEntry } from '@/types/runtime'
 
 interface Props {
   executionResult: ExecutionResult | null
@@ -171,7 +213,17 @@ const props = defineProps<Props>()
 import { useCurriculum } from '@/composables/use-curriculum'
 const { activeCurriculumId } = useCurriculum()
 
-const activeTab = ref<'output' | 'validation' | 'database'>('output')
+const activeTab = ref<'output' | 'console' | 'validation' | 'database'>('output')
+const clearedLogs = ref(false)
+
+const consoleLogs = computed<ConsoleLogEntry[]>(() => {
+  if (clearedLogs.value) return []
+  return props.executionResult?.consoleLogs ?? []
+})
+
+function clearConsole() {
+  clearedLogs.value = true
+}
 
 const showDatabaseTab = computed(() => {
   return activeCurriculumId.value === 'backend'
@@ -189,7 +241,8 @@ const dbSnapshot = computed(() => props.dbSnapshot)
 // executionResult나 validationResult가 업데이트되면 해당 탭으로 전환
 watch(() => props.executionResult, (newResult) => {
   if (newResult) {
-    activeTab.value = 'output'
+    clearedLogs.value = false
+    // consoleLogs가 존재하고 1개 이상이면 사용자가 확인할 수 있도록 콘솔 탭이 클릭 가능하며 기본 선택 유지
   }
 })
 
@@ -261,6 +314,9 @@ function formatCellValue(value: unknown): string {
   cursor: pointer;
   transition: all 0.2s;
   border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 
   &:hover {
     background: #2d2d2d;
@@ -270,6 +326,114 @@ function formatCellValue(value: unknown): string {
   &.active {
     background: #374151;
     color: #f9fafb;
+  }
+
+  .badge {
+    background: #3b82f6;
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 1px 6px;
+    border-radius: 10px;
+    line-height: 1.2;
+  }
+}
+
+.console-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #374151;
+
+  .console-panel-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #f3f4f6;
+  }
+
+  .btn-clear {
+    background: #374151;
+    color: #d1d5db;
+    border: none;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+      background: #4b5563;
+      color: #ffffff;
+    }
+  }
+}
+
+.console-logs-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-family: 'Monaco', 'Courier New', monospace;
+  font-size: 13px;
+}
+
+.console-log-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  background: #282c34;
+  border-left: 3px solid #6b7280;
+
+  &.log {
+    border-left-color: #9ca3af;
+    color: #e5e7eb;
+  }
+
+  &.info {
+    border-left-color: #3b82f6;
+    background: rgba(59, 130, 246, 0.1);
+    color: #93c5fd;
+  }
+
+  &.warn {
+    border-left-color: #f59e0b;
+    background: rgba(245, 158, 11, 0.1);
+    color: #fde047;
+  }
+
+  &.error {
+    border-left-color: #ef4444;
+    background: rgba(239, 68, 68, 0.15);
+    color: #fca5a5;
+  }
+
+  .log-timestamp {
+    font-size: 11px;
+    color: #6b7280;
+    min-width: 60px;
+    margin-top: 2px;
+  }
+
+  .log-type-icon {
+    font-size: 12px;
+    margin-top: 1px;
+  }
+
+  .log-args {
+    flex: 1;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+
+    .arg-item {
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
   }
 }
 

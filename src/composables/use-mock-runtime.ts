@@ -1,5 +1,5 @@
 import { ref } from 'vue'
-import type { RuntimeFile, ExecutionResult } from '@/types/runtime'
+import type { RuntimeFile, ExecutionResult, ConsoleLogEntry } from '@/types/runtime'
 
 /**
  * Mock 런타임 — 실제 서버를 띄우지 않고 코드 패턴을 분석하여 결과를 시뮬레이션한다.
@@ -86,6 +86,12 @@ export function useMockRuntime() {
         output += '✓ 코드가 올바르게 작성되었습니다.\n'
       }
 
+      // 콘솔 로그 캡처
+      const consoleLogs = captureConsoleLogs(files)
+      if (consoleLogs.length > 0) {
+        logs.push(`💬 ${consoleLogs.length}개의 console.log() 감지됨`)
+      }
+
       logs.push('✅ 분석 완료!')
 
       await new Promise((resolve) => setTimeout(resolve, 600))
@@ -94,7 +100,8 @@ export function useMockRuntime() {
         success: true,
         output,
         error: undefined,
-        logs
+        logs,
+        consoleLogs
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error)
@@ -104,7 +111,8 @@ export function useMockRuntime() {
         success: false,
         output: '',
         error: errorMessage,
-        logs
+        logs,
+        consoleLogs: []
       }
     } finally {
       isExecuting.value = false
@@ -357,4 +365,146 @@ function analyzeJsTsCode(file: RuntimeFile, logs: string[]): string {
 
   logs.push('')
   return `✓ ${file.name} 분석이 완료되었습니다.\n`
+}
+
+function stripTypeScript(code: string): string {
+  let result = code
+    // import / export 주석 처리
+    .replace(/import\s+[\s\S]*?from\s+['"][^'"]+['"];?/g, '')
+    .replace(/export\s+default\s+/g, '')
+    .replace(/export\s+/g, '')
+    // interface 및 type 선언 제거
+    .replace(/(?:interface|type)\s+\w+[\s\S]*?\{[\s\S]*?\}/g, '')
+    .replace(/type\s+\w+\s*=[\s\S]*?;/g, '')
+    // 타입 어노테이션 (: string, : number 등) 제거 (단, 객체 리터럴 및 정규식 영향 방지)
+    .replace(/:\s*(?:string|number|boolean|any|void|object|unknown|never|Record<[\w, ]+>|Array<[\w]+>|\w+\[\]|\w+)\b/g, '')
+    // as type 제거
+    .replace(/\s+as\s+[\w<>[\]]+/g, '')
+
+  return result
+}
+
+function parseRawArgs(rawArgsStr: string, fileContent: string): string[] {
+  // 간단하게 콤마로 분리 (문자열 따옴표 안의 콤마 고려)
+  const args: string[] = []
+  let current = ''
+  let inString = false
+  let stringChar = ''
+
+  for (let i = 0; i < rawArgsStr.length; i++) {
+    const char = rawArgsStr[i]
+    if ((char === "'" || char === '"' || char === '`') && (i === 0 || rawArgsStr[i - 1] !== '\\')) {
+      if (!inString) {
+        inString = true
+        stringChar = char
+      } else if (stringChar === char) {
+        inString = false
+      }
+    }
+
+    if (char === ',' && !inString) {
+      args.push(current.trim())
+      current = ''
+    } else {
+      current += char
+    }
+  }
+  if (current.trim()) {
+    args.push(current.trim())
+  }
+
+  // 각 인자 정돈: 따옴표로 감싸인 문자열은 따옴표 제거, 따옴표 없으면 단순 정적 추론 시도
+  return args.map(arg => {
+    const trimmed = arg.trim()
+    if ((trimmed.startsWith("'") && trimmed.endsWith("'")) ||
+        (trimmed.startsWith('"') && trimmed.endsWith('"')) ||
+        (trimmed.startsWith('`') && trimmed.endsWith('`'))) {
+      return trimmed.slice(1, -1)
+    }
+
+    // 파일 내용에서 해당 변수의 선언값 추론 시도 (예: const hasDigit = /\d/.test('abc3'))
+    const varDeclPattern = new RegExp(`(?:const|let|var)\\s+${trimmed}\\s*=\\s*([^;\\n]+)`)
+    const varMatch = fileContent.match(varDeclPattern)
+    if (varMatch) {
+      const expr = varMatch[1].trim()
+      try {
+        // 단순 표현식 평가 시도 (예: /\d/.test('abc3'))
+        const evaluated = new Function(`return (${expr})`)()
+        return String(evaluated)
+      } catch {
+        return trimmed
+      }
+    }
+
+    return trimmed
+  })
+}
+
+function captureConsoleLogs(files: RuntimeFile[]): ConsoleLogEntry[] {
+  const consoleLogs: ConsoleLogEntry[] = []
+
+  const jsTsFiles = files.filter(f =>
+    f.name.endsWith('.js') || f.name.endsWith('.ts') ||
+    f.name.endsWith('.jsx') || f.name.endsWith('.tsx')
+  )
+
+  for (const file of jsTsFiles) {
+    const makeTime = () => {
+      const now = new Date()
+      return now.toTimeString().split(' ')[0]
+    }
+
+    const pushLog = (type: 'log' | 'info' | 'warn' | 'error', args: unknown[]) => {
+      const formattedArgs = args.map(arg => {
+        if (typeof arg === 'object' && arg !== null) {
+          try {
+            return JSON.stringify(arg, null, 2)
+          } catch {
+            return String(arg)
+          }
+        }
+        return String(arg)
+      })
+      consoleLogs.push({
+        id: Math.random().toString(36).substring(2, 9),
+        type,
+        args: formattedArgs,
+        timestamp: makeTime()
+      })
+    }
+
+    const mockConsole = {
+      log: (...args: unknown[]) => pushLog('log', args),
+      info: (...args: unknown[]) => pushLog('info', args),
+      warn: (...args: unknown[]) => pushLog('warn', args),
+      error: (...args: unknown[]) => pushLog('error', args)
+    }
+
+    const cleanedCode = stripTypeScript(file.content)
+
+    try {
+      // 블록 스코프 {} 로 감싸 변수 중복 선언 에러 방지
+      const runFn = new Function('console', `{\n${cleanedCode}\n}`)
+      runFn(mockConsole)
+    } catch {
+      // 샌드박스 직접 실행 실패 시 정적 파싱
+      const logPattern = /console\.(log|info|warn|error)\(([\s\S]*?)\);?/g
+      let match: RegExpExecArray | null
+      while ((match = logPattern.exec(file.content)) !== null) {
+        const type = match[1] as 'log' | 'info' | 'warn' | 'error'
+        const rawArgs = match[2].trim()
+        if (rawArgs) {
+          const parsedArgs = parseRawArgs(rawArgs, file.content)
+          consoleLogs.push({
+            id: Math.random().toString(36).substring(2, 9),
+            type,
+            args: parsedArgs,
+            timestamp: makeTime()
+          })
+        }
+      }
+    }
+  }
+
+  return consoleLogs
 }

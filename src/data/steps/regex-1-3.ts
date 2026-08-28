@@ -74,7 +74,7 @@ export const regex_1_3: CurriculumStep = {
 '<b>hello</b>'.match(/<.+>/)[0];   // '<b>hello</b>' — 전체를 삼킴
 
 // 비탐욕 매칭: 가능한 한 짧게
-'<b>hello</b>'.match(/<.+?>/)[0];  // '<b>'  — 첫 번째 닫는 >에서 멈춤
+'<b>hello</b>'.match(/<.+?>/)[0];  // '<b>  — 첫 번째 닫는 </b>'에서 멈춤
 \`\`\`
 
 ### ⑥ 사용자명 패턴 조합 예시
