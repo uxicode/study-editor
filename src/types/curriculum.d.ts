@@ -40,6 +40,20 @@ export interface FileTemplate {
 export interface StepValidator {
   staticChecks: StaticCheck[]
   dynamicChecks: DynamicCheck[]
+  /** 알고리즘/함수형 스텝: 사용자 함수를 실제 인자로 호출해 검증 */
+  functionTests?: FunctionTest[]
+}
+
+export interface FunctionTest {
+  target: string
+  functionName: string
+  cases: FunctionTestCase[]
+}
+
+export interface FunctionTestCase {
+  description: string
+  args: unknown[]
+  expected: unknown
 }
 
 export interface StaticCheck {

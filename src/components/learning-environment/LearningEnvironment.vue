@@ -297,10 +297,27 @@ async function executeUserCode(): Promise<ExecutionResult> {
  * 검증 실행
  */
 async function runValidation(result: ExecutionResult): Promise<ValidationResult> {
-  // console.log('검증 시작...')
   const validation = await validateStep(currentStep.value!, editorFiles.value, result)
   console.log('검증 결과:', validation)
   validationResult.value = validation
+
+  if (validation.functionTestResults?.length) {
+    const testLogs = validation.functionTestResults.map(testResult => {
+      if (testResult.error) {
+        return `  ✗ ${testResult.description}: ${testResult.error}`
+      }
+      if (testResult.passed) {
+        return `  ✓ ${testResult.description}: ${testResult.call} => ${testResult.actual}`
+      }
+      return `  ✗ ${testResult.description}: ${testResult.call} => ${testResult.actual} (기대값: ${testResult.expected})`
+    })
+
+    executionResult.value = {
+      ...result,
+      logs: [...result.logs, '', '🧪 함수 테스트 결과:', ...testLogs]
+    }
+  }
+
   return validation
 }
 

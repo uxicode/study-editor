@@ -33,6 +33,16 @@ export interface ValidationResult {
   errors: ValidationError[]
   hints: string[]
   nextStep?: string
+  functionTestResults?: FunctionTestResult[]
+}
+
+export interface FunctionTestResult {
+  description: string
+  call: string
+  expected: string
+  actual: string
+  passed: boolean
+  error?: string
 }
 
 export interface ValidationError {

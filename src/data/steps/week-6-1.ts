@@ -55,7 +55,21 @@ export const week_6_1: CurriculumStep = {
         message: '알고리즘의 올바른 구현 규칙을 준수해야 합니다.'
       }
     ],
-    dynamicChecks: []
+    dynamicChecks: [],
+    functionTests: [
+      {
+        target: 'index.ts',
+        functionName: 'checkBrackets',
+        cases: [
+          { description: '빈 문자열', args: [''], expected: true },
+          { description: '올바른 괄호', args: ['()[]{}'], expected: true },
+          { description: '중첩 괄호', args: ['({[]})'], expected: true },
+          { description: '잘못된 순서', args: ['([)]'], expected: false },
+          { description: '닫는 괄호 초과', args: ['())'], expected: false },
+          { description: '여는 괄호만', args: ['((('], expected: false }
+        ]
+      }
+    ]
   },
   hints: [
     {

@@ -98,6 +98,25 @@
           정답 확인을 실행하면 검증 결과가 여기에 표시됩니다.
         </div>
         <div v-else class="validation-content">
+          <div v-if="validationResult.functionTestResults?.length" class="function-test-results">
+            <h4>🧪 함수 테스트</h4>
+            <div
+              v-for="(test, idx) in validationResult.functionTestResults"
+              :key="idx"
+              :class="['function-test-item', test.passed ? 'passed' : 'failed']"
+            >
+              <span class="test-status">{{ test.passed ? '✓' : '✗' }}</span>
+              <div class="test-details">
+                <div class="test-description">{{ test.description }}</div>
+                <div class="test-call">{{ test.call }}</div>
+                <div v-if="test.error" class="test-error">{{ test.error }}</div>
+                <div v-else class="test-values">
+                  기대값: {{ test.expected }} / 실제값: {{ test.actual }}
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div v-if="validationResult.passed" class="validation-success">
             <div class="validation-icon">🎉</div>
             <h3>정답입니다!</h3>
@@ -542,15 +561,74 @@ function formatCellValue(value: unknown): string {
 .validation-content {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 32px;
+  gap: 24px;
+  padding: 24px;
+  width: 100%;
+}
+
+.function-test-results {
+  width: 100%;
+  text-align: left;
+
+  h4 {
+    margin: 0 0 12px 0;
+    font-size: 14px;
+    color: #374151;
+
+    :global(.dark) & {
+      color: #d1d5db;
+    }
+  }
+}
+
+.function-test-item {
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  margin-bottom: 8px;
+  border-radius: 6px;
+  font-size: 13px;
+  line-height: 1.5;
+
+  &.passed {
+    background: rgba(16, 185, 129, 0.1);
+    border-left: 3px solid #10b981;
+  }
+
+  &.failed {
+    background: rgba(239, 68, 68, 0.1);
+    border-left: 3px solid #ef4444;
+  }
+}
+
+.test-status {
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.test-description {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.test-call,
+.test-values,
+.test-error {
+  font-family: 'Monaco', 'Menlo', monospace;
+  font-size: 12px;
+  color: #6b7280;
+
+  :global(.dark) & {
+    color: #9ca3af;
+  }
 }
 
 .validation-success,
 .validation-failure {
   text-align: center;
   max-width: 500px;
+  width: 100%;
+  margin: 0 auto;
 }
 
 .validation-icon {

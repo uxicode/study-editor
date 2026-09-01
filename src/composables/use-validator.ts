@@ -1,6 +1,7 @@
 import type { CurriculumStep } from '@/types/curriculum'
 import type { RuntimeFile, ExecutionResult, ValidationResult, ValidationError } from '@/types/runtime'
 import { CURRICULUM_STEPS } from '@/data/curriculum-steps'
+import { runFunctionTests } from '@/utils/function-test-runner'
 
 export function useValidator() {
   async function validateStep(
@@ -14,6 +15,7 @@ export function useValidator() {
     console.log('🔍 검증 시작:', step.title)
     console.log('정적 검사 항목:', step.validator.staticChecks.length)
     console.log('동적 검사 항목:', step.validator.dynamicChecks.length)
+    console.log('함수 테스트 항목:', step.validator.functionTests?.length ?? 0)
 
     // 정적 검증
     for (const check of step.validator.staticChecks) {
@@ -64,6 +66,26 @@ export function useValidator() {
       }
     }
 
+    // 함수 테스트 (Mock Runtime 포함 — 실제 함수 호출로 검증)
+    const functionTestResults = step.validator.functionTests?.length
+      ? runFunctionTests(files, step.validator.functionTests)
+      : []
+
+    for (const result of functionTestResults) {
+      if (result.passed) {
+        console.log('✓ 함수 테스트 통과:', result.description, result.call)
+        continue
+      }
+
+      errors.push({
+        type: 'dynamic',
+        message: result.error
+          ? `${result.description}: ${result.error}`
+          : `${result.description}: ${result.call} => ${result.actual} (기대값: ${result.expected})`
+      })
+      console.log('❌ 함수 테스트 실패:', result.description, result.call)
+    }
+
     // 동적 검증 (Mock Runtime에서는 더 관대하게 처리)
     const isMockRuntime = executionResult.logs.some(log => 
       log.includes('코드 분석 모드') || log.includes('Mock Runtime')
@@ -111,7 +133,8 @@ export function useValidator() {
       passed,
       errors,
       hints,
-      nextStep: passed ? getNextStepId(step.id) : undefined
+      nextStep: passed ? getNextStepId(step.id) : undefined,
+      functionTestResults: functionTestResults.length > 0 ? functionTestResults : undefined
     }
   }
 

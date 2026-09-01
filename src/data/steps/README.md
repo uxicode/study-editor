@@ -49,4 +49,6 @@ src/data/
 - `id` 는 파일명과 동일 (`week-3-2.ts` ↔ `id: 'week-3-2'`).
 - `order` 는 1~24 사이의 고유한 정수로, 학습 순서를 결정합니다.
 - 파일 종류: `server.ts` (Fastify), `schema.prisma` (Prisma), `schema.sql` (MySQL DDL), `*.repository.ts` / `*.service.ts` (레이어드 아키텍처).
-- 학습은 **mock 기반** 으로 검증되므로 `validator.staticChecks` 가 핵심이며, `dynamicChecks` 는 인터페이스 일관성을 위해 최소 1개를 둡니다.
+- 학습은 **mock 기반** 으로 검증되므로 `validator.staticChecks` 가 핵심입니다.
+- 알고리즘/함수형 스텝은 `validator.functionTests` 로 사용자 함수를 실제 인자로 호출해 검증합니다.
+- `dynamicChecks` 는 인터페이스 일관성을 위해 최소 1개를 둘 수 있습니다.
