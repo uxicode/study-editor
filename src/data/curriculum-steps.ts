@@ -101,6 +101,8 @@ import { week_9_2 } from './steps/week-9-2'
 import { week_9_3 } from './steps/week-9-3'
 import { week_9_4 } from './steps/week-9-4'
 import { week_9_5 } from './steps/week-9-5'
+import { week_9_6 } from './steps/week-9-6'
+import { week_9_7 } from './steps/week-9-7'
 import { week_9_final } from './steps/week-9-final'
 
 export type CurriculumType = 'backend' | 'regex' | 'algorithm' | 'nextjs'
@@ -166,9 +168,9 @@ export const CURRICULUMS: Curriculum[] = [
     steps: [
       week_7_1, week_7_2, week_7_3, week_7_4, week_7_5, week_7_final,
       week_8_1, week_8_2, week_8_3, week_8_4, week_8_5, week_8_final,
-      week_9_1, week_9_2, week_9_3, week_9_4, week_9_5, week_9_final
+      week_9_1, week_9_2, week_9_3, week_9_4, week_9_5, week_9_6, week_9_7, week_9_final
     ],
-    levelCounts: { 1: 6, 2: 6, 3: 6 }
+    levelCounts: { 1: 6, 2: 6, 3: 8 }
   }
 ]
 
@@ -191,5 +193,5 @@ export const LEVEL_STEP_COUNTS = {
   6: 16,
   7: 6,
   8: 6,
-  9: 6
+  9: 8
 } as const

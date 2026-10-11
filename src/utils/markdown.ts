@@ -146,6 +146,10 @@ function normalizeMarkdown(text: string): string {
 /**
  * 마크다운 테이블 배열을 HTML 테이블로 변환
  */
+function renderTableCell(cell: string): string {
+  return escapeHtml(cell).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+}
+
 function convertTableToHTML(rows: string[]): string {
   if (rows.length === 0) return ''
 
@@ -155,7 +159,7 @@ function convertTableToHTML(rows: string[]): string {
     .map(cell => cell.trim())
     .filter(cell => cell.length > 0)
 
-  const headerHTML = `<thead><tr>${headerCells.map(cell => `<th>${escapeHtml(cell)}</th>`).join('')}</tr></thead>`
+  const headerHTML = `<thead><tr>${headerCells.map(cell => `<th>${renderTableCell(cell)}</th>`).join('')}</tr></thead>`
 
   const dataRows = rows.slice(1).map(row => {
     const cells = row
@@ -167,7 +171,7 @@ function convertTableToHTML(rows: string[]): string {
       cells.push('')
     }
 
-    return `<tr>${cells.map(cell => `<td>${escapeHtml(cell)}</td>`).join('')}</tr>`
+    return `<tr>${cells.map(cell => `<td>${renderTableCell(cell)}</td>`).join('')}</tr>`
   }).join('')
 
   return `<table>${headerHTML}<tbody>${dataRows}</tbody></table>`

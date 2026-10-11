@@ -36,7 +36,7 @@ export function cleanCodeSnippet(codeSnippet: string): string {
  * 코드 스니펫에서 여러 파일 분리
  */
 export function splitCodeSnippetIntoFiles(codeSnippet: string): CodeFile[] {
-  const filePattern = /\/\/\s*(schema\.prisma|app\.js|\.env)\s*\n/gi
+  const filePattern = /\/\/\s*(?:@file:\s*([\w./\-[\]]+)|(schema\.prisma|app\.js|\.env))[ \t]*\n/gi
   const fileMatches = [...codeSnippet.matchAll(filePattern)]
 
   if (fileMatches.length <= 1) {
@@ -47,7 +47,7 @@ export function splitCodeSnippetIntoFiles(codeSnippet: string): CodeFile[] {
 
   for (let i = 0; i < fileMatches.length; i++) {
     const match = fileMatches[i]
-    const fileName = match[1]
+    const fileName = match[1] ?? match[2]
     const startIndex = match.index! + match[0].length
     const endIndex = i < fileMatches.length - 1 
       ? fileMatches[i + 1].index! 

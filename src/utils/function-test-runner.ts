@@ -1,15 +1,34 @@
 import type { FunctionTest } from '@/types/curriculum'
 import type { RuntimeFile, FunctionTestResult } from '@/types/runtime'
 
+const TYPE_ATOM = String.raw`(?:[\w.]+(?:<[^<>()]*>)?(?:\[\])*|'[^']*'|"[^"]*")`
+const TYPE_EXPR = String.raw`${TYPE_ATOM}(?:\s*\|\s*${TYPE_ATOM})*`
+
+const RETURN_TYPE_RE = new RegExp(String.raw`\)\s*:\s*${TYPE_EXPR}\s*(?=\{|=>)`, 'g')
+const VARIABLE_TYPE_RE = new RegExp(String.raw`\b(const|let|var)\s+(\w+)\s*:\s*${TYPE_EXPR}\s*=`, 'g')
+const PARAM_TYPE_RE = new RegExp(String.raw`(\w+)\s*\??\s*:\s*${TYPE_EXPR}`, 'g')
+const AS_TYPE_RE = new RegExp(String.raw`\s+as\s+(?:const\b|${TYPE_EXPR})`, 'g')
+
+function stripParamTypes(params: string): string {
+  return params.replace(PARAM_TYPE_RE, '$1')
+}
+
+/**
+ * 객체 리터럴(`{ a: b }`)과 삼항식(`x ? y : z`)의 콜론은 건드리지 않도록
+ * 함수 파라미터 목록·반환 타입·변수 선언 타입만 제거한다.
+ */
 function stripTypeScript(code: string): string {
   return code
     .replace(/import\s+[\s\S]*?from\s+['"][^'"]+['"];?/g, '')
     .replace(/export\s+default\s+/g, '')
     .replace(/export\s+/g, '')
-    .replace(/(?:interface|type)\s+\w+[\s\S]*?\{[\s\S]*?\}/g, '')
-    .replace(/type\s+\w+\s*=[\s\S]*?;/g, '')
-    .replace(/:\s*(?:string|number|boolean|any|void|object|unknown|never|Record<[\w, ]+>|Array<[\w]+>|\w+\[\]|\w+)\b/g, '')
-    .replace(/\s+as\s+[\w<>[\]]+/g, '')
+    .replace(/^\s*interface\s+\w+[^{]*\{[\s\S]*?^\s*\}/gm, '')
+    .replace(/^\s*type\s+\w+\s*=[\s\S]*?;/gm, '')
+    .replace(RETURN_TYPE_RE, ')')
+    .replace(/(function\s*\w*\s*\()([^)]*)\)/g, (_m, head: string, params: string) => `${head}${stripParamTypes(params)})`)
+    .replace(/\(([^()]*)\)(\s*=>)/g, (_m, params: string, arrow: string) => `(${stripParamTypes(params)})${arrow}`)
+    .replace(VARIABLE_TYPE_RE, '$1 $2 =')
+    .replace(AS_TYPE_RE, '')
 }
 
 function formatValue(value: unknown): string {

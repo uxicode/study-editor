@@ -353,6 +353,21 @@ function analyzeJsTsCode(file: RuntimeFile, logs: string[]): string {
   if (content.includes('jwt.sign') || content.includes('jwt.verify') || content.includes('jsonwebtoken')) {
     logs.push('  ✓ JWT 토큰 생성/검증 사용 확인')
   }
+  if (content.includes('new SignJWT(')) {
+    logs.push('  ✓ jose SignJWT 로 액세스 토큰 서명 확인')
+  }
+  if (content.includes('jwtVerify(')) {
+    logs.push('  ✓ jose jwtVerify 로 서명·만료 검증 확인')
+  }
+  if (content.includes('bcrypt.hash(') || content.includes('bcrypt.compare(')) {
+    logs.push('  ✓ bcrypt 비밀번호 해싱/비교 확인')
+  }
+  if (/httpOnly:\s*true|HttpOnly/.test(content)) {
+    logs.push('  ✓ HttpOnly 쿠키 설정 확인')
+  }
+  if (content.includes('code_challenge')) {
+    logs.push('  ✓ OAuth PKCE(code_challenge) 확인')
+  }
   if (content.includes('NextResponse.next(') || content.includes('NextResponse.redirect(')) {
     logs.push('  ✓ Next.js 미들웨어 응답 처리 확인')
   }

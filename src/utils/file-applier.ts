@@ -28,7 +28,7 @@ export function applyMultipleFiles(
   let newActiveFile = activeFile
 
   for (const file of files) {
-    const targetFile = editorFiles.find(f => f.name === file.name)
+    const targetFile = editorFiles.find(f => f.path === file.name || f.name === file.name)
     if (targetFile && !targetFile.readonly) {
       targetFile.content = file.content
 
