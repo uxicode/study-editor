@@ -3,7 +3,7 @@ import type { CurriculumStep } from '@/types/curriculum'
 export const week_4_2: CurriculumStep = {
   id: 'week-4-2',
   title: '3주차 · 인덱스 설계 (@@index)',
-  order: 14,
+  order: 15,
   category: 'advanced',
   content: {
     mission:
@@ -72,7 +72,7 @@ model User {
   id    Int    @id @default(autoincrement())
   email String
   posts Post[]
-  // TODO: @@index([email]) 을 추가하세요.
+  // TODO: email 단일 인덱스(@@index)를 추가하세요.
 }
 
 model Post {
@@ -81,7 +81,7 @@ model Post {
   userId    Int
   createdAt DateTime @default(now())
   author    User     @relation(fields: [userId], references: [id])
-  // TODO: @@index([userId, createdAt]) 을 추가하세요.
+  // TODO: userId, createdAt 순서의 복합 인덱스(@@index)를 추가하세요.
 }
 `
     }

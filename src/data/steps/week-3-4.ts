@@ -3,7 +3,7 @@ import type { CurriculumStep } from '@/types/curriculum'
 export const week_3_4: CurriculumStep = {
   id: 'week-3-4',
   title: '2주차 · 관계 (1:N) include / select',
-  order: 10,
+  order: 11,
   category: 'relations',
   content: {
     mission:
@@ -74,7 +74,7 @@ datasource db {
 model User {
   id    Int    @id @default(autoincrement())
   email String @unique
-  // TODO: posts Post[] 관계 필드를 추가하세요.
+  // TODO: Post 배열 타입의 posts 관계 필드를 추가하세요.
 }
 
 // TODO: model Post 를 정의하고 User 와 1:N 관계를 맺으세요.
@@ -89,7 +89,7 @@ model User {
 const prisma = new PrismaClient()
 
 async function main() {
-  // TODO: prisma.user.findMany({ include: { posts: true } }) 를 호출하세요.
+  // TODO: user 모델의 findMany 에 include 옵션으로 posts 를 함께 로드하세요.
 }
 
 main()

@@ -1,11 +1,12 @@
 import type { CurriculumStep } from '@/types/curriculum'
 
-// Week 1 — MySQL DDL
+// Week 1 — MySQL DDL · 기본 쿼리
 import { week_2_1 } from './steps/week-2-1'
 import { week_2_2 } from './steps/week-2-2'
 import { week_2_3 } from './steps/week-2-3'
 import { week_2_4 } from './steps/week-2-4'
 import { week_2_5 } from './steps/week-2-5'
+import { week_2_6 } from './steps/week-2-6'
 import { week_2_final } from './steps/week-2-final'
 
 // Week 2 — Prisma ORM · Layered architecture
@@ -113,13 +114,13 @@ export const CURRICULUMS: Curriculum[] = [
     id: 'backend',
     title: '백엔드 코어',
     icon: '💻',
-    description: 'MySQL DDL, Prisma ORM 및 레이어드 아키텍처',
+    description: 'MySQL DDL · 기본 쿼리, Prisma ORM 및 레이어드 아키텍처',
     steps: [
-      week_2_1, week_2_2, week_2_3, week_2_4, week_2_5, week_2_final,
+      week_2_1, week_2_2, week_2_3, week_2_4, week_2_5, week_2_6, week_2_final,
       week_3_1, week_3_2, week_3_3, week_3_4, week_3_5, week_3_final,
       week_4_1, week_4_2, week_4_3, week_4_4, week_4_5, week_4_final
     ],
-    levelCounts: { 1: 6, 2: 6, 3: 6 }
+    levelCounts: { 1: 7, 2: 6, 3: 6 }
   },
   {
     id: 'regex',
@@ -176,7 +177,7 @@ export const CURRICULUM_STEPS: CurriculumStep[] = [
  * 주차별 스텝 개수 (하위 호환성용)
  */
 export const LEVEL_STEP_COUNTS = {
-  1: 6,
+  1: 7,
   2: 6,
   3: 6,
   5: 21,  // regex 18 + 데이터처리 3

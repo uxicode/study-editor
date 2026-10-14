@@ -3,7 +3,7 @@ import type { CurriculumStep } from '@/types/curriculum'
 export const week_4_4: CurriculumStep = {
   id: 'week-4-4',
   title: '3주차 · 페이징 (skip / take · cursor)',
-  order: 16,
+  order: 17,
   category: 'read',
   content: {
     mission:
@@ -87,7 +87,7 @@ model Post {
 const prisma = new PrismaClient()
 
 async function main() {
-  // TODO: findMany 에 take: 10 과 skip(또는 cursor) 옵션을 함께 사용하세요.
+  // TODO: post 모델의 findMany 에 페이지 크기 10(take)과 skip 또는 cursor 옵션을 함께 사용하세요.
 }
 
 main().finally(() => prisma.$disconnect())
@@ -126,7 +126,7 @@ main().finally(() => prisma.$disconnect())
   hints: [
     {
       level: 1,
-      content: 'skip 방식은 `skip: (page - 1) * size, take: size` 로 시작하세요.'
+      content: 'skip 방식은 `skip: (page - 1) * 10, take: 10` 로 시작하세요. (검증기는 `take: 10` 을 확인합니다)'
     },
     {
       level: 2,
@@ -140,10 +140,9 @@ main().finally(() => prisma.$disconnect())
 const prisma = new PrismaClient()
 
 async function listPosts(page: number) {
-  const size = 10
   return prisma.post.findMany({
-    skip: (page - 1) * size,
-    take: size,
+    skip: (page - 1) * 10,
+    take: 10,
     orderBy: { id: 'desc' }
   })
 }

@@ -3,7 +3,7 @@ import type { CurriculumStep } from '@/types/curriculum'
 export const week_3_2: CurriculumStep = {
   id: 'week-3-2',
   title: '2주차 · Prisma 모델 정의와 MySQL 매핑',
-  order: 8,
+  order: 9,
   category: 'schema',
   content: {
     mission:
@@ -32,8 +32,18 @@ export const week_3_2: CurriculumStep = {
 
       ## 명명 규약
 
-      - 모델명은 PascalCase (\`User\`, \`PostTag\`) — Prisma 가 자동으로 MySQL 의 \`users\` 등으로 매핑하거나 \`@@map\` 으로 직접 지정 가능
-      - 필드명은 camelCase 가 권장
+      - 모델명은 PascalCase (\`User\`, \`PostTag\`), 필드명은 camelCase 가 권장
+      - Prisma 는 기본적으로 **모델명/필드명을 그대로** 테이블명/컬럼명으로 사용합니다 (\`model User\` → 테이블 \`User\`)
+      - 1주차처럼 소문자 복수형 테이블·snake_case 컬럼을 쓰려면 직접 매핑합니다
+
+      \`\`\`prisma
+      model User {
+        id        Int      @id @default(autoincrement())
+        createdAt DateTime @default(now()) @map("created_at")
+
+        @@map("users")
+      }
+      \`\`\`
     `,
     objectives: [
       'Prisma 의 model 블록 구문 학습',

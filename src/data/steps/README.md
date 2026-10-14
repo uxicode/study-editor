@@ -1,6 +1,6 @@
 # Curriculum Steps
 
-백엔드 코어 학습 커리큘럼은 3주차 · 주당 6스텝 = 총 18스텝으로 구성되며, 각 스텝은 독립된 파일로 관리합니다.
+백엔드 코어 학습 커리큘럼은 3주차 · 총 19스텝(1주차 7 · 2주차 6 · 3주차 6)으로 구성되며, 각 스텝은 독립된 파일로 관리합니다.
 
 ## 파일 구조
 
@@ -9,6 +9,7 @@ src/data/
 ├── curriculum-steps.ts          # CURRICULUM_STEPS 배열과 LEVEL_STEP_COUNTS export
 └── steps/
     ├── week-2-1.ts ~ week-2-5.ts # 1주차 · MySQL DDL
+    ├── week-2-6.ts              # 1주차 · 기본 쿼리 (INSERT · SELECT · JOIN)
     ├── week-2-final.ts          # 1주차 종합 · 게시판 스키마
     ├── week-3-1.ts ~ week-3-5.ts # 2주차 · Prisma ORM / 레이어드 아키텍처
     ├── week-3-final.ts          # 2주차 종합 · Fastify + Prisma 사용자 API
@@ -41,8 +42,8 @@ src/data/
 ## 규약
 
 - `id` 는 파일명과 동일 (`week-3-2.ts` ↔ `id: 'week-3-2'`).
-- `order` 는 1~24 사이의 고유한 정수로, 학습 순서를 결정합니다.
-- 파일 종류: `server.ts` (Fastify), `schema.prisma` (Prisma), `schema.sql` (MySQL DDL), `*.repository.ts` / `*.service.ts` (레이어드 아키텍처).
+- `order` 는 커리큘럼 내에서 고유한 정수(백엔드 1~19)로, 학습 순서를 결정합니다.
+- 파일 종류: `server.ts` (Fastify), `schema.prisma` (Prisma), `schema.sql` (MySQL DDL), `queries.sql` (MySQL DML), `*.repository.ts` / `*.service.ts` (레이어드 아키텍처).
 - 학습은 **mock 기반** 으로 검증되므로 `validator.staticChecks` 가 핵심입니다.
 - 알고리즘/함수형 스텝은 `validator.functionTests` 로 사용자 함수를 실제 인자로 호출해 검증합니다.
 - `dynamicChecks` 는 인터페이스 일관성을 위해 최소 1개를 둘 수 있습니다.

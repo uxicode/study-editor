@@ -14,15 +14,15 @@
 - **Code Editor (우측 상단)**: Monaco Editor 를 사용한 다중 파일 편집 (Prisma, TS, JS)
 - **Console / DB Panel (우측 하단)**: 코드 분석 로그, 검증 결과, 가상 DB 데이터 뷰어
 
-### 백엔드 코어 커리큘럼 (총 18스텝)
+### 백엔드 코어 커리큘럼 (총 19스텝)
 
 | 주차    | 주제                              | 사용 파일                                       | 핵심 키워드                            |
 |---------|-----------------------------------|--------------------------------------------------|----------------------------------------|
-| 1주차   | MySQL — 데이터 무결성과 설계       | `schema.sql`                                     | CREATE TABLE, PK, FK, UNIQUE, CHECK    |
+| 1주차   | MySQL — 데이터 무결성과 설계 · 기본 쿼리 | `schema.sql`, `queries.sql`              | CREATE TABLE, PK, FK, CHECK, SELECT, JOIN |
 | 2주차   | Prisma ORM · 레이어드 아키텍처    | `schema.prisma`, `server.ts`, `*.repository.ts` | model, @relation, repository, service  |
 | 3주차   | 트랜잭션 · 인덱스 · 성능          | `schema.prisma`, `server.ts`, `schema.sql`       | $transaction, @@index, 페이징, EXPLAIN |
 
-각 주차는 5개의 기본 스텝 + 1개의 종합 스텝으로 구성됩니다.
+각 주차는 기본 스텝 + 1개의 종합 스텝으로 구성됩니다 (1주차 6+1, 2·3주차 5+1).
 
 ### 코드 검증 시스템
 
@@ -32,7 +32,7 @@
 
 ### 주차 진행 시스템
 
-- 4주차 구성, 각 주차의 마지막 스텝은 그 주의 내용을 종합한 실전 과제
+- 3주차 구성, 각 주차의 마지막 스텝은 그 주의 내용을 종합한 실전 과제
 - 한 주차의 모든 단계를 완료하면 축하 모달과 엠블럼이 표시됩니다.
 - 우측 상단에 "Step n/total" 진행률 표시
 

@@ -3,11 +3,11 @@ import type { CurriculumStep } from '@/types/curriculum'
 export const week_4_3: CurriculumStep = {
   id: 'week-4-3',
   title: '3주차 · N+1 문제와 해결',
-  order: 15,
+  order: 16,
   category: 'advanced',
   content: {
     mission:
-      '사용자 목록을 가져온 뒤 각자의 글까지 조회하는 코드를, 반복문 안 `findUnique` 대신 `findMany({ include: { posts: true } })` 한 번으로 작성하여 N+1 쿼리를 제거하세요.',
+      '사용자 목록을 가져온 뒤 각자의 글까지 조회하는 코드를, 반복문 안에서 글을 개별 조회(`findMany` / `findUnique`)하는 대신 `findMany({ include: { posts: true } })` 한 번으로 작성하여 N+1 쿼리를 제거하세요.',
     theory: `
       ## N+1 쿼리 문제
 
@@ -28,7 +28,7 @@ export const week_4_3: CurriculumStep = {
       ## 해결: include 한 번으로
 
       \`\`\`ts
-      // ✅ Good: 단 1번의 쿼리 (또는 Prisma 내부에서 2번으로 합침)
+      // ✅ Good: 사용자 수와 무관하게 쿼리 수가 고정 (Prisma 는 기본적으로 2번의 쿼리로 처리)
       const users = await prisma.user.findMany({
         include: { posts: true }
       })
@@ -88,7 +88,7 @@ model Post {
 const prisma = new PrismaClient()
 
 async function main() {
-  // TODO: findMany({ include: { posts: true } }) 한 번으로 가져오세요.
+  // TODO: user 모델의 findMany 한 번에 include 옵션으로 posts 까지 가져오세요.
 }
 
 main().finally(() => prisma.$disconnect())

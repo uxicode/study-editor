@@ -3,7 +3,7 @@ import type { CurriculumStep } from '@/types/curriculum'
 export const week_3_5: CurriculumStep = {
   id: 'week-3-5',
   title: '2주차 · 레이어드 아키텍처',
-  order: 11,
+  order: 12,
   category: 'advanced',
   content: {
     mission:
@@ -32,6 +32,27 @@ export const week_3_5: CurriculumStep = {
       \`route → service → repository → prisma\`
 
       반대 방향으로 흘려서는 안 됩니다. 라우트가 repository 를 직접 부르면 레이어가 깨집니다.
+
+      ## Fastify 라우트 기본
+
+      이번 스텝부터 HTTP 계층으로 Fastify 를 사용합니다.
+
+      \`\`\`ts
+      import Fastify from 'fastify'
+
+      const fastify = Fastify({ logger: true })
+
+      // 핸들러가 반환한 값은 자동으로 JSON 응답이 됩니다.
+      fastify.get('/users', async (request, reply) => {
+        return service.list()
+      })
+
+      fastify.listen({ port: 3000, host: '0.0.0.0' })
+      \`\`\`
+
+      - \`fastify.get / post / put / delete(경로, [옵션], 핸들러)\` 로 라우트를 등록합니다.
+      - \`request.params\`, \`request.query\`, \`request.body\` 로 입력을 읽습니다.
+      - 상태 코드를 바꾸려면 \`reply.code(201).send(data)\` 를 사용합니다.
     `,
     objectives: [
       '책임을 가진 레이어로 분리',
@@ -50,7 +71,7 @@ export const week_3_5: CurriculumStep = {
       name: 'user.repository.ts',
       path: 'src/users/user.repository.ts',
       language: 'typescript',
-      content: `// TODO: PrismaClient 를 import 하여 UserRepository 를 만드세요.
+      content: `// TODO: Prisma 클라이언트를 import 하여 UserRepository 를 만드세요.
 `
     },
     {

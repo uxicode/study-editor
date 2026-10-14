@@ -3,13 +3,13 @@ import type { CurriculumStep } from '@/types/curriculum'
 export const week_4_final: CurriculumStep = {
   id: 'week-4-final',
   title: '3주차 종합 · 페이징·인덱스·트랜잭션',
-  order: 18,
+  order: 19,
   category: 'advanced',
   content: {
     mission:
       'Fastify 의 `GET /posts?page=&size=` 핸들러에서 `prisma.$transaction` 으로 "글 목록 + 총 개수" 를 한 번에 가져오고, `include` 로 작성자 정보까지 함께 로드하며, Prisma 스키마에는 적절한 `@@index` 를 정의하세요.',
     theory: `
-      4주차의 모든 도구를 한 핸들러에 통합합니다.
+      3주차의 모든 도구를 한 핸들러에 통합합니다.
 
       ## 요구사항
 
@@ -42,11 +42,10 @@ export const week_4_final: CurriculumStep = {
     ],
     exercise: `
 1. \`schema.prisma\` 에 \`@@index([userId, createdAt])\` 을 포함시키세요.
-2. \`server.ts\` 의 \`GET /posts\` 핸들러에서 다음 4가지 키워드가 모두 등장해야 합니다.
-   - \`$transaction\`
-   - \`include\`
-   - \`take\`
-   - \`@@index\` (스키마 쪽)
+2. \`server.ts\` 에 \`GET /posts\` 라우트를 등록하고, 핸들러에서 다음을 모두 사용하세요.
+   - \`prisma.$transaction([...])\` 으로 목록 + 총 개수 조회
+   - \`include: { author: true }\` 로 작성자 로드
+   - \`take\` 와 \`skip\`(또는 \`cursor\`) 페이징 옵션
     `.trim(),
     expectedOutput: 'GET /posts 라우트에서 $transaction + include + take 등장'
   },
@@ -77,7 +76,7 @@ model Post {
   createdAt DateTime @default(now())
   author    User     @relation(fields: [userId], references: [id])
 
-  // TODO: @@index([userId, createdAt]) 을 추가하세요.
+  // TODO: userId, createdAt 순서의 복합 인덱스(@@index)를 추가하세요.
 }
 `
     },
@@ -92,8 +91,8 @@ const fastify = Fastify({ logger: true })
 const prisma = new PrismaClient()
 
 // TODO: GET /posts?page=&size= 핸들러에서
-//  - prisma.$transaction([findMany, count]) 사용
-//  - findMany 에 take, skip, include: { author: true } 적용
+//  - $transaction 으로 목록 조회(findMany)와 총 개수(count)를 배열로 묶기
+//  - findMany 에 take / skip 페이징과 include 로 author 관계 로드
 //  - 응답: { items, total, page, size }
 
 fastify.listen({ port: 3000, host: '0.0.0.0' })
@@ -154,7 +153,7 @@ fastify.listen({ port: 3000, host: '0.0.0.0' })
     },
     {
       level: 2,
-      content: 'transaction 배열은 두 개의 Prisma 호출(`findMany`, `count`) 을 묶어 한 번의 라운드트립으로 처리합니다.'
+      content: 'transaction 배열은 두 개의 Prisma 호출(`findMany`, `count`) 을 하나의 트랜잭션으로 묶어, 목록과 총 개수가 같은 시점의 데이터를 기준으로 계산되도록 합니다.'
     },
     {
       level: 3,

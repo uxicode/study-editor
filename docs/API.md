@@ -181,7 +181,7 @@ interface FileTemplate {
 }
 ```
 
-`language: 'sql'` 은 4주차 MySQL DDL 학습 파일(`schema.sql`)을 위해 추가되었습니다. Monaco Editor 는 이 값에 따라 알맞은 문법 강조를 적용합니다.
+`language: 'sql'` 은 1주차 MySQL DDL · DML 학습 파일(`schema.sql`, `queries.sql`) 및 3주차 EXPLAIN 실습을 위해 추가되었습니다. Monaco Editor 는 이 값에 따라 알맞은 문법 강조를 적용합니다.
 
 ### ExecutionResult
 

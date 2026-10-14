@@ -52,7 +52,7 @@ export const week_2_1: CurriculumStep = {
       path: 'schema.sql',
       language: 'sql',
       content: `-- TODO: users 테이블을 생성하세요.
--- 컬럼: id INT, email VARCHAR(255), name VARCHAR(100)
+-- 컬럼: id(정수), email(최대 255자 가변 문자열), name(최대 100자 가변 문자열)
 `
     }
   ],

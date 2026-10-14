@@ -149,7 +149,7 @@ function toggleOpen() {
 
 // 주차명 매핑 맵
 const weekTitlesMap: Record<string, string> = {
-  'week-1': '1주차: MySQL DDL',
+  'week-1': '1주차: MySQL DDL & 기본 쿼리',
   'week-2': '2주차: Prisma ORM & 아키텍처',
   'week-3': '3주차: 트랜잭션 & 성능 최적화',
   'week-5': '1주차: 정규식 & 데이터 처리',

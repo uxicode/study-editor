@@ -3,7 +3,7 @@ import type { CurriculumStep } from '@/types/curriculum'
 export const week_3_1: CurriculumStep = {
   id: 'week-3-1',
   title: '2주차 · Prisma 초기 설정',
-  order: 7,
+  order: 8,
   category: 'environment',
   content: {
     mission:
@@ -57,7 +57,7 @@ export const week_3_1: CurriculumStep = {
       path: 'prisma/schema.prisma',
       language: 'prisma',
       content: `// TODO: generator client 블록을 작성하세요.
-// TODO: datasource db 블록을 작성하세요 (provider = "mysql", url = env("DATABASE_URL")).
+// TODO: datasource db 블록을 작성하세요 (MySQL provider, 연결 URL 은 DATABASE_URL 환경 변수에서 읽기).
 `
     }
   ],

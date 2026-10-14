@@ -44,14 +44,14 @@ export const week_2_2: CurriculumStep = {
 1. 기존 \`id INT\` 정의를 \`id INT AUTO_INCREMENT PRIMARY KEY\` 로 변경하세요.
 2. SQL 분석기 로그에 "PRIMARY KEY 1" 과 "AUTO_INCREMENT 1" 이 함께 나오면 성공입니다.
     `.trim(),
-    expectedOutput: 'PK 1, INDEX(자동) 1'
+    expectedOutput: '제약/인덱스: PK 1 (로그: PRIMARY KEY 1, AUTO_INCREMENT 1)'
   },
   initialFiles: [
     {
       name: 'schema.sql',
       path: 'schema.sql',
       language: 'sql',
-      content: `-- TODO: id 를 AUTO_INCREMENT PRIMARY KEY 로 만들어주세요.
+      content: `-- TODO: id 를 자동 증가하는 기본키로 만들어주세요.
 CREATE TABLE users (
   id    INT,
   email VARCHAR(255),

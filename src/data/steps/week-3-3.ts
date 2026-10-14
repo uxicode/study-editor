@@ -3,7 +3,7 @@ import type { CurriculumStep } from '@/types/curriculum'
 export const week_3_3: CurriculumStep = {
   id: 'week-3-3',
   title: '2주차 · Prisma CRUD',
-  order: 9,
+  order: 10,
   category: 'create',
   content: {
     mission:
@@ -84,10 +84,10 @@ model User {
 const prisma = new PrismaClient()
 
 async function main() {
-  // TODO: prisma.user.create({ data: ... })
-  // TODO: prisma.user.findMany()
-  // TODO: prisma.user.update({ where, data })
-  // TODO: prisma.user.delete({ where })
+  // TODO: 1) 사용자 생성 — user 모델의 create (data 옵션)
+  // TODO: 2) 전체 조회 — user 모델의 findMany
+  // TODO: 3) 이름 수정 — user 모델의 update (where + data 옵션)
+  // TODO: 4) 삭제 — user 모델의 delete (where 옵션)
 }
 
 main()

@@ -3,7 +3,7 @@ import type { CurriculumStep } from '@/types/curriculum'
 export const week_3_final: CurriculumStep = {
   id: 'week-3-final',
   title: '2주차 종합 · Fastify + Prisma 사용자 API',
-  order: 12,
+  order: 13,
   category: 'advanced',
   content: {
     mission:
@@ -27,6 +27,28 @@ export const week_3_final: CurriculumStep = {
                   →  repository.findAll()
                   →  prisma.user.findMany
       \`\`\`
+
+      ## Fastify JSON Schema 입력 검증
+
+      라우트 옵션의 \`schema.body\` 에 JSON Schema 를 지정하면, 핸들러가 실행되기 전에 Fastify 가 요청 본문을 검증합니다. 조건에 맞지 않으면 핸들러를 호출하지 않고 **400 Bad Request** 를 자동으로 응답합니다.
+
+      \`\`\`ts
+      fastify.post('/users', {
+        schema: {
+          body: {
+            type: 'object',
+            required: ['email'],
+            properties: {
+              email: { type: 'string' },
+              name:  { type: 'string' }
+            }
+          }
+        }
+      }, async (request, reply) => { /* ... */ })
+      \`\`\`
+
+      - \`required\` — 반드시 있어야 하는 필드 목록
+      - \`properties\` — 각 필드의 타입 정의
 
       ## 검증 포인트
       - service / repository 가 분리되어 있는가?

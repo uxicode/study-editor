@@ -3,7 +3,7 @@ import type { CurriculumStep } from '@/types/curriculum'
 export const week_4_1: CurriculumStep = {
   id: 'week-4-1',
   title: '3주차 · 트랜잭션 ($transaction)',
-  order: 13,
+  order: 14,
   category: 'advanced',
   content: {
     mission:
@@ -88,7 +88,7 @@ model Post {
 const prisma = new PrismaClient()
 
 async function main() {
-  // TODO: prisma.$transaction([ user.create, post.create ]) 형태로 묶어주세요.
+  // TODO: $transaction 에 user 생성과 post 생성을 배열로 묶어 전달하세요.
 }
 
 main().finally(() => prisma.$disconnect())
@@ -135,12 +135,14 @@ main().finally(() => prisma.$disconnect())
     },
     {
       level: 3,
-      content: '정답 예시입니다 (콜백 형태).',
+      content: '정답 예시입니다 (배열 형태).',
       codeSnippet: `import { PrismaClient } from '@prisma/client'
 
 const prisma = new PrismaClient()
 
 async function main() {
+  // 배열 형태는 앞 작업의 결과(user.id)를 참조할 수 없어 authorId 를 미리 알아야 합니다.
+  // 생성된 user.id 를 써야 한다면 Interactive 트랜잭션(콜백 형태)을 사용하세요.
   await prisma.$transaction([
     prisma.user.create({ data: { email: 'tx@example.com' } }),
     prisma.post.create({ data: { title: 'first post', authorId: 1 } })

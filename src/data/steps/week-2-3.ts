@@ -55,7 +55,7 @@ export const week_2_3: CurriculumStep = {
   email VARCHAR(255),
   name  VARCHAR(100)
 );
--- TODO: 위 정의에 NOT NULL, UNIQUE, DEFAULT, CHECK 제약을 추가하고
+-- TODO: 위 정의에 필수값 · 유일값 · 기본값 · 조건 검사 제약을 추가하고
 --       role 과 age 컬럼을 새로 만드세요.
 `
     }
@@ -77,14 +77,20 @@ export const week_2_3: CurriculumStep = {
       {
         type: 'regex',
         target: 'schema.sql',
-        pattern: /\bDEFAULT\b/i,
-        message: 'DEFAULT 절을 사용해야 합니다.'
+        pattern: /\bname\s+VARCHAR\s*\(\s*100\s*\)[^,]*NOT\s+NULL/i,
+        message: 'name 컬럼에 NOT NULL 이 필요합니다.'
       },
       {
         type: 'regex',
         target: 'schema.sql',
-        pattern: /\bCHECK\s*\(/i,
-        message: 'CHECK 제약을 사용해야 합니다.'
+        pattern: /\brole\s+VARCHAR\s*\(\s*20\s*\)[^,]*DEFAULT\s+'user'/i,
+        message: "role VARCHAR(20) 컬럼에 DEFAULT 'user' 가 필요합니다."
+      },
+      {
+        type: 'regex',
+        target: 'schema.sql',
+        pattern: /\bCHECK\s*\(\s*age\s*>=\s*0\s*\)/i,
+        message: 'age 컬럼에 CHECK (age >= 0) 제약이 필요합니다.'
       }
     ],
     dynamicChecks: [

@@ -3,13 +3,13 @@ import type { CurriculumStep } from '@/types/curriculum'
 export const week_2_final: CurriculumStep = {
   id: 'week-2-final',
   title: '1주차 종합 · 게시판 스키마 설계',
-  order: 6,
+  order: 7,
   category: 'advanced',
   content: {
     mission:
       '간단한 블로그/게시판 스키마를 한 파일에 완성하세요. `users`, `posts`, `comments`, `tags`, `post_tags` 5개 테이블과 그 사이의 모든 외래키 / 복합 PK / 핵심 제약을 포함합니다.',
     theory: `
-      이 종합 과제는 2주차에서 다룬 모든 개념을 합칩니다.
+      이 종합 과제는 이번 주(1주차)에 다룬 모든 개념을 합칩니다.
 
       ## 데이터 모델 요약
 
@@ -27,11 +27,11 @@ export const week_2_final: CurriculumStep = {
       4. 기본값 / 제약을 적절히 활용 (예: \`status\` 컬럼 \`DEFAULT 'draft'\`)
 
       ## 다음 주 연결
-      이 스키마는 3주차의 Prisma 모델, 4주차의 인덱스 / 트랜잭션 / 페이징 예제에서 계속 활용됩니다.
+      이 스키마는 2주차의 Prisma 모델, 3주차의 인덱스 / 트랜잭션 / 페이징 예제에서 계속 활용됩니다.
     `,
     objectives: [
       '한 SQL 파일 안에서 일관된 스키마 설계',
-      '여러 관계(1:1·1:N·N:M)를 한 번에 표현',
+      '여러 관계(1:N·N:M)를 한 번에 표현',
       '실무에서 자주 쓰는 제약·기본값 조합 적용'
     ],
     exercise: `
