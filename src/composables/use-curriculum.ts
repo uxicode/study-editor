@@ -13,13 +13,13 @@ interface UserProgress {
 }
 
 const activeCurriculumId = ref<CurriculumType>('backend')
-const currentStepId = ref<string>('week-1-1')
+const currentStepId = ref<string>('week-2-1')
 
 const userProgress = ref<UserProgress>({
   completedSteps: [],
-  currentStep: 'week-1-1',
+  currentStep: 'week-2-1',
   currentSteps: {
-    backend: 'week-1-1',
+    backend: 'week-2-1',
     regex: 'week-5-1',
     algorithm: 'week-6-1',
     nextjs: 'week-7-1'
@@ -34,7 +34,7 @@ function sanitizeProgress(input: Partial<UserProgress>): UserProgress {
   
   // 기본 currentSteps 맵
   const defaultCurrentSteps: Record<string, string> = {
-    backend: 'week-1-1',
+    backend: 'week-2-1',
     regex: 'week-5-1',
     algorithm: 'week-6-1',
     nextjs: 'week-7-1'
@@ -42,7 +42,7 @@ function sanitizeProgress(input: Partial<UserProgress>): UserProgress {
 
   return {
     completedSteps: completed,
-    currentStep: input.currentStep ?? 'week-1-1',
+    currentStep: input.currentStep ?? 'week-2-1',
     currentSteps: {
       ...defaultCurrentSteps,
       ...(input.currentSteps ?? {})
@@ -138,7 +138,7 @@ export function useCurriculum() {
   }
 
   function restartCurriculum() {
-    const firstStepId = activeCurriculum.value.steps[0]?.id || 'week-1-1'
+    const firstStepId = activeCurriculum.value.steps[0]?.id || 'week-2-1'
     loadStep(firstStepId)
   }
 
@@ -160,7 +160,7 @@ export function useCurriculum() {
     }
     const savedStep = userProgress.value.currentSteps[curriculumId]
     const targetCurriculum = CURRICULUMS.find(c => c.id === curriculumId) || CURRICULUMS[0]
-    const defaultStep = targetCurriculum.steps[0]?.id || 'week-1-1'
+    const defaultStep = targetCurriculum.steps[0]?.id || 'week-2-1'
     
     const targetStep = savedStep || defaultStep
     await loadStep(targetStep)
@@ -207,14 +207,14 @@ export function useCurriculum() {
     if (loaded) {
       // Dexie DB 에서 로드된 경우 db 필드에서 변환 필요
       const completed = loaded.completed_steps ?? loaded.completedSteps ?? []
-      const current = loaded.current_step ?? loaded.currentStep ?? 'week-1-1'
+      const current = loaded.current_step ?? loaded.currentStep ?? 'week-2-1'
       const attempts = loaded.attempts ?? {}
       
       const parsed: Partial<UserProgress> = {
         completedSteps: completed,
         currentStep: current,
         currentSteps: loaded.currentSteps ?? {
-          backend: current.startsWith('week-1') || current.startsWith('week-2') || current.startsWith('week-3') || current.startsWith('week-4') ? current : 'week-1-1',
+          backend: current.startsWith('week-2') || current.startsWith('week-3') || current.startsWith('week-4') ? current : 'week-2-1',
           regex: current.startsWith('week-5') ? current : 'week-5-1',
           algorithm: current.startsWith('week-6') ? current : 'week-6-1',
           nextjs: current.startsWith('week-7') || current.startsWith('week-8') || current.startsWith('week-9') ? current : 'week-7-1'
@@ -234,17 +234,17 @@ export function useCurriculum() {
     // 로드된 activeCurriculumId 및 currentStepId 반영
     activeCurriculumId.value = userProgress.value.activeCurriculum
     const targetCurriculum = CURRICULUMS.find(c => c.id === activeCurriculumId.value) || CURRICULUMS[0]
-    currentStepId.value = userProgress.value.currentSteps[activeCurriculumId.value] || targetCurriculum.steps[0]?.id || 'week-1-1'
+    currentStepId.value = userProgress.value.currentSteps[activeCurriculumId.value] || targetCurriculum.steps[0]?.id || 'week-2-1'
   }
 
   function resetProgress() {
     userProgress.value = sanitizeProgress({
       completedSteps: [],
-      currentStep: 'week-1-1',
+      currentStep: 'week-2-1',
       attempts: {}
     })
     activeCurriculumId.value = 'backend'
-    currentStepId.value = 'week-1-1'
+    currentStepId.value = 'week-2-1'
     saveProgress()
   }
 

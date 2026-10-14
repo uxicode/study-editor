@@ -1,14 +1,6 @@
 import type { CurriculumStep } from '@/types/curriculum'
 
-// Week 1 — Fastify + TS
-import { week_1_1 } from './steps/week-1-1'
-import { week_1_2 } from './steps/week-1-2'
-import { week_1_3 } from './steps/week-1-3'
-import { week_1_4 } from './steps/week-1-4'
-import { week_1_5 } from './steps/week-1-5'
-import { week_1_final } from './steps/week-1-final'
-
-// Week 2 — MySQL DDL
+// Week 1 — MySQL DDL
 import { week_2_1 } from './steps/week-2-1'
 import { week_2_2 } from './steps/week-2-2'
 import { week_2_3 } from './steps/week-2-3'
@@ -16,7 +8,7 @@ import { week_2_4 } from './steps/week-2-4'
 import { week_2_5 } from './steps/week-2-5'
 import { week_2_final } from './steps/week-2-final'
 
-// Week 3 — Prisma ORM · Layered architecture
+// Week 2 — Prisma ORM · Layered architecture
 import { week_3_1 } from './steps/week-3-1'
 import { week_3_2 } from './steps/week-3-2'
 import { week_3_3 } from './steps/week-3-3'
@@ -24,7 +16,7 @@ import { week_3_4 } from './steps/week-3-4'
 import { week_3_5 } from './steps/week-3-5'
 import { week_3_final } from './steps/week-3-final'
 
-// Week 4 — Transactions · indexes · performance
+// Week 3 — Transactions · indexes · performance
 import { week_4_1 } from './steps/week-4-1'
 import { week_4_2 } from './steps/week-4-2'
 import { week_4_3 } from './steps/week-4-3'
@@ -121,14 +113,13 @@ export const CURRICULUMS: Curriculum[] = [
     id: 'backend',
     title: '백엔드 코어',
     icon: '💻',
-    description: 'Fastify, MySQL DDL, Prisma ORM 및 레이어드 아키텍처',
+    description: 'MySQL DDL, Prisma ORM 및 레이어드 아키텍처',
     steps: [
-      week_1_1, week_1_2, week_1_3, week_1_4, week_1_5, week_1_final,
       week_2_1, week_2_2, week_2_3, week_2_4, week_2_5, week_2_final,
       week_3_1, week_3_2, week_3_3, week_3_4, week_3_5, week_3_final,
       week_4_1, week_4_2, week_4_3, week_4_4, week_4_5, week_4_final
     ],
-    levelCounts: { 1: 6, 2: 6, 3: 6, 4: 6 }
+    levelCounts: { 1: 6, 2: 6, 3: 6 }
   },
   {
     id: 'regex',
@@ -188,7 +179,6 @@ export const LEVEL_STEP_COUNTS = {
   1: 6,
   2: 6,
   3: 6,
-  4: 6,
   5: 21,  // regex 18 + 데이터처리 3
   6: 16,
   7: 6,

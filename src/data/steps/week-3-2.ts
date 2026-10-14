@@ -2,8 +2,8 @@ import type { CurriculumStep } from '@/types/curriculum'
 
 export const week_3_2: CurriculumStep = {
   id: 'week-3-2',
-  title: '3주차 · Prisma 모델 정의와 MySQL 매핑',
-  order: 14,
+  title: '2주차 · Prisma 모델 정의와 MySQL 매핑',
+  order: 8,
   category: 'schema',
   content: {
     mission:

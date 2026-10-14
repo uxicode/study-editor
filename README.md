@@ -14,14 +14,13 @@
 - **Code Editor (우측 상단)**: Monaco Editor 를 사용한 다중 파일 편집 (Prisma, TS, JS)
 - **Console / DB Panel (우측 하단)**: 코드 분석 로그, 검증 결과, 가상 DB 데이터 뷰어
 
-### 4주차 커리큘럼 (총 24스텝)
+### 백엔드 코어 커리큘럼 (총 18스텝)
 
 | 주차    | 주제                              | 사용 파일                                       | 핵심 키워드                            |
 |---------|-----------------------------------|--------------------------------------------------|----------------------------------------|
-| 1주차   | Fastify + TypeScript              | `server.ts`                                      | Fastify, 라우트, schema, plugin        |
-| 2주차   | MySQL — 데이터 무결성과 설계       | `schema.sql`                                     | CREATE TABLE, PK, FK, UNIQUE, CHECK    |
-| 3주차   | Prisma ORM · 레이어드 아키텍처    | `schema.prisma`, `server.ts`, `*.repository.ts` | model, @relation, repository, service  |
-| 4주차   | 트랜잭션 · 인덱스 · 성능          | `schema.prisma`, `server.ts`, `schema.sql`       | $transaction, @@index, 페이징, EXPLAIN |
+| 1주차   | MySQL — 데이터 무결성과 설계       | `schema.sql`                                     | CREATE TABLE, PK, FK, UNIQUE, CHECK    |
+| 2주차   | Prisma ORM · 레이어드 아키텍처    | `schema.prisma`, `server.ts`, `*.repository.ts` | model, @relation, repository, service  |
+| 3주차   | 트랜잭션 · 인덱스 · 성능          | `schema.prisma`, `server.ts`, `schema.sql`       | $transaction, @@index, 페이징, EXPLAIN |
 
 각 주차는 5개의 기본 스텝 + 1개의 종합 스텝으로 구성됩니다.
 
@@ -56,9 +55,8 @@
 - 모든 변환·검증은 `src/lib/learning/` 의 **프론트엔드 인메모리 시뮬**로 처리
 - 별도의 백엔드 서버 없음 (서버리스)
 
-### 학습자가 배우는 스택 (커리큘럼 내용)
+### 학습자가 배우는 스택 (백엔드 코어 커리큘럼 내용)
 
-- **Fastify + TypeScript**: 라우트, request/reply, JSON Schema, 플러그인·데코레이터
 - **MySQL**: CREATE TABLE, AUTO_INCREMENT, FK·CASCADE, N:M 조인 테이블, EXPLAIN
 - **Prisma ORM**: schema model, @relation, CRUD, include, 레이어드 아키텍처
 - **고도화**: `$transaction`, `@@index`, 페이징(skip·take / cursor), N+1 회피

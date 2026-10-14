@@ -38,8 +38,8 @@ import { useCurriculum } from '@/composables/use-curriculum'
 const { currentStep, loadStep, markStepCompleted, loadProgress } = useCurriculum()
 
 await loadProgress()
-await loadStep('week-1-1')
-markStepCompleted('week-1-1')
+await loadStep('week-2-1')
+markStepCompleted('week-2-1')
 ```
 
 ---

@@ -2,8 +2,8 @@ import type { CurriculumStep } from '@/types/curriculum'
 
 export const week_4_3: CurriculumStep = {
   id: 'week-4-3',
-  title: '4주차 · N+1 문제와 해결',
-  order: 21,
+  title: '3주차 · N+1 문제와 해결',
+  order: 15,
   category: 'advanced',
   content: {
     mission:

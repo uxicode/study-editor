@@ -2,8 +2,8 @@ import type { CurriculumStep } from '@/types/curriculum'
 
 export const week_4_final: CurriculumStep = {
   id: 'week-4-final',
-  title: '4주차 종합 · 페이징·인덱스·트랜잭션',
-  order: 24,
+  title: '3주차 종합 · 페이징·인덱스·트랜잭션',
+  order: 18,
   category: 'advanced',
   content: {
     mission:

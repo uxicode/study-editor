@@ -2,8 +2,8 @@ import type { CurriculumStep } from '@/types/curriculum'
 
 export const week_3_final: CurriculumStep = {
   id: 'week-3-final',
-  title: '3주차 종합 · Fastify + Prisma 사용자 API',
-  order: 18,
+  title: '2주차 종합 · Fastify + Prisma 사용자 API',
+  order: 12,
   category: 'advanced',
   content: {
     mission:

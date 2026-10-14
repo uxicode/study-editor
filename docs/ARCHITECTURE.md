@@ -87,16 +87,15 @@
 - Prisma 실행 출력 → INSERT SQL → 메모리 행 추가
 - ConsolePanel "Database" 탭의 데이터 소스
 
-## 4주차 커리큘럼 매핑
+## 백엔드 코어 커리큘럼 매핑
 
 ```
-Week 1 — Fastify + TS         → server.ts (typescript) 만 사용
-Week 2 — MySQL DDL            → schema.sql (sql)
-Week 3 — Prisma ORM           → schema.prisma + server.ts (+ repository/service)
-Week 4 — Transactions/Indexes → schema.prisma + server.ts (+ schema.sql for EXPLAIN)
+Week 1 — MySQL DDL            → schema.sql (sql)
+Week 2 — Prisma ORM           → schema.prisma + server.ts (+ repository/service)
+Week 3 — Transactions/Indexes → schema.prisma + server.ts (+ schema.sql for EXPLAIN)
 ```
 
-각 주차는 5개의 기본 스텝 + 1개의 종합 스텝으로 구성됩니다 (`LEVEL_STEP_COUNTS = {1:6, 2:6, 3:6, 4:6}`).
+각 주차는 5개의 기본 스텝 + 1개의 종합 스텝으로 구성됩니다 (`LEVEL_STEP_COUNTS = {1:6, 2:6, 3:6}`).
 
 ## 데이터 흐름
 

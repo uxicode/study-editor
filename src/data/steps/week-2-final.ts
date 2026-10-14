@@ -2,8 +2,8 @@ import type { CurriculumStep } from '@/types/curriculum'
 
 export const week_2_final: CurriculumStep = {
   id: 'week-2-final',
-  title: '2주차 종합 · 게시판 스키마 설계',
-  order: 12,
+  title: '1주차 종합 · 게시판 스키마 설계',
+  order: 6,
   category: 'advanced',
   content: {
     mission:

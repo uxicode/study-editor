@@ -2,7 +2,7 @@ import { db, type UserProgressEntity } from '@/lib/db'
 import * as authService from '@/services/auth.service'
 import type { UserProgress } from '@/types/curriculum'
 
-const FIRST_STEP_ID = 'week-1-1'
+const FIRST_STEP_ID = 'week-2-1'
 
 export interface ExtendedUserProgress extends UserProgress {
   currentSteps?: Record<string, string>
@@ -14,7 +14,7 @@ function emptyProgress(): ExtendedUserProgress {
     completedSteps: [],
     currentStep: FIRST_STEP_ID,
     currentSteps: {
-      backend: 'week-1-1',
+      backend: 'week-2-1',
       regex: 'week-5-1',
       algorithm: 'week-6-1',
       nextjs: 'week-7-1'
@@ -30,7 +30,7 @@ function toUserProgress(entity: UserProgressEntity | null | undefined): Extended
     completedSteps: entity.completedSteps ?? [],
     currentStep: entity.currentStep ?? FIRST_STEP_ID,
     currentSteps: entity.currentSteps ?? {
-      backend: 'week-1-1',
+      backend: 'week-2-1',
       regex: 'week-5-1',
       algorithm: 'week-6-1',
       nextjs: 'week-7-1'

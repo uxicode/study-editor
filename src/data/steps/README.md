@@ -1,6 +1,6 @@
 # Curriculum Steps
 
-학습 커리큘럼은 4주차 · 주당 6스텝 = 총 24스텝으로 구성되며, 각 스텝은 독립된 파일로 관리합니다.
+백엔드 코어 학습 커리큘럼은 3주차 · 주당 6스텝 = 총 18스텝으로 구성되며, 각 스텝은 독립된 파일로 관리합니다.
 
 ## 파일 구조
 
@@ -8,18 +8,12 @@
 src/data/
 ├── curriculum-steps.ts          # CURRICULUM_STEPS 배열과 LEVEL_STEP_COUNTS export
 └── steps/
-    ├── week-1-1.ts              # 1주차 · Fastify 부트스트랩
-    ├── week-1-2.ts              # 1주차 · 라우트 핸들러와 reply
-    ├── week-1-3.ts              # 1주차 · TypeScript 라우트 타입
-    ├── week-1-4.ts              # 1주차 · JSON Schema 입력 검증
-    ├── week-1-5.ts              # 1주차 · 플러그인과 데코레이터
-    ├── week-1-final.ts          # 1주차 종합 · Todo API
-    ├── week-2-1.ts ~ week-2-5.ts # 2주차 · MySQL DDL
-    ├── week-2-final.ts          # 2주차 종합 · 게시판 스키마
-    ├── week-3-1.ts ~ week-3-5.ts # 3주차 · Prisma ORM / 레이어드 아키텍처
-    ├── week-3-final.ts          # 3주차 종합 · Fastify + Prisma 사용자 API
-    ├── week-4-1.ts ~ week-4-5.ts # 4주차 · 트랜잭션 / 인덱스 / 성능
-    └── week-4-final.ts          # 4주차 종합 · 페이징 · 인덱스 · 트랜잭션
+    ├── week-2-1.ts ~ week-2-5.ts # 1주차 · MySQL DDL
+    ├── week-2-final.ts          # 1주차 종합 · 게시판 스키마
+    ├── week-3-1.ts ~ week-3-5.ts # 2주차 · Prisma ORM / 레이어드 아키텍처
+    ├── week-3-final.ts          # 2주차 종합 · Fastify + Prisma 사용자 API
+    ├── week-4-1.ts ~ week-4-5.ts # 3주차 · 트랜잭션 / 인덱스 / 성능
+    └── week-4-final.ts          # 3주차 종합 · 페이징 · 인덱스 · 트랜잭션
 ```
 
 ## 새 스텝 추가하기

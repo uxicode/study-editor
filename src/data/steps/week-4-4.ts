@@ -2,8 +2,8 @@ import type { CurriculumStep } from '@/types/curriculum'
 
 export const week_4_4: CurriculumStep = {
   id: 'week-4-4',
-  title: '4주차 · 페이징 (skip / take · cursor)',
-  order: 22,
+  title: '3주차 · 페이징 (skip / take · cursor)',
+  order: 16,
   category: 'read',
   content: {
     mission:

@@ -903,7 +903,7 @@ onMounted(async () => {
   await authStore.initAuth()
   await loadProgress()
   previousLevel.value = currentLevel.value
-  await loadStep(userProgress.value.currentStep || 'week-1-1')
+  await loadStep(userProgress.value.currentStep || 'week-2-1')
   await resetState()
 })
 </script>
