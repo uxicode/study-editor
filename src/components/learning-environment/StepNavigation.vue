@@ -481,11 +481,35 @@ async function handleStepClick(step: CurriculumStep) {
   padding: 24px;
   box-sizing: border-box;
   z-index: 50;
+  /* 스텝이 많아져도 화면 밖으로 잘리지 않도록 높이를 제한하고 스크롤 */
+  max-height: calc(100vh - 140px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
 
   :global(.dark) & {
     background: rgba(31, 41, 55, 0.95);
     border-bottom-color: #374151;
     box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.2);
+    scrollbar-color: #4b5563 transparent;
+
+    &::-webkit-scrollbar-thumb {
+      background: #4b5563;
+    }
   }
 }
 
