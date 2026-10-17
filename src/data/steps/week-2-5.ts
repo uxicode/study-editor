@@ -3,7 +3,7 @@ import type { CurriculumStep } from '@/types/curriculum'
 export const week_2_5: CurriculumStep = {
   id: 'week-2-5',
   title: '1주차 · 정규화와 N:M 조인 테이블',
-  order: 5,
+  order: 17,
   category: 'relations',
   content: {
     mission:

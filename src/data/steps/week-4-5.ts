@@ -3,7 +3,7 @@ import type { CurriculumStep } from '@/types/curriculum'
 export const week_4_5: CurriculumStep = {
   id: 'week-4-5',
   title: '3주차 · EXPLAIN 으로 슬로우 쿼리 분석',
-  order: 18,
+  order: 69,
   category: 'advanced',
   content: {
     mission:

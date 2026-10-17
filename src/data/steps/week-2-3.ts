@@ -3,7 +3,7 @@ import type { CurriculumStep } from '@/types/curriculum'
 export const week_2_3: CurriculumStep = {
   id: 'week-2-3',
   title: '1주차 · 제약조건 (NOT NULL · UNIQUE · DEFAULT · CHECK)',
-  order: 3,
+  order: 9,
   category: 'schema',
   content: {
     mission:

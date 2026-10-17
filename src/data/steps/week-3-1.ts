@@ -3,7 +3,7 @@ import type { CurriculumStep } from '@/types/curriculum'
 export const week_3_1: CurriculumStep = {
   id: 'week-3-1',
   title: '2주차 · Prisma 초기 설정',
-  order: 8,
+  order: 29,
   category: 'environment',
   content: {
     mission:
