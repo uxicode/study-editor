@@ -11,51 +11,51 @@
           <div class="modal-body">
             <div class="info-section">
               <p class="main-description">
-                WebContainers의 제한으로 인해 실제 데이터베이스 실행 대신 
-                <strong>코드 패턴을 분석</strong>합니다. 학습 효과는 동일합니다!
+                이 플랫폼은 실제 데이터베이스나 서버를 실행하지 않고,
+                작성한 <strong>코드의 패턴을 분석</strong>해 결과를 보여주고 채점합니다.
               </p>
             </div>
 
             <div class="divider"></div>
 
             <div class="info-section">
-              <h3>💡 WebContainers란?</h3>
+              <h3>💡 코드 패턴 분석이란?</h3>
               <p class="sub-description">
-                브라우저 안에서 Node.js 개발 환경을 그대로 실행하는 기술
+                코드를 실행하는 대신, 필요한 구문이 올바르게 들어 있는지 검사하는 방식
               </p>
 
               <div class="feature-list">
                 <div class="feature-item">
                   <div class="feature-number">1️⃣</div>
                   <div class="feature-content">
-                    <h4>WebAssembly (WASM)</h4>
-                    <p>Node.js를 WebAssembly로 컴파일해서 브라우저에서 실행</p>
+                    <h4>코드에서 패턴 찾기</h4>
+                    <div class="code-example">
+                      <code>CREATE TABLE</code>
+                      <code>FOREIGN KEY</code>
+                      <code>prisma.user.findMany</code>
+                    </div>
+                    <p>SQL 구문, Prisma 모델·메서드 호출, Fastify 라우트 등을 분석합니다.</p>
                   </div>
                 </div>
 
                 <div class="feature-item">
                   <div class="feature-number">2️⃣</div>
                   <div class="feature-content">
-                    <h4>브라우저 가상 파일 시스템</h4>
-                    <div class="code-example">
-                      <code>/package.json</code>
-                      <code>/node_modules</code>
-                      <code>/src/index.ts</code>
-                    </div>
-                    <p>같은 구조를 브라우저 메모리 안에 구현</p>
+                    <h4>채점 항목으로 확인</h4>
+                    <p>
+                      각 스텝의 <strong>연습문제</strong> 목록이 곧 채점 항목입니다.
+                      모든 항목의 구문이 코드에 들어 있으면 통과합니다.
+                    </p>
                   </div>
                 </div>
 
                 <div class="feature-item">
                   <div class="feature-number">3️⃣</div>
                   <div class="feature-content">
-                    <h4>네이티브에 가까운 실행</h4>
-                    <div class="code-example">
-                      <code>npm install</code>
-                      <code>node index.js</code>
-                      <code>vite dev</code>
-                    </div>
-                    <p>같은 명령을 브라우저 터미널에서 그대로 실행 가능</p>
+                    <h4>막혔을 때</h4>
+                    <p>
+                      실패한 항목의 메시지를 확인하고, 힌트 버튼에서 접근 방법과 정답 예시를 볼 수 있습니다.
+                    </p>
                   </div>
                 </div>
               </div>
@@ -64,8 +64,8 @@
             <div class="info-section note-section">
               <div class="note-icon">ℹ️</div>
               <div>
-                <strong>참고:</strong> Prisma의 네이티브 바이너리 다운로드 제한으로 인해 
-                이 플랫폼에서는 코드 패턴 분석 방식을 사용합니다.
+                <strong>참고:</strong> 구문의 존재 여부로 판단하므로 실제 실행 결과(데이터 조회, 서버 응답 등)는
+                확인할 수 없습니다. 주석으로 설명하는 문제는 안내된 핵심 단어가 주석에 포함되어야 합니다.
               </div>
             </div>
           </div>
