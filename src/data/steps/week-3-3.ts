@@ -51,7 +51,18 @@ export const week_3_3: CurriculumStep = {
 2. main() 함수 내에서 \`prisma.user.create\`, \`prisma.user.findMany\`, \`prisma.user.update\`, \`prisma.user.delete\` 를 순차적으로 호출하세요.
 3. \`main().finally(() => prisma.$disconnect())\` 로 종료 처리하세요.
     `.trim(),
-    expectedOutput: '.create() 호출 발견, .findMany() 호출 발견, .update() 호출 발견, .delete() 호출 발견'
+    expectedOutput: '.create() 호출 발견, .findMany() 호출 발견, .update() 호출 발견, .delete() 호출 발견',
+    localPractice: `\`prisma-lab\` 에서 이 스텝의 코드를 **실제로** 실행해 보세요. 쿼리 로그를 켜면 Prisma 가 어떤 SQL 을 만드는지 보입니다.
+
+\`\`\`ts
+const prisma = new PrismaClient({ log: ['query'] })
+\`\`\`
+
+1. \`npx prisma db push\` 로 스키마를 반영한 뒤 \`npx tsx server.ts\` 로 실행하세요.
+2. 콘솔에 찍힌 \`INSERT\` / \`SELECT\` / \`UPDATE\` / \`DELETE\` 를 \`mysql\` 클라이언트에서 \`SELECT * FROM User;\` 로 교차 확인하세요.
+3. 같은 \`email\` 로 \`create\` 를 두 번 실행하면 \`P2002\` (UNIQUE 위반) 입니다.
+4. 없는 \`id\` 로 \`update\` / \`delete\` 하면 \`P2025\` 입니다. \`try / catch\` 로 이 코드를 구분해 처리해 보세요.
+    `.trim()
   },
   initialFiles: [
     {

@@ -70,7 +70,31 @@ export const week_2_6: CurriculumStep = {
 4. \`posts\` 와 \`users\` 를 \`INNER JOIN ... ON\` 으로 연결해 글 제목과 작성자 이름을 함께 조회하세요.
 5. \`users\` 기준 \`LEFT JOIN\` 과 \`GROUP BY\`, \`COUNT\` 로 사용자별 글 수를 조회하세요.
     `.trim(),
-    expectedOutput: 'DML: INSERT ≥ 2, SELECT ≥ 3'
+    expectedOutput: 'DML: INSERT ≥ 2, SELECT ≥ 3',
+    localPractice: `이 스텝의 쿼리를 \`study\` DB 에서 실행하고 **채점기가 못 보는 차이** 를 확인하세요.
+
+1. \`schema.sql\` 로 테이블을 만든 뒤 \`queries.sql\` 을 한 문장씩 실행하세요.
+2. \`INNER JOIN\` 과 \`LEFT JOIN\` 의 차이를 보려면 **글이 없는 사용자** 를 하나 추가하세요.
+
+\`\`\`sql
+INSERT INTO users (email, name) VALUES ('nopost@test.com', 'NoPost');
+
+SELECT u.name, p.title FROM users u INNER JOIN posts p ON p.user_id = u.id;
+SELECT u.name, p.title FROM users u LEFT JOIN posts p  ON p.user_id = u.id;
+\`\`\`
+
+   LEFT JOIN 에서만 \`NoPost\` 행이 \`title = NULL\` 로 나타납니다.
+
+3. 글 수 집계에서 \`COUNT(*)\` 와 \`COUNT(p.id)\` 를 비교하세요.
+
+\`\`\`sql
+SELECT u.name, COUNT(*) AS c1, COUNT(p.id) AS c2
+FROM users u LEFT JOIN posts p ON p.user_id = u.id
+GROUP BY u.id;
+\`\`\`
+
+   글이 없는 사용자는 \`COUNT(*)\` 가 1, \`COUNT(p.id)\` 가 0 입니다. LEFT JOIN 집계에서 흔한 실수입니다.
+    `.trim()
   },
   initialFiles: [
     {

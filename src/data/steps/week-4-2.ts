@@ -52,7 +52,36 @@ export const week_4_2: CurriculumStep = {
 1. \`User\` 모델에 \`@@index([email])\` 을 추가하세요.
 2. \`Post\` 모델에 \`@@index([userId, createdAt])\` 복합 인덱스를 추가하세요.
     `.trim(),
-    expectedOutput: '@@index 선언 2개'
+    expectedOutput: '@@index 선언 2개',
+    localPractice: `인덱스 효과는 **데이터가 많을 때만** 보입니다. 테스트 테이블에 10만 건을 넣어 직접 측정하세요.
+
+\`\`\`sql
+CREATE TABLE users_big (
+  id    INT AUTO_INCREMENT PRIMARY KEY,
+  email VARCHAR(255) NOT NULL,
+  name  VARCHAR(100) NOT NULL
+);
+
+SET SESSION cte_max_recursion_depth = 100000;
+INSERT INTO users_big (email, name)
+WITH RECURSIVE seq AS (SELECT 1 AS n UNION ALL SELECT n + 1 FROM seq WHERE n < 100000)
+SELECT CONCAT('user', n, '@test.com'), CONCAT('name', n) FROM seq;
+\`\`\`
+
+**인덱스 전후 비교**
+
+\`\`\`sql
+EXPLAIN SELECT * FROM users_big WHERE email = 'user77777@test.com';
+-- type: ALL, rows ≈ 100000  (전체 스캔)
+
+CREATE INDEX idx_users_big_email ON users_big (email);
+
+EXPLAIN SELECT * FROM users_big WHERE email = 'user77777@test.com';
+-- type: ref, key: idx_users_big_email, rows: 1
+\`\`\`
+
+**복합 인덱스 순서** — \`CREATE INDEX idx_name_email ON users_big (name, email);\` 을 만든 뒤 \`WHERE name = ...\` 과 \`WHERE email = ...\` 를 각각 \`EXPLAIN\` 해 보세요. 앞 컬럼부터 써야 인덱스가 쓰입니다.
+    `.trim()
   },
   initialFiles: [
     {

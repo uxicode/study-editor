@@ -184,7 +184,35 @@ export const week_2_1: CurriculumStep = {
 2. 컬럼 3개 (\`id INT\`, \`email VARCHAR(255)\`, \`name VARCHAR(100)\`) 를 정의하세요.
 3. SQL 분석기가 "생성된 테이블 1개" 를 보고하면 성공입니다.
     `.trim(),
-    expectedOutput: '생성된 테이블: users'
+    expectedOutput: '생성된 테이블: users',
+    localPractice: `이 서비스의 채점은 코드 패턴만 확인하기 때문에, 문법 오류는 **진짜 MySQL** 에서만 드러납니다. 한 번만 환경을 만들어 두면 이후 모든 스텝의 실습에 씁니다.
+
+### 1. MySQL 준비 (둘 중 하나)
+
+\`\`\`bash
+# Docker
+docker run --name study-mysql -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=study -p 3306:3306 -d mysql:8
+
+# Homebrew
+brew install mysql && brew services start mysql
+\`\`\`
+
+### 2. 접속
+
+\`\`\`bash
+docker exec -it study-mysql mysql -uroot -proot study
+# Homebrew: mysql -uroot  →  CREATE DATABASE study; USE study;
+\`\`\`
+
+### 3. 직접 해보기
+
+1. 이 스텝에서 작성한 \`CREATE TABLE users ...\` 를 그대로 붙여 넣어 실행하세요.
+2. \`SHOW TABLES;\`, \`DESC users;\`, \`SHOW CREATE TABLE users;\` 로 결과를 확인하세요.
+3. 일부러 쉼표 하나를 지우고 다시 실행해 \`ERROR 1064 (42000)\` 를 확인하세요. 에러 메시지의 \`near '...'\` 가 가리키는 위치를 읽는 연습입니다.
+4. 이미 있는 테이블을 다시 \`CREATE TABLE\` 하면 \`ERROR 1050\` 이 납니다. \`DROP TABLE users;\` 후 다시 실행해 보세요.
+
+> 이후 스텝의 실습은 이 \`study\` 데이터베이스를 이어서 사용합니다.
+    `.trim()
   },
   initialFiles: [
     {

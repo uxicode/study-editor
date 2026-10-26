@@ -49,7 +49,25 @@ export const week_3_1: CurriculumStep = {
 1. \`schema.prisma\` 에 \`generator client { provider = "prisma-client-js" }\` 블록을 작성하세요.
 2. \`datasource db { provider = "mysql" url = env("DATABASE_URL") }\` 블록을 작성하세요.
     `.trim(),
-    expectedOutput: 'MySQL provider 확인됨'
+    expectedOutput: 'MySQL provider 확인됨',
+    localPractice: `Prisma 가 실제 MySQL 에 붙는 과정을 직접 겪어 보세요. (1주차에 만든 \`study\` DB 사용)
+
+\`\`\`bash
+mkdir prisma-lab && cd prisma-lab
+npm init -y && npm i -D prisma && npm i @prisma/client
+npx prisma init --datasource-provider mysql
+\`\`\`
+
+\`.env\` 의 \`DATABASE_URL\` 을 수정하세요. (\`.env\` 는 절대 커밋하지 마세요.)
+
+\`\`\`
+DATABASE_URL="mysql://root:root@localhost:3306/study"
+\`\`\`
+
+1. \`npx prisma db pull\` 로 1주차에 만든 테이블을 Prisma 모델로 읽어 오세요.
+2. 비밀번호를 일부러 틀리게 바꾸고 다시 실행하면 \`P1000\`, 포트를 틀리게 바꾸면 \`P1001\` 입니다. 연결 에러를 구분해 보세요.
+3. 각 에러의 원인을 URL 의 어느 부분(\`사용자:비밀번호@호스트:포트/DB명\`)에서 찾는지 말로 설명해 보세요.
+    `.trim()
   },
   initialFiles: [
     {

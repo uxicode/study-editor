@@ -43,7 +43,28 @@ export const week_2_3: CurriculumStep = {
 3. \`role VARCHAR(20) NOT NULL DEFAULT 'user'\` 컬럼을 추가하세요.
 4. \`age INT CHECK (age >= 0)\` 컬럼을 추가하세요.
     `.trim(),
-    expectedOutput: 'NOT NULL ≥ 3, UNIQUE ≥ 1, DEFAULT ≥ 1, CHECK ≥ 1'
+    expectedOutput: 'NOT NULL ≥ 3, UNIQUE ≥ 1, DEFAULT ≥ 1, CHECK ≥ 1',
+    localPractice: `\`users\` 를 이 스텝의 정의로 다시 만든 뒤, 제약을 하나씩 위반해 보세요.
+
+\`\`\`sql
+INSERT INTO users (email, name) VALUES ('a@test.com', 'A');
+
+INSERT INTO users (email, name) VALUES ('a@test.com', 'B');   -- UNIQUE 위반
+INSERT INTO users (email, name) VALUES ('b@test.com', NULL);  -- NOT NULL 위반
+INSERT INTO users (email) VALUES ('c@test.com');              -- name 누락
+INSERT INTO users (email, name, age) VALUES ('d@test.com', 'D', -1);  -- CHECK 위반
+\`\`\`
+
+| 상황 | 에러 |
+|------|------|
+| UNIQUE 위반 | \`ERROR 1062 (23000)\` |
+| 명시적 NULL | \`ERROR 1048 (23000)\` |
+| 기본값 없는 NOT NULL 컬럼 누락 | \`ERROR 1364 (HY000)\` |
+| CHECK 위반 | \`ERROR 3819 (HY000)\` |
+
+- 성공한 행의 \`role\` 이 \`'user'\` 로 채워졌는지 \`SELECT * FROM users;\` 로 확인하세요.
+- **관찰 포인트:** \`CHECK\` 는 MySQL 8.0.16 이상에서만 실제로 적용됩니다. \`SELECT VERSION();\` 으로 버전을 확인하세요.
+    `.trim()
   },
   initialFiles: [
     {

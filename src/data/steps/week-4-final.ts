@@ -47,7 +47,16 @@ export const week_4_final: CurriculumStep = {
    - \`include: { author: true }\` 로 작성자 로드
    - \`take\` 와 \`skip\`(또는 \`cursor\`) 페이징 옵션
     `.trim(),
-    expectedOutput: 'GET /posts 라우트에서 $transaction + include + take 등장'
+    expectedOutput: 'GET /posts 라우트에서 $transaction + include + take 등장',
+    localPractice: `종합 스텝은 **전체를 연결해서** 확인하세요. \`prisma-lab\` 에서 \`GET /posts\` 를 실제로 띄워 봅니다.
+
+1. \`log: ['query']\` 를 켜고 \`/posts?page=1\`, \`/posts?page=1000\` 을 요청해 로그의 \`LIMIT\` / \`OFFSET\` 쿼리를 비교하세요.
+2. 로그에 찍힌 목록 쿼리를 \`mysql\` 클라이언트에서 \`EXPLAIN ANALYZE\` 로 실행해 인덱스(\`userId, createdAt\`)가 쓰이는지 보세요.
+3. \`$transaction\` 으로 묶인 목록 + 총 개수 쿼리가 **같은 트랜잭션** 안에서 나가는지 로그의 \`BEGIN\` / \`COMMIT\` 으로 확인하세요.
+4. 100만 건까지 늘려도 응답이 느려지지 않는지 확인하고, 느려진다면 어느 쿼리 때문인지 \`EXPLAIN\` 으로 찾아보세요.
+
+이 과정을 한 번 거치면 "트랜잭션 · 인덱스 · 페이징" 을 말이 아니라 **측정한 숫자** 로 설명할 수 있습니다.
+    `.trim()
   },
   initialFiles: [
     {

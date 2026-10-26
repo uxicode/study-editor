@@ -49,7 +49,28 @@ export const week_4_1: CurriculumStep = {
 1. \`server.ts\` 에서 \`prisma.$transaction([...])\` 호출을 작성하세요.
 2. 배열 안에는 \`prisma.user.create\` 와 \`prisma.post.create\` 두 가지가 포함되어야 합니다.
     `.trim(),
-    expectedOutput: '$transaction 호출 발견'
+    expectedOutput: '$transaction 호출 발견',
+    localPractice: `트랜잭션은 **롤백이 실제로 일어나는 것을 봐야** 이해됩니다. 먼저 \`mysql\` 클라이언트에서 직접 해보세요.
+
+\`\`\`sql
+SELECT @@autocommit;           -- 1 (문장마다 자동 커밋)
+START TRANSACTION;
+INSERT INTO users (email, name) VALUES ('tx@test.com', 'TX');
+SELECT * FROM users;           -- 내 세션에서는 보임
+ROLLBACK;
+SELECT * FROM users;           -- 사라짐
+\`\`\`
+
+**두 세션 비교** — 터미널 두 개로 각각 접속하세요.
+
+1. 세션 A: \`START TRANSACTION;\` 후 \`INSERT\` (아직 \`COMMIT\` 하지 않음)
+2. 세션 B: \`SELECT * FROM users;\` → A 의 행이 **보이지 않습니다**
+3. 세션 A: \`COMMIT;\` → 세션 B 에서 이제 보입니다.
+
+**Prisma 로 롤백 확인**
+
+\`prisma.$transaction([...])\` 안의 두 번째 작업이 실패하도록 (\`authorId: 9999\` 처럼 없는 사용자) 만들고 실행하세요. \`P2003\` 에러와 함께 **첫 번째 \`create\` 도 반영되지 않았는지** \`SELECT\` 로 확인하세요.
+    `.trim()
   },
   initialFiles: [
     {

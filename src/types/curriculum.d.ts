@@ -27,6 +27,8 @@ export interface StepContent {
   /** 연습문제: 학습자가 수행할 구체적인 과제 설명 */
   exercise?: string
   expectedOutput?: string
+  /** 선택 실습: 로컬 MySQL 에서 같은 내용을 직접 실행해 보는 가이드 (채점 대상 아님) */
+  localPractice?: string
 }
 
 export interface FileTemplate {

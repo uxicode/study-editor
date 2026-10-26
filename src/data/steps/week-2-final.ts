@@ -39,7 +39,25 @@ export const week_2_final: CurriculumStep = {
 2. FK 가 최소 3개 이상 등장해야 합니다 (\`posts.user_id\`, \`comments.post_id\`, \`comments.user_id\`, \`post_tags.post_id\`, \`post_tags.tag_id\` 중 3 이상).
 3. \`post_tags\` 의 PK 는 \`(post_id, tag_id)\` 복합 PK 로 유지하세요.
     `.trim(),
-    expectedOutput: '생성된 테이블 5, FK ≥ 3'
+    expectedOutput: '생성된 테이블 5, FK ≥ 3',
+    localPractice: `완성한 스키마를 **빈 데이터베이스** 에서 처음부터 실행하세요.
+
+\`\`\`sql
+DROP DATABASE study; CREATE DATABASE study; USE study;
+\`\`\`
+
+1. 파일 전체를 붙여 넣어 한 번에 실행합니다. 테이블 순서가 틀리면 \`ERROR 1824\` (참조할 테이블이 없음) 가 납니다. 부모 테이블이 먼저 와야 합니다.
+2. 외래키를 DB 가 어떻게 기록했는지 확인합니다.
+
+\`\`\`sql
+SELECT TABLE_NAME, COLUMN_NAME, REFERENCED_TABLE_NAME, REFERENCED_COLUMN_NAME
+FROM information_schema.KEY_COLUMN_USAGE
+WHERE TABLE_SCHEMA = 'study' AND REFERENCED_TABLE_NAME IS NOT NULL;
+\`\`\`
+
+3. 사용자, 글, 댓글, 태그를 몇 건씩 넣고 \`users\` 를 삭제해 어디까지 연쇄 삭제되는지 보세요.
+4. 마지막으로 5개 테이블을 지우는 \`DROP\` 순서를 직접 정해 보세요. 자식부터 지워야 합니다.
+    `.trim()
   },
   initialFiles: [
     {

@@ -51,6 +51,12 @@
         <div class="section-content" v-html="formatMarkdown(displayExercise)"></div>
       </section>
 
+      <!-- 로컬 MySQL 실습 (선택) -->
+      <section v-if="step.content.localPractice" class="content-section local-practice-section">
+        <h3 class="section-title">🖥️ 로컬 MySQL로 직접 해보기 (선택)</h3>
+        <div class="section-content" v-html="formatMarkdown(step.content.localPractice)"></div>
+      </section>
+
       <!-- 예상 출력 -->
       <section v-if="step.content.expectedOutput" class="content-section expected-section">
         <h3 class="section-title">✅ 예상 결과</h3>

@@ -49,7 +49,17 @@ export const week_4_3: CurriculumStep = {
 1. \`server.ts\` 에서 \`prisma.user.findMany({ include: { posts: true } })\` 만 사용해 사용자와 글을 한 번에 가져오세요.
 2. 반복문 안에 \`findUnique\` / \`findMany\` 호출이 없어야 합니다.
     `.trim(),
-    expectedOutput: 'include: { posts: true } 사용'
+    expectedOutput: 'include: { posts: true } 사용',
+    localPractice: `N+1 은 **쿼리가 몇 번 나가는지 세어 봐야** 체감됩니다. \`prisma-lab\` 에서 쿼리 로그를 켜세요.
+
+\`\`\`ts
+const prisma = new PrismaClient({ log: ['query'] })
+\`\`\`
+
+1. 사용자를 \`findMany\` 한 뒤 반복문에서 사용자별로 \`post.findMany\` 를 호출하는 **나쁜 코드** 를 실행하고, 콘솔에 찍힌 \`SELECT\` 줄 수를 세어 보세요. (사용자 수 + 1)
+2. \`findMany({ include: { posts: true } })\` 로 바꾸고 다시 세어 보세요. (사용자 수와 무관하게 2회)
+3. 사용자를 100명으로 늘려 두 방식의 전체 실행 시간을 \`console.time\` 으로 비교해 보세요.
+    `.trim()
   },
   initialFiles: [
     {

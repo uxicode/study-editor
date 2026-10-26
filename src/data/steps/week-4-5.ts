@@ -46,7 +46,44 @@ export const week_4_5: CurriculumStep = {
 2. 하나는 \`name\` 컬럼(인덱스 없음), 다른 하나는 \`email\` 컬럼(인덱스 있음)을 WHERE 절에 사용합니다.
 3. 두 EXPLAIN 결과를 비교했을 때 어떤 차이가 예상되는지 SQL 주석으로 간단히 적어 보세요.
     `.trim(),
-    expectedOutput: 'EXPLAIN 2회 사용'
+    expectedOutput: 'EXPLAIN 2회 사용',
+    localPractice: `\`users_big\` (인덱스 스텝에서 생성) 으로 EXPLAIN 읽기를 연습하세요.
+
+\`\`\`sql
+EXPLAIN SELECT * FROM users_big WHERE name = 'name55555';        -- 인덱스 없음
+EXPLAIN SELECT * FROM users_big WHERE email = 'user55555@test.com'; -- 인덱스 있음
+\`\`\`
+
+| 컬럼 | 볼 것 |
+|------|-------|
+| \`type\` | \`ALL\`(전체 스캔) → \`ref\`/\`const\`(인덱스 사용) |
+| \`key\` | 실제로 쓰인 인덱스 이름 |
+| \`rows\` | 읽을 것으로 예상하는 행 수 |
+| \`Extra\` | \`Using where\`, \`Using filesort\` 등 |
+
+**인덱스가 있어도 못 쓰는 경우**
+
+\`\`\`sql
+EXPLAIN SELECT * FROM users_big WHERE LOWER(email) = 'user55555@test.com';
+EXPLAIN SELECT * FROM users_big WHERE email LIKE '%55555@test.com';
+EXPLAIN SELECT * FROM users_big WHERE email LIKE 'user55555%';
+\`\`\`
+
+컬럼에 함수를 씌우거나 앞쪽에 \`%\` 를 두면 \`type: ALL\` 로 돌아갑니다.
+
+**실행 시간 확인**: \`EXPLAIN ANALYZE\` 를 쓰면 예상이 아닌 실제 시간이 나옵니다.
+
+**슬로우 쿼리 로그**
+
+\`\`\`sql
+SET GLOBAL slow_query_log = 'ON';
+SET GLOBAL long_query_time = 0.1;
+SHOW VARIABLES LIKE 'slow_query_log_file';
+SELECT SLEEP(1);
+\`\`\`
+
+Docker 라면 \`docker exec study-mysql cat <위에서 나온 경로>\` 로 방금 쿼리가 기록됐는지 확인하세요.
+    `.trim()
   },
   initialFiles: [
     {

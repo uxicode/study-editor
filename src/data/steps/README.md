@@ -52,5 +52,6 @@ src/data/
 - `order` 는 커리큘럼 내에서 고유한 정수(백엔드 1~19)로, 학습 순서를 결정합니다.
 - 파일 종류: `server.ts` (Fastify), `schema.prisma` (Prisma), `schema.sql` (MySQL DDL), `queries.sql` (MySQL DML), `*.repository.ts` / `*.service.ts` (레이어드 아키텍처).
 - 학습은 **mock 기반** 으로 검증되므로 `validator.staticChecks` 가 핵심입니다.
+- `content.localPractice` (선택) 는 로컬 MySQL 에서 같은 내용을 직접 실행해 보는 마크다운 가이드입니다. 채점 대상이 아니며 콘텐츠 패널에 "로컬 MySQL로 직접 해보기" 섹션으로 표시됩니다. 환경 준비는 `week-2-1` 에 있습니다.
 - 알고리즘/함수형 스텝은 `validator.functionTests` 로 사용자 함수를 실제 인자로 호출해 검증합니다.
 - `dynamicChecks` 는 인터페이스 일관성을 위해 최소 1개를 둘 수 있습니다.

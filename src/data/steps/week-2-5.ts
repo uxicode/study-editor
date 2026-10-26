@@ -44,7 +44,32 @@ export const week_2_5: CurriculumStep = {
 2. \`post_tags\` 조인 테이블을 만들고 \`post_id\`, \`tag_id\` 두 컬럼에 외래키를 각각 적용하세요.
 3. \`PRIMARY KEY (post_id, tag_id)\` 로 복합 기본키를 정의하세요.
     `.trim(),
-    expectedOutput: '복합 PK 1, FK 2'
+    expectedOutput: '복합 PK 1, FK 2',
+    localPractice: `\`users\`, \`posts\`, \`tags\`, \`post_tags\` 를 만들고 다음을 실행해 보세요.
+
+\`\`\`sql
+INSERT INTO users (email, name) VALUES ('a@test.com', 'A');
+INSERT INTO posts (user_id, title) VALUES (1, 'p1'), (1, 'p2');
+INSERT INTO tags (name) VALUES ('mysql'), ('prisma');
+
+INSERT INTO post_tags (post_id, tag_id) VALUES (1, 1), (1, 2), (2, 1);
+INSERT INTO post_tags (post_id, tag_id) VALUES (1, 1);   -- ERROR 1062: 복합 PK 중복
+INSERT INTO post_tags (post_id, tag_id) VALUES (1, 99);  -- ERROR 1452: 없는 태그
+\`\`\`
+
+**N:M 조회**
+
+\`\`\`sql
+SELECT p.title, t.name
+FROM posts p
+JOIN post_tags pt ON pt.post_id = p.id
+JOIN tags t       ON t.id = pt.tag_id
+ORDER BY p.id, t.id;
+\`\`\`
+
+- 같은 글에 같은 태그를 두 번 붙일 수 없는 이유가 복합 PK 때문임을 직접 확인한 셈입니다.
+- \`DELETE FROM posts WHERE id = 1;\` 후 \`post_tags\` 는 어떻게 되나요? \`ON DELETE CASCADE\` 유무에 따라 결과가 달라집니다.
+    `.trim()
   },
   initialFiles: [
     {

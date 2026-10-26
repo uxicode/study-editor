@@ -122,7 +122,25 @@ export const week_2_4: CurriculumStep = {
    - \`content TEXT\`
 2. 테이블 정의 마지막에 \`FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE\` 를 추가하세요.
     `.trim(),
-    expectedOutput: 'FK 1, ON DELETE 1'
+    expectedOutput: 'FK 1, ON DELETE 1',
+    localPractice: `\`users\` 와 \`posts\` 를 만든 뒤 외래키가 실제로 데이터를 지키는지 확인하세요.
+
+\`\`\`sql
+INSERT INTO users (email, name) VALUES ('a@test.com', 'A');
+INSERT INTO posts (user_id, title) VALUES (1, 'hello');   -- 성공
+INSERT INTO posts (user_id, title) VALUES (999, 'ghost'); -- ERROR 1452
+\`\`\`
+
+\`ERROR 1452\` 는 "존재하지 않는 부모를 참조하는 자식 행" 을 막은 것입니다.
+
+**ON DELETE 동작 비교**
+
+1. 현재 정의(\`ON DELETE CASCADE\`)에서 \`DELETE FROM users WHERE id = 1;\` 후 \`SELECT * FROM posts;\` 를 확인하세요. 글도 함께 사라집니다.
+2. \`posts\` 를 \`DROP\` 하고 \`ON DELETE CASCADE\` 를 뺀 채 다시 만드세요. 사용자와 글을 넣은 뒤 같은 \`DELETE\` 를 실행하면 \`ERROR 1451\` 입니다.
+3. 참조되는 \`users\` 를 \`DROP TABLE users;\` 하면 \`ERROR 3730\` 입니다. 자식 \`posts\` 를 먼저 지워야 합니다.
+
+\`SHOW CREATE TABLE posts;\` 에서 \`CONSTRAINT ... FOREIGN KEY\` 가 어떻게 기록되는지도 읽어 보세요.
+    `.trim()
   },
   initialFiles: [
     {

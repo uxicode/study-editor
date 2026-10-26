@@ -55,7 +55,19 @@ export const week_4_4: CurriculumStep = {
 1. \`prisma.post.findMany\` 에 \`take: 10\` 을 적용하세요.
 2. \`skip\` 또는 \`cursor\` 옵션 중 하나를 함께 사용하세요.
     `.trim(),
-    expectedOutput: 'take: 10 + skip 또는 cursor'
+    expectedOutput: 'take: 10 + skip 또는 cursor',
+    localPractice: `10만 건 테이블(\`users_big\`, 인덱스 스텝에서 생성)로 OFFSET 방식의 비용을 직접 재 보세요.
+
+\`\`\`sql
+EXPLAIN ANALYZE SELECT * FROM users_big ORDER BY id LIMIT 10 OFFSET 90000;
+EXPLAIN ANALYZE SELECT * FROM users_big WHERE id > 90000 ORDER BY id LIMIT 10;
+\`\`\`
+
+- 첫 번째는 앞의 9만 행을 읽고 버린 뒤 10개를 반환합니다. 출력의 \`rows=\` 와 \`actual time=\` 이 훨씬 큽니다.
+- 두 번째(커서 방식)는 인덱스로 해당 위치에서 바로 시작합니다.
+
+OFFSET 값을 10, 1000, 90000 으로 바꿔 가며 \`actual time\` 이 어떻게 변하는지 표로 적어 보세요. 깊은 페이지일수록 느려지는 이유를 설명할 수 있어야 합니다.
+    `.trim()
   },
   initialFiles: [
     {

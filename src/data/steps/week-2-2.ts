@@ -56,7 +56,31 @@ export const week_2_2: CurriculumStep = {
 1. 기존 \`id INT\` 정의를 \`id INT AUTO_INCREMENT PRIMARY KEY\` 로 변경하세요.
 2. SQL 분석기 로그에 "PRIMARY KEY 1" 과 "AUTO_INCREMENT 1" 이 함께 나오면 성공입니다.
     `.trim(),
-    expectedOutput: '제약/인덱스: PK 1 (로그: PRIMARY KEY 1, AUTO_INCREMENT 1)'
+    expectedOutput: '제약/인덱스: PK 1 (로그: PRIMARY KEY 1, AUTO_INCREMENT 1)',
+    localPractice: `\`study\` DB 에서 \`users\` 를 다시 만든 뒤 (\`DROP TABLE IF EXISTS users;\`) 실행해 보세요.
+
+\`\`\`sql
+INSERT INTO users (email, name) VALUES ('a@test.com', 'A'), ('b@test.com', 'B');
+SELECT LAST_INSERT_ID();
+DELETE FROM users WHERE id = 2;
+INSERT INTO users (email, name) VALUES ('c@test.com', 'C');
+SELECT * FROM users;
+\`\`\`
+
+- 지운 \`id = 2\` 가 다시 쓰이지 않고 \`3\` 이 되는 것을 확인하세요. \`SHOW CREATE TABLE users;\` 끝의 \`AUTO_INCREMENT=\` 값도 보세요.
+- \`INSERT INTO users (id, email, name) VALUES (1, 'x@test.com', 'X');\` 는 \`ERROR 1062\` (중복 기본키) 입니다.
+
+**타입 최댓값 체험**
+
+\`\`\`sql
+CREATE TABLE tiny_test (id TINYINT AUTO_INCREMENT PRIMARY KEY);
+INSERT INTO tiny_test VALUES (127);
+INSERT INTO tiny_test VALUES (NULL);  -- ERROR 1062: Duplicate entry '127'
+DROP TABLE tiny_test;
+\`\`\`
+
+자동 증가 값이 타입의 최댓값에 도달하면 이런 에러가 납니다. \`INT\` 와 \`BIGINT\` 선택이 중요한 이유입니다.
+    `.trim()
   },
   initialFiles: [
     {
