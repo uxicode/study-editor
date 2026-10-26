@@ -1,4 +1,5 @@
 import * as monaco from 'monaco-editor'
+import { registerSqlEditorSupport } from '@/utils/sql-editor-support'
 import editorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker'
 import jsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker'
 import cssWorker from 'monaco-editor/esm/vs/language/css/css.worker?worker'
@@ -108,5 +109,8 @@ monaco.languages.setMonarchTokensProvider('prisma', {
     ],
   }
 })
+
+// SQL 편집 보조: 키워드 자동완성 + 대문자 자동 변환
+registerSqlEditorSupport('sql')
 
 export { monaco }

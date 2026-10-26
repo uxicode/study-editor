@@ -169,7 +169,8 @@ function loadFile(fileName: string) {
   
   // 읽기 전용 설정
   const isReadonly = file.readonly || false
-  editor.updateOptions({ readOnly: isReadonly })
+  // SQL 파일에서만 타이핑 중 키워드 대문자 변환을 켠다 (JS/TS 코드는 자동 포매팅하지 않음)
+  editor.updateOptions({ readOnly: isReadonly, formatOnType: language === 'sql' })
   
   // 포커스 복원
   editor.focus()

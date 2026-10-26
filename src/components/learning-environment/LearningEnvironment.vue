@@ -588,7 +588,8 @@ async function handleNextStep() {
   // console.log('현재 스텝:', currentStep.value?.id)
   // console.log('검증 결과:', validationResult.value)
   
-  if (!validationResult.value?.passed) {
+  // 이미 통과한 단계(completedSteps)로 되돌아온 경우에도 이동할 수 있어야 한다
+  if (!canGoNext.value) {
     console.warn('⚠️ 검증이 통과하지 않았습니다. 다음 단계로 이동할 수 없습니다.')
     alert('먼저 현재 단계를 완료해주세요!')
     return
