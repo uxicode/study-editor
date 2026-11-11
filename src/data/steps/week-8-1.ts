@@ -67,7 +67,7 @@ interface ThemeState {
       {
         type: 'regex',
         target: 'stores/themeStore.ts',
-        pattern: /set\(\s*\(state\)\s*=>\s*\{\s*isDarkMode\s*:\s*!state\.isDarkMode/,
+        pattern: /set\(\s*\(\s*(\w+)\s*\)\s*=>\s*\(\s*\{\s*isDarkMode\s*:\s*!\s*\1\.isDarkMode/,
         message: 'set 함수를 호출하여 현재 isDarkMode의 상태를 반전시켜야 합니다.'
       }
     ],
@@ -83,19 +83,16 @@ interface ThemeState {
       content: '정답 코드 예시입니다.',
       codeSnippet: `import { create } from 'zustand';
 
-interface CounterState {
-  count: number;
-  increase: () => void;
-  decrease: () => void;
-  reset: () => void;
+interface ThemeState {
+  isDarkMode: boolean;
+  toggleTheme: () => void;
 }
 
-export const useStore = create<CounterState>((set) => ({
-  count: 0,
-  increase: () => set((state) => ({ count: state.count + 1 })),
-  decrease: () => set((state) => ({ count: state.count - 1 })),
-  reset: () => set({ count: 0 })
-}));`
+export const useThemeStore = create<ThemeState>()((set) => ({
+  isDarkMode: false,
+  toggleTheme: () => set((state) => ({ isDarkMode: !state.isDarkMode })),
+}));
+`
     }
   ]
 }

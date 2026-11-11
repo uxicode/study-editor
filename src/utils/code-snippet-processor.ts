@@ -34,36 +34,65 @@ export function cleanCodeSnippet(codeSnippet: string): string {
 
 /**
  * 코드 스니펫에서 여러 파일 분리
+ *
+ * 파일 구분자는 `// @file: 경로`, `// schema.prisma` 같은 고정 이름, 그리고
+ * `editorFilePaths` 에 있는 파일의 `// 경로` 헤더 줄(뒤에 ` — 설명`이 붙어도 된다)을 인식한다.
  */
-export function splitCodeSnippetIntoFiles(codeSnippet: string): CodeFile[] {
-  const filePattern = /\/\/\s*(?:@file:\s*([\w./\-[\]]+)|(schema\.prisma|app\.js|\.env))[ \t]*\n/gi
-  const fileMatches = [...codeSnippet.matchAll(filePattern)]
+export function splitCodeSnippetIntoFiles(codeSnippet: string, editorFilePaths: string[] = []): CodeFile[] {
+  const markers = findFileMarkers(codeSnippet, editorFilePaths)
 
-  if (fileMatches.length <= 1) {
+  if (markers.length <= 1) {
     return []
   }
 
   const files: CodeFile[] = []
 
-  for (let i = 0; i < fileMatches.length; i++) {
-    const match = fileMatches[i]
-    const fileName = match[1] ?? match[2]
-    const startIndex = match.index! + match[0].length
-    const endIndex = i < fileMatches.length - 1 
-      ? fileMatches[i + 1].index! 
-      : codeSnippet.length
+  for (let i = 0; i < markers.length; i++) {
+    const marker = markers[i]
+    const startIndex = marker.index + marker.length
+    const endIndex = i < markers.length - 1 ? markers[i + 1].index : codeSnippet.length
 
     const content = codeSnippet.substring(startIndex, endIndex).trim()
 
     if (content) {
       files.push({
-        name: normalizeFileName(fileName),
+        name: normalizeFileName(marker.fileName),
         content
       })
     }
   }
 
   return files
+}
+
+interface FileMarker {
+  fileName: string
+  index: number
+  length: number
+}
+
+function findFileMarkers(codeSnippet: string, editorFilePaths: string[]): FileMarker[] {
+  const knownFiles = new Set(editorFilePaths.flatMap((path) => [path, path.split('/').pop() ?? path]))
+
+  const filePattern = /\/\/\s*(?:@file:\s*([\w./\-[\]]+)|(schema\.prisma|app\.js|\.env))[ \t]*\n/gi
+  const headerPattern = /^[ \t]*\/\/[ \t]*([\w./\-[\]]+\.[A-Za-z]+)(?:[ \t]+[—–-].*)?[ \t]*\n/gm
+
+  const markers: FileMarker[] = [...codeSnippet.matchAll(filePattern)].map((match) => ({
+    fileName: match[1] ?? match[2],
+    index: match.index!,
+    length: match[0].length
+  }))
+
+  for (const match of codeSnippet.matchAll(headerPattern)) {
+    const fileName = match[1]
+    // 같은 위치를 이미 위 패턴이 잡았다면 건너뛴다 (줄 앞 공백 때문에 index 가 다를 수 있어 줄 범위로 비교)
+    const overlaps = markers.some((marker) => marker.index >= match.index! && marker.index < match.index! + match[0].length)
+    if (!overlaps && knownFiles.has(fileName)) {
+      markers.push({ fileName, index: match.index!, length: match[0].length })
+    }
+  }
+
+  return markers.sort((a, b) => a.index - b.index)
 }
 
 /**
@@ -89,9 +118,21 @@ export interface CodeSnippetType {
 /**
  * 코드 스니펫의 타입과 타겟 파일 결정
  */
-export function detectCodeSnippetType(codeSnippet: string): CodeSnippetType | null {
+export function detectCodeSnippetType(rawCodeSnippet: string): CodeSnippetType | null {
+  // 첫 줄이 `// server.ts` 처럼 대상 파일명만 적힌 주석이면 그 파일을 대상으로 한다
+  const headerMatch = rawCodeSnippet.match(/^\s*\/\/\s*([\w./\-[\]]+\.(?:ts|tsx|js|jsx|mjs|cjs|sql|prisma))\s*(?:\r?\n|$)/)
+  if (headerMatch) {
+    return {
+      targetFile: headerMatch[1],
+      isPartialCode: !rawCodeSnippet.includes('generator client') || !rawCodeSnippet.includes('datasource db')
+    }
+  }
+
+  // `//` 주석 줄의 단어(예: "select 는 ...")가 종류 판별을 흐리지 않도록 제거하고 판별한다
+  const codeSnippet = rawCodeSnippet.replace(/^[ \t]*\/\/.*$/gm, '')
+
   // Prisma 스키마 코드인지 확인
-  if (codeSnippet.includes('model ') || 
+  if (codeSnippet.includes('model ') ||
       codeSnippet.includes('enum ') || 
       codeSnippet.includes('generator client') ||
       codeSnippet.includes('datasource db')) {

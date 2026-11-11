@@ -98,25 +98,45 @@ export default function Profile() {
     {
       level: 3,
       content: '정답 코드 예시입니다.',
-      codeSnippet: `import { create } from 'zustand';
+      codeSnippet: `// stores/authStore.ts
+import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-interface ThemeState {
-  darkMode: boolean;
-  toggleDarkMode: () => void;
+interface AuthState {
+  userToken: string | null;
+  setToken: (token: string | null) => void;
 }
 
-export const useThemeStore = create<ThemeState>()(
+export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
-      darkMode: false,
-      toggleDarkMode: () => set((state) => ({ darkMode: !state.darkMode }))
+      userToken: null,
+      setToken: (token) => set({ userToken: token }),
     }),
-    {
-      name: 'theme-storage'
-    }
+    { name: 'auth-storage' }
   )
-);`
+);
+
+// components/Profile.tsx
+"use client";
+import React, { useState, useEffect } from 'react';
+
+export default function Profile() {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null; // Hydration 방어막
+
+  return (
+    <div>
+      <p>My Profile Page</p>
+    </div>
+  );
+}
+`
     }
   ]
 }

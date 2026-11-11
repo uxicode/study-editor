@@ -145,7 +145,16 @@ main()
     {
       level: 3,
       content: '정답 예시입니다.',
-      codeSnippet: `// schema.prisma
+      codeSnippet: `// prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
 model User {
   id    Int    @id @default(autoincrement())
   email String @unique
@@ -155,14 +164,25 @@ model User {
 model Post {
   id       Int    @id @default(autoincrement())
   title    String
-  author   User   @relation(fields: [authorId], references: [id])
   authorId Int
+  author   User   @relation(fields: [authorId], references: [id])
 }
 
 // server.ts
-const users = await prisma.user.findMany({
-  include: { posts: true }
-})
+import { PrismaClient } from '@prisma/client'
+
+const prisma = new PrismaClient()
+
+async function main() {
+  const users = await prisma.user.findMany({
+    include: { posts: true }
+  })
+  console.log(users)
+}
+
+main()
+  .catch(console.error)
+  .finally(() => prisma.$disconnect())
 `
     }
   ]

@@ -91,13 +91,41 @@ export function findTargetFile(
   targetFileName: string,
   editorFiles: RuntimeFile[]
 ): RuntimeFile | null {
-  // 타겟 파일 찾기
-  let targetFile = editorFiles.find(f => f.name === targetFileName)
+  const editableFiles = editorFiles.filter(f => !f.readonly)
 
-  // 타겟 파일을 찾지 못했으면 readonly가 아닌 첫 번째 파일 사용
-  if (!targetFile) {
-    targetFile = editorFiles.find(f => !f.readonly)
+  // 1. 이름이 일치하는 편집 가능 파일 (읽기 전용 파일은 덮어쓰지 않는다)
+  const exactMatch = editableFiles.find(f => f.name === targetFileName)
+  if (exactMatch) return exactMatch
+
+  // 2. 같은 종류(SQL / Prisma / 스크립트)의 편집 가능 파일
+  const targetKind = getFileKind(targetFileName)
+  if (targetKind) {
+    const sameKind = editableFiles.find(f => getFileKind(f.name) === targetKind)
+    if (sameKind) return sameKind
   }
 
-  return targetFile || null
+  // 3. 편집 가능한 첫 번째 파일
+  return editableFiles[0] ?? null
+}
+
+type FileKind = 'sql' | 'prisma' | 'script'
+
+function getFileKind(fileName: string): FileKind | null {
+  const extension = fileName.split('.').pop()?.toLowerCase()
+
+  switch (extension) {
+    case 'sql':
+      return 'sql'
+    case 'prisma':
+      return 'prisma'
+    case 'js':
+    case 'jsx':
+    case 'ts':
+    case 'tsx':
+    case 'mjs':
+    case 'cjs':
+      return 'script'
+    default:
+      return null
+  }
 }

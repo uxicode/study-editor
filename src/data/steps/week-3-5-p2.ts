@@ -134,16 +134,44 @@ fastify.listen({ port: 3000, host: '0.0.0.0' })
     {
       level: 3,
       content: '정답 예시입니다.',
-      codeSnippet: `// src/users/user.repository.ts — 메서드 추가
-findByEmail(email: string) {
-  return this.prisma.user.findUnique({ where: { email } })
+      codeSnippet: `// src/users/user.repository.ts
+import { PrismaClient } from '@prisma/client'
+
+export class UserRepository {
+  constructor(private readonly prisma: PrismaClient) {}
+
+  findAll() {
+    return this.prisma.user.findMany()
+  }
+
+  findByEmail(email: string) {
+    return this.prisma.user.findUnique({ where: { email } })
+  }
+
+  create(data: { email: string; name?: string }) {
+    return this.prisma.user.create({ data })
+  }
 }
 
-// src/users/user.service.ts — 메서드 추가
-// 중복 검사는 비즈니스 규칙이므로 repository 가 아니라 service 에 둡니다.
-async createUser(input: { email: string; name?: string }) {
-  if (await this.repo.findByEmail(input.email)) throw new Error('EMAIL_TAKEN')
-  return this.repo.create(input)
+// src/users/user.service.ts
+import { UserRepository } from './user.repository'
+
+export class UserService {
+  constructor(private readonly repo: UserRepository) {}
+
+  list() {
+    return this.repo.findAll()
+  }
+
+  // 중복 검사는 비즈니스 규칙이므로 repository 가 아니라 service 에 둡니다.
+  async createUser(input: { email: string; name?: string }) {
+    if (await this.repo.findByEmail(input.email)) throw new Error('EMAIL_TAKEN')
+    return this.repo.create(input)
+  }
+
+  register(input: { email: string; name?: string }) {
+    return this.repo.create(input)
+  }
 }
 `
     }

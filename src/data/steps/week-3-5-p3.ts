@@ -135,11 +135,33 @@ fastify.listen({ port: 3000, host: '0.0.0.0' })
       level: 3,
       content: '정답 예시입니다.',
       codeSnippet: `// src/users/user.repository.ts
+import { PrismaClient } from '@prisma/client'
+
 export interface UserRepositoryPort {
   findAll(): Promise<unknown[]>
   findById(id: number): Promise<unknown | null>
   findByEmail(email: string): Promise<unknown | null>
   create(data: { email: string; name?: string }): Promise<unknown>
+}
+
+export class UserRepository implements UserRepositoryPort {
+  constructor(private readonly prisma: PrismaClient) {}
+
+  findAll() {
+    return this.prisma.user.findMany()
+  }
+
+  findById(id: number) {
+    return this.prisma.user.findUnique({ where: { id } })
+  }
+
+  findByEmail(email: string) {
+    return this.prisma.user.findUnique({ where: { email } })
+  }
+
+  create(data: { email: string; name?: string }) {
+    return this.prisma.user.create({ data })
+  }
 }
 
 // src/users/user.service.ts
@@ -148,7 +170,14 @@ import { UserRepositoryPort } from './user.repository'
 export class UserService {
   // 인터페이스에 의존하므로 테스트에서 fake repository 를 주입할 수 있습니다.
   constructor(private readonly repo: UserRepositoryPort) {}
-  // ...
+
+  list() {
+    return this.repo.findAll()
+  }
+
+  register(input: { email: string; name?: string }) {
+    return this.repo.create(input)
+  }
 }
 `
     }

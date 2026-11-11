@@ -50,9 +50,9 @@ export interface User {
   validator: {
     staticChecks: [
       {
-        type: 'includes',
+        type: 'regex',
         target: 'hooks/useUsers.ts',
-        pattern: 'useQuery({',
+        pattern: /useQuery\s*(?:<[^>]*>)?\s*\(\s*\{/,
         message: 'useQuery 훅 객체를 전달 인자로 호출해야 합니다.'
       },
       {
@@ -80,15 +80,24 @@ export interface User {
       content: '정답 코드 예시입니다.',
       codeSnippet: `import { useQuery } from '@tanstack/react-query';
 
-export function usePosts() {
-  return useQuery({
-    queryKey: ['posts'],
+export interface User {
+  id: string;
+  name: string;
+}
+
+export function useFetchUsers() {
+  const { data, isLoading, isError } = useQuery<User[]>({
+    queryKey: ['users'],
     queryFn: async () => {
-      const res = await fetch('https://jsonplaceholder.typicode.com/posts');
+      const res = await fetch('/api/users');
+      if (!res.ok) throw new Error('Failed to fetch users');
       return res.json();
-    }
+    },
   });
-}`
+
+  return { data, isLoading, isError };
+}
+`
     }
   ]
 }

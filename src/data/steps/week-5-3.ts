@@ -85,10 +85,20 @@ export function calculateAverageAgeOfActiveUsers(users: User[]): number {
     {
       level: 3,
       content: '정답 코드 예시입니다.',
-      codeSnippet: `export function extractIds(text: string): string[] {
-  const idRegex = /#[a-zA-Z0-9]+/g;
-  return text.match(idRegex) || [];
-}`
+      codeSnippet: `export interface User {
+  name: string;
+  age: number;
+  isActive: boolean;
+}
+
+export function calculateAverageAgeOfActiveUsers(users: User[]): number {
+  const activeUsers = users.filter(u => u.isActive);
+  if (activeUsers.length === 0) return 0;
+
+  const totalAge = activeUsers.reduce((sum, u) => sum + u.age, 0);
+  return totalAge / activeUsers.length;
+}
+`
     }
   ]
 }

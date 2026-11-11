@@ -2,6 +2,21 @@ import type { CurriculumStep } from '@/types/curriculum'
 import type { RuntimeFile, ExecutionResult, ValidationResult, ValidationError } from '@/types/runtime'
 import { CURRICULUM_STEPS } from '@/data/curriculum-steps'
 import { runFunctionTests } from '@/utils/function-test-runner'
+import { SQL_STEP_SPECS } from '@/data/sql-checks'
+import { gradeSql } from '@/lib/sql-engine'
+import type { StaticCheck } from '@/types/curriculum'
+import type { StepSqlSpec } from '@/types/sql-check'
+
+/**
+ * SQL 엔진이 구조를 직접 검사하는 스텝에서 정규식 정적 검사를 계속 적용할지 결정한다.
+ * '주석' 설명을 요구하는 검사와 스펙이 명시한 검사만 남긴다.
+ */
+function isStaticCheckStillRequired(check: StaticCheck, spec: StepSqlSpec): boolean {
+  return (
+    check.message.includes('주석') ||
+    (spec.keepStaticMessages ?? []).some((prefix) => check.message.startsWith(prefix))
+  )
+}
 
 export function useValidator() {
   async function validateStep(
@@ -17,8 +32,19 @@ export function useValidator() {
     console.log('동적 검사 항목:', step.validator.dynamicChecks.length)
     console.log('함수 테스트 항목:', step.validator.functionTests?.length ?? 0)
 
+    // SQL 실행 검증 (엔진을 불러올 수 있으면 구조 검사용 정규식 대신 실제 실행 결과로 판단한다)
+    const sqlSpec = SQL_STEP_SPECS[step.id]
+    const sqlFiles = files.filter(f => f.path.endsWith('.sql')).map(f => ({ name: f.name, content: f.content }))
+    const sqlResult = sqlSpec ? await gradeSql(sqlSpec, sqlFiles) : null
+    if (sqlResult?.available) {
+      errors.push(...sqlResult.errors.map(message => ({ type: 'dynamic' as const, message })))
+    }
+    const staticChecks = sqlSpec && sqlResult?.available
+      ? step.validator.staticChecks.filter(check => isStaticCheckStillRequired(check, sqlSpec))
+      : step.validator.staticChecks
+
     // 정적 검증
-    for (const check of step.validator.staticChecks) {
+    for (const check of staticChecks) {
       const targetFile = files.find(f => f.path === check.target)
       if (!targetFile) {
         errors.push({

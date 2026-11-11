@@ -174,17 +174,63 @@ fastify.listen({ port: 3000, host: '0.0.0.0' })
       level: 3,
       content: '정답 예시입니다.',
       codeSnippet: `// src/users/user.repository.ts
-delete(id: number) { return this.prisma.user.delete({ where: { id } }) }
+import { PrismaClient } from '@prisma/client'
+
+export class UserRepository {
+  constructor(private readonly prisma: PrismaClient) {}
+  findAll() { return this.prisma.user.findMany() }
+  create(data: { email: string; name?: string }) {
+    return this.prisma.user.create({ data })
+  }
+  delete(id: number) { return this.prisma.user.delete({ where: { id } }) }
+}
 
 // src/users/user.service.ts
-remove(id: number) { return this.repo.delete(id) }
+import { UserRepository } from './user.repository'
+
+export class UserService {
+  constructor(private readonly repo: UserRepository) {}
+  list() { return this.repo.findAll() }
+  register(input: { email: string; name?: string }) {
+    return this.repo.create(input)
+  }
+  remove(id: number) { return this.repo.delete(id) }
+}
 
 // server.ts
+import Fastify from 'fastify'
+import { PrismaClient } from '@prisma/client'
+import { UserRepository } from './src/users/user.repository'
+import { UserService } from './src/users/user.service'
+
+const fastify = Fastify({ logger: true })
+const service = new UserService(new UserRepository(new PrismaClient()))
+
+const createSchema = {
+  body: {
+    type: 'object',
+    required: ['email'],
+    properties: {
+      email: { type: 'string', format: 'email' },
+      name:  { type: 'string' }
+    }
+  }
+} as const
+
+fastify.get('/users', async () => service.list())
+
+fastify.post('/users', { schema: createSchema }, async (request, reply) => {
+  const user = await service.register(request.body as { email: string; name?: string })
+  return reply.code(201).send(user)
+})
+
 fastify.delete('/users/:id', async (request, reply) => {
   const { id } = request.params as { id: string }
   await service.remove(Number(id))
   return reply.code(204).send()
 })
+
+fastify.listen({ port: 3000, host: '0.0.0.0' })
 `
     }
   ]

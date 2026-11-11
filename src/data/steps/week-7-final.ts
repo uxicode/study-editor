@@ -76,7 +76,7 @@ export default function Dashboard({ initialUsers }: DashboardProps) {
       {
         type: 'regex',
         target: 'components/Dashboard.tsx',
-        pattern: /useState\(\s*initialUsers\s*\)/,
+        pattern: /useState(?:<[^>]*>)?\(\s*initialUsers\s*\)/,
         message: 'initialUsers를 초기값으로 하는 useState 상태를 선언해야 합니다.'
       }
     ],

@@ -90,28 +90,54 @@ export default function TaskBoard() {
     {
       level: 3,
       content: '정답 코드 예시입니다.',
-      codeSnippet: `import { create } from 'zustand';
-import { useQuery } from '@tanstack/react-query';
+      codeSnippet: `"use client";
+import React from 'react';
+import { useQueryClient, useMutation } from '@tanstack/react-query';
+import { create } from 'zustand';
 
-interface ProductStore {
-  selectedProductId: number;
-  setSelectedProductId: (id: number) => void;
+interface BoardState {
+  activeTaskId: string | null;
+  setActiveTaskId: (id: string | null) => void;
 }
 
-export const useProductStore = create<ProductStore>((set) => ({
-  selectedProductId: 1,
-  setSelectedProductId: (id) => set({ selectedProductId: id })
+export const useBoardStore = create<BoardState>()((set) => ({
+  activeTaskId: null,
+  setActiveTaskId: (id) => set({ activeTaskId: id }),
 }));
 
-export function useProductDetail(productId: number) {
-  return useQuery({
-    queryKey: ['products', productId],
-    queryFn: async () => {
-      const res = await fetch(\`https://jsonplaceholder.typicode.com/products/\${productId}\`);
+export default function TaskBoard() {
+  const queryClient = useQueryClient();
+  const { activeTaskId, setActiveTaskId } = useBoardStore();
+
+  const moveTask = useMutation({
+    mutationFn: async (payload: { id: string; status: 'todo' | 'progress' | 'done' }) => {
+      const res = await fetch('/api/tasks', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) throw new Error('Failed to update task');
       return res.json();
-    }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+    },
   });
-}`
+
+  return (
+    <div className="task-board">
+      <p>Active Task: {activeTaskId}</p>
+      <button onClick={() => setActiveTaskId('task-1')}>Select Task</button>
+      <button
+        disabled={!activeTaskId || moveTask.isPending}
+        onClick={() => activeTaskId && moveTask.mutate({ id: activeTaskId, status: 'progress' })}
+      >
+        Move to Progress
+      </button>
+    </div>
+  );
+}
+`
     }
   ]
 }

@@ -167,7 +167,34 @@ fastify.listen({ port: 3000, host: '0.0.0.0' })
     {
       level: 3,
       content: '정답 예시입니다.',
-      codeSnippet: `import Fastify from 'fastify'
+      codeSnippet: `// prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id    Int    @id @default(autoincrement())
+  email String @unique
+  posts Post[]
+}
+
+model Post {
+  id        Int      @id @default(autoincrement())
+  title     String
+  userId    Int
+  createdAt DateTime @default(now())
+  author    User     @relation(fields: [userId], references: [id])
+
+  @@index([userId, createdAt])
+}
+
+// server.ts
+import Fastify from 'fastify'
 import { PrismaClient } from '@prisma/client'
 
 const fastify = Fastify({ logger: true })

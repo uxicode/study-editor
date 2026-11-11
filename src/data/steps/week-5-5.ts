@@ -80,12 +80,12 @@ export const week_5_5: CurriculumStep = {
     {
       level: 3,
       content: '정답 코드 예시입니다.',
-      codeSnippet: `export function aggregateGroupSales(sales: any[]): Record<string, number> {
-  return sales.reduce((acc, curr) => {
-    acc[curr.group] = (acc[curr.group] || 0) + curr.amount;
-    return acc;
-  }, {} as Record<string, number>);
-}`
+      codeSnippet: `export function filterAvailableStock(inventory: Record<string, number>): Record<string, number> {
+  const entries = Object.entries(inventory);
+  const availableEntries = entries.filter(([, quantity]) => quantity > 0);
+  return Object.fromEntries(availableEntries);
+}
+`
     }
   ]
 }

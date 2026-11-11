@@ -486,7 +486,7 @@ async function handleApplyAnswer() {
   const cleanedSnippet = cleanCodeSnippet(codeSnippet)
   
   // 3. 여러 파일이 섞여 있는지 확인
-  const multipleFiles = splitCodeSnippetIntoFiles(cleanedSnippet)
+  const multipleFiles = splitCodeSnippetIntoFiles(cleanedSnippet, editorFiles.value.map(f => f.path))
   
   if (multipleFiles.length > 0) {
     // 여러 파일인 경우

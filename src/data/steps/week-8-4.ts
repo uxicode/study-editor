@@ -76,22 +76,25 @@ export const week_8_4: CurriculumStep = {
       content: '정답 코드 예시입니다.',
       codeSnippet: `import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-export function useCreatePost() {
+export function useCreateUser() {
   const queryClient = useQueryClient();
+
   return useMutation({
-    mutationFn: async (newPost: { title: string; body: string }) => {
-      const res = await fetch('https://jsonplaceholder.typicode.com/posts', {
+    mutationFn: async (newUser: { name: string }) => {
+      const res = await fetch('/api/users', {
         method: 'POST',
-        body: JSON.stringify(newPost),
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newUser),
       });
+      if (!res.ok) throw new Error('Failed to create user');
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['posts'] });
-    }
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+    },
   });
-}`
+}
+`
     }
   ]
 }

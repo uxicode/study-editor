@@ -96,11 +96,26 @@ export function findItemById(items: CartItem[], id: string): CartItem | undefine
     {
       level: 3,
       content: '정답 코드 예시입니다.',
-      codeSnippet: `export function processActiveUsers(users: any[]): any[] {
-  return users
-    .filter(user => user.active)
-    .map(user => ({ id: user.id, email: user.email }));
-}`
+      codeSnippet: `export interface CartItem {
+  id: string;
+  name: string;
+  price: number;
+  isOutOfStock: boolean;
+  isFreeShipping: boolean;
+}
+
+export function hasOutOfStockItem(items: CartItem[]): boolean {
+  return items.some(item => item.isOutOfStock);
+}
+
+export function areAllFreeShipping(items: CartItem[]): boolean {
+  return items.every(item => item.isFreeShipping);
+}
+
+export function findItemById(items: CartItem[], id: string): CartItem | undefined {
+  return items.find(item => item.id === id);
+}
+`
     }
   ]
 }

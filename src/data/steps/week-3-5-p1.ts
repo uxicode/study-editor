@@ -134,16 +134,44 @@ fastify.listen({ port: 3000, host: '0.0.0.0' })
     {
       level: 3,
       content: '정답 예시입니다.',
-      codeSnippet: `// src/users/user.repository.ts — 메서드 추가
-findById(id: number) {
-  return this.prisma.user.findUnique({ where: { id } })
+      codeSnippet: `// src/users/user.repository.ts
+import { PrismaClient } from '@prisma/client'
+
+export class UserRepository {
+  constructor(private readonly prisma: PrismaClient) {}
+
+  findAll() {
+    return this.prisma.user.findMany()
+  }
+
+  findById(id: number) {
+    return this.prisma.user.findUnique({ where: { id } })
+  }
+
+  create(data: { email: string; name?: string }) {
+    return this.prisma.user.create({ data })
+  }
 }
 
-// src/users/user.service.ts — 메서드 추가
-async getUser(id: number) {
-  const user = await this.repo.findById(id)
-  if (!user) throw new Error('USER_NOT_FOUND')
-  return user
+// src/users/user.service.ts
+import { UserRepository } from './user.repository'
+
+export class UserService {
+  constructor(private readonly repo: UserRepository) {}
+
+  list() {
+    return this.repo.findAll()
+  }
+
+  async getUser(id: number) {
+    const user = await this.repo.findById(id)
+    if (!user) throw new Error('USER_NOT_FOUND')
+    return user
+  }
+
+  register(input: { email: string; name?: string }) {
+    return this.repo.create(input)
+  }
 }
 `
     }

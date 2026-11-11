@@ -130,13 +130,13 @@ const noDigit  = /\\d/.test('abc');    // false → 숫자 없음
       {
         type: 'regex',
         target: 'index.ts',
-        pattern: /\\\\d/,
+        pattern: /\\d/,
         message: '\\d 메타문자를 사용하여 숫자를 탐지해야 합니다.'
       },
       {
         type: 'regex',
         target: 'index.ts',
-        pattern: /\\\\s/,
+        pattern: /\\s/,
         message: '\\s 메타문자를 사용하여 공백을 탐지해야 합니다.'
       },
       {

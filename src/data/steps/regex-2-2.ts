@@ -127,7 +127,7 @@ imageRegex.test('photo.png');    // true
       {
         type: 'regex',
         target: 'index.ts',
-        pattern: /https?\|ftp|ftp\|https?/,
+        pattern: /\bftp\b\s*\||\|\s*ftp\b/,
         message: '교대 연산자(|)로 http, https, ftp 프로토콜을 모두 허용해야 합니다.'
       },
       {
