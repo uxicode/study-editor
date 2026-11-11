@@ -212,6 +212,16 @@ docker exec -it study-mysql mysql -uroot -proot study
 4. 이미 있는 테이블을 다시 \`CREATE TABLE\` 하면 \`ERROR 1050\` 이 납니다. \`DROP TABLE users;\` 후 다시 실행해 보세요.
 
 > 이후 스텝의 실습은 이 \`study\` 데이터베이스를 이어서 사용합니다.
+
+### 4. 실습용 최소 문법 (지금은 따라 치기만 하세요)
+
+다음 스텝들의 실습에는 아직 배우지 않은 문법이 조금 나옵니다. 제약조건이 실제로 동작하는지 보려면 데이터를 넣어 봐야 하기 때문입니다. **아래 3가지만** 알면 충분하고, 정식 학습은 "기본 쿼리" 스텝(Step 21)에서 합니다.
+
+| 하고 싶은 일 | 문법 | 의미 |
+|-------------|------|------|
+| 행 추가 | \`INSERT INTO users (email, name) VALUES ('a@test.com', 'A');\` | \`users\` 의 \`email\`, \`name\` 컬럼에 값을 넣는다 |
+| 행 보기 | \`SELECT * FROM users;\` | \`users\` 의 모든 행을 본다 |
+| 행 삭제 | \`DELETE FROM users WHERE id = 2;\` | \`id\` 가 2 인 행을 지운다 |
     `.trim()
   },
   initialFiles: [

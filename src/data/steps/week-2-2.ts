@@ -57,11 +57,12 @@ export const week_2_2: CurriculumStep = {
 2. SQL 분석기 로그에 "PRIMARY KEY 1" 과 "AUTO_INCREMENT 1" 이 함께 나오면 성공입니다.
     `.trim(),
     expectedOutput: '제약/인덱스: PK 1 (로그: PRIMARY KEY 1, AUTO_INCREMENT 1)',
-    localPractice: `\`study\` DB 에서 \`users\` 를 다시 만든 뒤 (\`DROP TABLE IF EXISTS users;\`) 실행해 보세요.
+    localPractice: `> \`INSERT\` / \`SELECT\` / \`DELETE\` 는 아직 배우기 전입니다. **Step 1 실습의 '실습용 최소 문법'** 표를 보고 그대로 따라 치세요. 정식 학습은 "기본 쿼리" 스텝(Step 21)에서 합니다.
+
+\`study\` DB 에서 \`users\` 를 다시 만든 뒤 (\`DROP TABLE IF EXISTS users;\`) 실행해 보세요.
 
 \`\`\`sql
 INSERT INTO users (email, name) VALUES ('a@test.com', 'A'), ('b@test.com', 'B');
-SELECT LAST_INSERT_ID();
 DELETE FROM users WHERE id = 2;
 INSERT INTO users (email, name) VALUES ('c@test.com', 'C');
 SELECT * FROM users;

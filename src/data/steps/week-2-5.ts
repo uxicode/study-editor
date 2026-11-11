@@ -45,7 +45,9 @@ export const week_2_5: CurriculumStep = {
 3. \`PRIMARY KEY (post_id, tag_id)\` 로 복합 기본키를 정의하세요.
     `.trim(),
     expectedOutput: '복합 PK 1, FK 2',
-    localPractice: `\`users\`, \`posts\`, \`tags\`, \`post_tags\` 를 만들고 다음을 실행해 보세요.
+    localPractice: `> \`INSERT\` / \`SELECT\` / \`DELETE\` 는 아직 배우기 전입니다. **Step 1 실습의 '실습용 최소 문법'** 표를 보고 그대로 따라 치세요. 정식 학습은 "기본 쿼리" 스텝(Step 21)에서 합니다.
+
+\`users\`, \`posts\`, \`tags\`, \`post_tags\` 를 만들고 다음을 실행해 보세요.
 
 \`\`\`sql
 INSERT INTO users (email, name) VALUES ('a@test.com', 'A');
@@ -57,15 +59,13 @@ INSERT INTO post_tags (post_id, tag_id) VALUES (1, 1);   -- ERROR 1062: 복합 P
 INSERT INTO post_tags (post_id, tag_id) VALUES (1, 99);  -- ERROR 1452: 없는 태그
 \`\`\`
 
-**N:M 조회**
+**조인 테이블 내용 보기**
 
 \`\`\`sql
-SELECT p.title, t.name
-FROM posts p
-JOIN post_tags pt ON pt.post_id = p.id
-JOIN tags t       ON t.id = pt.tag_id
-ORDER BY p.id, t.id;
+SELECT * FROM post_tags;
 \`\`\`
+
+글 제목과 태그 이름을 함께 보려면 \`JOIN\` 이 필요합니다. 이는 "기본 쿼리" 스텝(Step 21)에서 배우니, 지금은 \`post_id\`, \`tag_id\` 숫자 쌍이 글-태그 관계를 나타낸다는 점만 확인하세요.
 
 - 같은 글에 같은 태그를 두 번 붙일 수 없는 이유가 복합 PK 때문임을 직접 확인한 셈입니다.
 - \`DELETE FROM posts WHERE id = 1;\` 후 \`post_tags\` 는 어떻게 되나요? \`ON DELETE CASCADE\` 유무에 따라 결과가 달라집니다.

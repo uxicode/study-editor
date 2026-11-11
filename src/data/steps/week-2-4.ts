@@ -123,7 +123,9 @@ export const week_2_4: CurriculumStep = {
 2. 테이블 정의 마지막에 \`FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE\` 를 추가하세요.
     `.trim(),
     expectedOutput: 'FK 1, ON DELETE 1',
-    localPractice: `\`users\` 와 \`posts\` 를 만든 뒤 외래키가 실제로 데이터를 지키는지 확인하세요.
+    localPractice: `> \`INSERT\` / \`SELECT\` / \`DELETE\` 는 아직 배우기 전입니다. **Step 1 실습의 '실습용 최소 문법'** 표를 보고 그대로 따라 치세요. 정식 학습은 "기본 쿼리" 스텝(Step 21)에서 합니다.
+
+\`users\` 와 \`posts\` 를 만든 뒤 외래키가 실제로 데이터를 지키는지 확인하세요.
 
 \`\`\`sql
 INSERT INTO users (email, name) VALUES ('a@test.com', 'A');
