@@ -72,7 +72,7 @@ onMounted(() => {
     language: 'javascript',
     theme: 'vs-dark',
     automaticLayout: true,
-    fontSize: 14,
+    fontSize: 12,
     minimap: { enabled: false },
     scrollBeyondLastLine: false,
     padding: { top: 16, bottom: 16 },

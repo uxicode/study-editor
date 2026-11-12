@@ -2,12 +2,11 @@ import type { CurriculumStep } from '@/types/curriculum'
 
 export const week_2_final_p2: CurriculumStep = {
   id: 'week-2-final-p2',
-  title: '1주차 · 연습 ② 게시판 스키마 설계 — role 제한과 복합 인덱스',
+  title: '1주차 · 연습 ② 게시판 스키마 설계 — 관리자 권한과 "내 글" 목록 속도',
   order: 27,
   category: 'advanced',
   content: {
-    mission:
-      '`users.role` 에 `CHECK (role IN (\'user\', \'admin\'))` 를 추가하고, 자주 조회하는 `posts(user_id, created_at)` 에 `CREATE INDEX idx_posts_user_created ON posts (user_id, created_at);` 인덱스를 만드세요.',
+    mission: '`users.role` 을 두 값으로 제한하고, "내 글" 목록 조회를 빠르게 하는 복합 인덱스를 만드세요.',
     theory: `
       ## 복습: 게시판 스키마를 더 단단하게
 
@@ -17,10 +16,22 @@ export const week_2_final_p2: CurriculumStep = {
         \`posts → post_tags → tags\`, 작성자는 \`posts → users\`
     `,
     objectives: [
-      'CHECK IN 과 CREATE INDEX 적용',
+      '권한 값 제한',
+      '조회 조건에 맞는 복합 인덱스 컬럼 순서 정하기',
       '직전 스텝(게시판 스키마 설계)의 내용을 스스로 적용하기'
     ],
-    expectedOutput: 'role 제한과 복합 인덱스 — 모든 채점 항목 통과'
+    exercise: `
+**상황**
+마이페이지의 "내 글" 목록은 \`WHERE user_id = ?\` 로 내 글만 고른 뒤 \`ORDER BY created_at DESC\` 로 최신순 정렬합니다. 글이 많아지자 이 화면이 느려졌습니다. 또 권한 컬럼에 \`'superuser'\` 같은 알 수 없는 값이 들어가 권한 검사가 꼬인 적이 있습니다.
+
+**요구사항**
+1. 아래 스키마의 \`users\` 정의를 고쳐, \`role\` 에 \`'user'\` 와 \`'admin'\` 만 저장되도록 하세요.
+2. 스키마 맨 아래에 "내 글" 목록 조회를 빠르게 하는 \`posts\` 의 복합 인덱스 \`idx_posts_user_created\` 를 만드세요.
+
+**생각해 보기** (\`--\` 주석으로 작성)
+- 인덱스의 컬럼 순서를 \`(created_at, user_id)\` 가 아니라 \`(user_id, created_at)\` 로 정한 이유를 서술해 주세요.
+    `.trim(),
+    expectedOutput: '관리자 권한과 "내 글" 목록 속도 — 모든 채점 항목 통과'
   },
   initialFiles: [
     {
@@ -77,14 +88,20 @@ CREATE TABLE post_tags (
       {
         type: 'regex',
         target: 'schema.sql',
-        pattern: /\brole\s+VARCHAR\s*\(\s*20\s*\)[^;]*?CHECK\s*\(\s*role\s+IN\s*\(\s*'user'\s*,\s*'admin'\s*\)\s*\)/i,
-        message: 'users.role 에 CHECK (role IN (\'user\', \'admin\')) 가 필요합니다.'
+        pattern: /role\s+VARCHAR\s*\(\s*\d+\s*\)[^,\n]*CHECK\s*\(\s*role\s+IN\s*\(\s*(?:'user'\s*,\s*'admin'|'admin'\s*,\s*'user')\s*\)\s*\)/i,
+        message: 'role 에 \'user\', \'admin\' 만 허용해야 합니다.'
       },
       {
         type: 'regex',
         target: 'schema.sql',
-        pattern: /CREATE\s+INDEX\s+\w+\s+ON\s+`?posts`?\s*\(\s*user_id\s*,\s*created_at\s*\)/i,
-        message: 'CREATE INDEX ... ON posts (user_id, created_at) 가 필요합니다.'
+        pattern: /CREATE\s+INDEX\s+idx_posts_user_created\s+ON\s+posts\s*\(\s*user_id\s*,\s*created_at(?:\s+DESC)?\s*\)/i,
+        message: '"내 글" 목록 조회에 맞는 복합 인덱스 idx_posts_user_created 가 필요합니다.'
+      },
+      {
+        type: 'regex',
+        target: 'schema.sql',
+        pattern: /--[^\n]*(?:user_id|먼저|순서|WHERE|정렬)/i,
+        message: '인덱스 컬럼 순서를 정한 이유를 -- 주석으로 서술해야 합니다.'
       }
     ],
     dynamicChecks: [
@@ -98,13 +115,14 @@ CREATE TABLE post_tags (
   hints: [
     {
       level: 1,
-      content: '`role` 정의에 `CHECK (role IN (\'user\', \'admin\'))` 를 붙이고, 별도 문장으로 `CREATE INDEX idx_posts_user_created ON posts (user_id, created_at);` 를 작성하세요.'
+      content: '복합 인덱스는 앞 컬럼부터 차례로 정렬되어 있습니다. 먼저 `user_id` 로 내 글 범위를 좁히고, 그 안에서 `created_at` 순서를 그대로 쓰는 모습을 떠올려 보세요.'
     },
     {
       level: 2,
       content: `채점 항목:
-- users.role 에 CHECK (role IN ('user', 'admin')) 가 필요합니다.
-- CREATE INDEX ... ON posts (user_id, created_at) 가 필요합니다.`
+- role 에 'user', 'admin' 만 허용해야 합니다.
+- "내 글" 목록 조회에 맞는 복합 인덱스 idx_posts_user_created 가 필요합니다.
+- 인덱스 컬럼 순서를 정한 이유를 -- 주석으로 서술해야 합니다.`
     },
     {
       level: 3,
@@ -117,6 +135,8 @@ CREATE TABLE post_tags (
   created_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+-- 조회가 먼저 WHERE user_id = ? 로 범위를 좁히므로 user_id 가 앞에 와야 하고,
+-- 그 안에서 created_at 순서가 이미 정렬되어 있어 ORDER BY 를 추가 정렬 없이 처리할 수 있습니다.
 CREATE INDEX idx_posts_user_created ON posts (user_id, created_at);
 `
     }

@@ -107,6 +107,23 @@ CREATE TABLE posts (
 );
 `
 
+/** Prisma ↔ SQL 대조 실습용 숨은 스키마: @@map("users") / @@map("posts") 로 매핑된 테이블 */
+const ORM_SCHEMA = `
+CREATE TABLE users (
+  id    INT          AUTO_INCREMENT PRIMARY KEY,
+  email VARCHAR(255) NOT NULL UNIQUE,
+  name  VARCHAR(100) NOT NULL,
+  role  VARCHAR(20)  NOT NULL DEFAULT 'user'
+);
+CREATE TABLE posts (
+  id         INT          AUTO_INCREMENT PRIMARY KEY,
+  user_id    INT          NOT NULL,
+  title      VARCHAR(255) NOT NULL,
+  published  BOOLEAN      NOT NULL DEFAULT FALSE,
+  created_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+`
+
 const USER_FIXTURE = (names: string[]): string =>
   `INSERT INTO users (email, name) VALUES ${names.map((n, i) => `('${n.toLowerCase()}${i + 1}@example.com', '${n}')`).join(', ')};`
 
@@ -475,6 +492,68 @@ export const SQL_STEP_SPECS: Record<string, StepSqlSpec> = {
         type: 'learnerSelect',
         expect: { contains: 'SEARCH posts' },
         message: '인덱스 생성 후 EXPLAIN SELECT ... FROM posts WHERE user_id = ... 를 다시 실행해야 합니다.'
+      }
+    ]
+  },
+
+  // ── Prisma 쿼리 ↔ SQL 대조 (queries.sql) ───────────────────────────────────
+  'week-4-6': {
+    prelude: ORM_SCHEMA,
+    checks: [
+      {
+        type: 'learnerSelect',
+        fixture: "INSERT INTO users (email, name, role) VALUES ('a@a.com', 'Alice', 'admin'), ('b@b.com', 'Bob', 'user'), ('c@c.com', 'Carol', 'admin');",
+        expect: { column: { name: 'id', values: [1, 3], ordered: true }, rows: [[1, 'a@a.com'], [3, 'c@c.com']] },
+        message: "① users 에서 role = 'admin' 인 사용자의 id, email 을 id 오름차순으로 조회하는 SELECT 가 필요합니다."
+      },
+      {
+        type: 'learnerSelect',
+        fixture:
+          "INSERT INTO users (email, name) VALUES ('a@a.com', 'A'); " +
+          ['SQL one', 'Cooking', 'SQL two', 'SQL three', 'Travel', 'SQL four']
+            .map((title) => `INSERT INTO posts (user_id, title) VALUES (1, '${title}');`)
+            .join(' '),
+        expect: { column: { name: 'id', values: [6, 4, 3], ordered: true } },
+        message: "② posts 에서 title 에 'SQL' 이 포함된 글을 id 내림차순으로 3개만 조회하는 SELECT 가 필요합니다 (id 컬럼을 포함하세요)."
+      }
+    ]
+  },
+  'week-4-6-p1': {
+    prelude: ORM_SCHEMA,
+    checks: [
+      {
+        type: 'learnerSelect',
+        fixture:
+          `${USER_FIXTURE(['Alice', 'Bob', 'Carol'])} ` +
+          "INSERT INTO posts (user_id, title) VALUES (1, 'P1'), (2, 'P2'), (3, 'P3'), (1, 'P4');",
+        expect: { rows: [['Alice'], ['Bob']] },
+        message: '1) users 에서 id IN (1, 2) 인 사용자를 조회하는 SELECT 가 필요합니다.'
+      },
+      {
+        type: 'learnerSelect',
+        fixture:
+          `${USER_FIXTURE(['Alice', 'Bob', 'Carol'])} ` +
+          "INSERT INTO posts (user_id, title) VALUES (1, 'P1'), (2, 'P2'), (3, 'P3'), (1, 'P4');",
+        expect: { column: { name: 'title', values: ['P1', 'P2', 'P4'] } },
+        message: '2) posts 에서 user_id IN (1, 2) 인 글을 조회하는 SELECT 가 필요합니다 (title 컬럼을 포함하세요).'
+      }
+    ]
+  },
+  'week-4-6-p2': {
+    prelude: ORM_SCHEMA,
+    checks: [
+      {
+        type: 'learnerSelect',
+        fixture:
+          `${USER_FIXTURE(['Alice', 'Bob', 'Carol'])} ` +
+          'INSERT INTO posts (user_id, title, published) VALUES ' +
+          "(2, 'a', TRUE), (1, 'b', TRUE), (1, 'c', TRUE), (1, 'd', FALSE), (2, 'e', FALSE), (3, 'f', FALSE);",
+        expect: {
+          column: { name: 'post_count', values: [2, 1], ordered: true },
+          rows: [[1, 2], [2, 1]]
+        },
+        message:
+          '공개된 글만 user_id 별로 세는 SELECT 가 필요합니다 (COUNT(*) AS post_count, WHERE published = TRUE, GROUP BY user_id, ORDER BY user_id).'
       }
     ]
   }

@@ -2,12 +2,11 @@ import type { CurriculumStep } from '@/types/curriculum'
 
 export const week_2_1_p3: CurriculumStep = {
   id: 'week-2-1-p3',
-  title: '1주차 · 연습 ③ CREATE TABLE 기본 — products 와 DECIMAL',
+  title: '1주차 · 연습 ③ CREATE TABLE 기본 — 쇼핑몰 상품 가격과 재고',
   order: 4,
   category: 'schema',
   content: {
-    mission:
-      '`products` 테이블을 만드세요 (`id INT`, `name VARCHAR(100)`, `price DECIMAL(10,2)`, `created_at DATETIME`). 가격에 `FLOAT` 대신 `DECIMAL` 을 쓰는 이유를 SQL 주석(`--`)으로 적되 `DECIMAL` 이라는 단어를 포함하세요.',
+    mission: '쇼핑몰 `products` 테이블을 만들고, 가격과 재고에 오차나 음수가 생기지 않는 타입을 고르세요.',
     theory: `
       ## 복습: CREATE TABLE
 
@@ -24,10 +23,24 @@ export const week_2_1_p3: CurriculumStep = {
       - SQL 주석은 \`--\` 로 시작합니다.
     `,
     objectives: [
-      '금액 컬럼에 DECIMAL 을 쓰는 이유 설명하기',
+      '금액에 DECIMAL 을 쓰는 이유 이해',
+      'UNSIGNED 로 음수 범위 제외하기',
       '직전 스텝(CREATE TABLE 기본)의 내용을 스스로 적용하기'
     ],
-    expectedOutput: 'products 와 DECIMAL — 모든 채점 항목 통과'
+    exercise: `
+**상황**
+해외 고객도 이용하는 쇼핑몰이라 가격을 \`19.99\` 처럼 소수점 둘째 자리까지 저장합니다. 정산팀에서 "합계 금액이 1원(1센트)도 틀리면 안 된다" 고 요청했습니다. 재고는 0개 미만이 될 수 없습니다.
+
+**요구사항**
+1. \`products\` 테이블을 만드세요. (포함할 컬럼: \`product_id\`, \`name\`, \`price\`, \`stock\`)
+2. \`name\` 은 최대 100자입니다.
+3. \`price\` 는 소수점 둘째 자리까지 **오차 없이** 저장되는 타입이어야 합니다.
+4. \`stock\` 은 정수이며, 음수 범위를 아예 쓰지 않도록 지정하세요.
+
+**생각해 보기** (\`--\` 주석으로 작성)
+- \`price\` 를 \`FLOAT\` 로 만들면 정산에서 어떤 문제가 생길 수 있는지 서술해 주세요.
+    `.trim(),
+    expectedOutput: '쇼핑몰 상품 가격과 재고 — 모든 채점 항목 통과'
   },
   initialFiles: [
     {
@@ -43,26 +56,32 @@ export const week_2_1_p3: CurriculumStep = {
       {
         type: 'regex',
         target: 'schema.sql',
-        pattern: /CREATE\s+TABLE\s+`?products`?\s*\(/i,
-        message: 'products 테이블을 생성해야 합니다.'
+        pattern: /CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?products\s*\(/i,
+        message: 'products 테이블을 만들어야 합니다.'
       },
       {
         type: 'regex',
         target: 'schema.sql',
-        pattern: /\bprice\s+DECIMAL\s*\(\s*10\s*,\s*2\s*\)/i,
-        message: 'price DECIMAL(10,2) 컬럼이 필요합니다.'
+        pattern: /name\s+VARCHAR\s*\(\s*100\s*\)/i,
+        message: 'name 은 최대 100자로 제한해야 합니다.'
       },
       {
         type: 'regex',
         target: 'schema.sql',
-        pattern: /\bcreated_at\s+DATETIME\b/i,
-        message: 'created_at DATETIME 컬럼이 필요합니다.'
+        pattern: /price\s+DECIMAL\s*\(\s*\d+\s*,\s*2\s*\)/i,
+        message: 'price 는 소수점 둘째 자리까지 오차 없이 저장해야 합니다.'
       },
       {
         type: 'regex',
         target: 'schema.sql',
-        pattern: /--[^\n]*(DECIMAL|FLOAT|소수|오차)/i,
-        message: 'DECIMAL 을 쓰는 이유를 -- 주석으로 적어야 합니다.'
+        pattern: /stock\s+(?:TINYINT|SMALLINT|MEDIUMINT|INT|BIGINT)\s+UNSIGNED/i,
+        message: 'stock 은 음수 범위를 쓰지 않는 정수여야 합니다.'
+      },
+      {
+        type: 'regex',
+        target: 'schema.sql',
+        pattern: /--[^\n]*(?:FLOAT|오차|반올림|근사)/i,
+        message: 'FLOAT 를 쓸 때의 문제를 -- 주석으로 서술해야 합니다.'
       }
     ],
     dynamicChecks: [
@@ -76,25 +95,27 @@ export const week_2_1_p3: CurriculumStep = {
   hints: [
     {
       level: 1,
-      content: '`price DECIMAL(10,2)` 로 정의하고, `--` 주석에 DECIMAL 을 쓰는 이유(FLOAT 은 오차)를 적으세요.'
+      content: '금액처럼 정확해야 하는 소수는 `DECIMAL(전체자리수, 소수자리수)` 로 저장합니다. 정수 타입 뒤에 `UNSIGNED` 를 붙이면 0 이상만 저장합니다.'
     },
     {
       level: 2,
       content: `채점 항목:
-- products 테이블을 생성해야 합니다.
-- price DECIMAL(10,2) 컬럼이 필요합니다.
-- created_at DATETIME 컬럼이 필요합니다.
-- DECIMAL 을 쓰는 이유를 -- 주석으로 적어야 합니다.`
+- products 테이블을 만들어야 합니다.
+- name 은 최대 100자로 제한해야 합니다.
+- price 는 소수점 둘째 자리까지 오차 없이 저장해야 합니다.
+- stock 은 음수 범위를 쓰지 않는 정수여야 합니다.
+- FLOAT 를 쓸 때의 문제를 -- 주석으로 서술해야 합니다.`
     },
     {
       level: 3,
       content: '정답 예시입니다.',
-      codeSnippet: `-- 가격은 소수점 오차가 없는 DECIMAL 을 사용합니다. (FLOAT 은 오차가 생길 수 있음)
+      codeSnippet: `-- FLOAT 는 소수를 근사값으로 저장해서 19.99 가 19.9899... 처럼 저장될 수 있고,
+-- 여러 건을 더하면 오차가 쌓여 정산 합계가 맞지 않게 됩니다.
 CREATE TABLE products (
-  id         INT,
+  product_id INT,
   name       VARCHAR(100),
-  price      DECIMAL(10,2),
-  created_at DATETIME
+  price      DECIMAL(10, 2),
+  stock      INT UNSIGNED
 );
 `
     }

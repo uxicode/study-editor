@@ -3,7 +3,7 @@ import type { CurriculumStep } from '@/types/curriculum'
 export const week_4_final_p1: CurriculumStep = {
   id: 'week-4-final-p1',
   title: '3주차 · 연습 ① 페이징·인덱스·트랜잭션 — totalPages 계산',
-  order: 74,
+  order: 82,
   category: 'advanced',
   content: {
     mission:

@@ -77,6 +77,14 @@ import { week_4_5 } from './steps/week-4-5'
 import { week_4_5_p1 } from './steps/week-4-5-p1'
 import { week_4_5_p2 } from './steps/week-4-5-p2'
 import { week_4_5_p3 } from './steps/week-4-5-p3'
+import { week_4_6 } from './steps/week-4-6'
+import { week_4_6_p1 } from './steps/week-4-6-p1'
+import { week_4_6_p2 } from './steps/week-4-6-p2'
+import { week_4_6_p3 } from './steps/week-4-6-p3'
+import { week_4_7 } from './steps/week-4-7'
+import { week_4_7_p1 } from './steps/week-4-7-p1'
+import { week_4_7_p2 } from './steps/week-4-7-p2'
+import { week_4_7_p3 } from './steps/week-4-7-p3'
 import { week_4_final } from './steps/week-4-final'
 import { week_4_final_p1 } from './steps/week-4-final-p1'
 import { week_4_final_p2 } from './steps/week-4-final-p2'
@@ -171,7 +179,7 @@ export const CURRICULUMS: Curriculum[] = [
     id: 'backend',
     title: '백엔드 코어',
     icon: '💻',
-    description: 'MySQL DDL · 기본 쿼리, Prisma ORM 및 레이어드 아키텍처 (스텝마다 연습 문제 3개 포함)',
+    description: 'MySQL DDL · 기본 쿼리, Prisma ORM 및 레이어드 아키텍처, ORM ↔ SQL 대조 · Raw SQL (스텝마다 연습 문제 3개 포함)',
     steps: [
       week_2_1, week_2_1_p1, week_2_1_p2, week_2_1_p3,
       week_2_2, week_2_2_p1, week_2_2_p2, week_2_2_p3,
@@ -193,9 +201,11 @@ export const CURRICULUMS: Curriculum[] = [
       week_4_3, week_4_3_p1, week_4_3_p2, week_4_3_p3,
       week_4_4, week_4_4_p1, week_4_4_p2, week_4_4_p3,
       week_4_5, week_4_5_p1, week_4_5_p2, week_4_5_p3,
+      week_4_6, week_4_6_p1, week_4_6_p2, week_4_6_p3,
+      week_4_7, week_4_7_p1, week_4_7_p2, week_4_7_p3,
       week_4_final, week_4_final_p1, week_4_final_p2, week_4_final_p3
     ],
-    levelCounts: { 1: 28, 2: 24, 3: 24 }
+    levelCounts: { 1: 28, 2: 24, 3: 32 }
   },
   {
     id: 'regex',
@@ -254,7 +264,7 @@ export const CURRICULUM_STEPS: CurriculumStep[] = [
 export const LEVEL_STEP_COUNTS = {
   1: 28,
   2: 24,
-  3: 24,
+  3: 32,
   5: 21,  // regex 18 + 데이터처리 3
   6: 16,
   7: 6,

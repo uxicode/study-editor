@@ -3,7 +3,7 @@ import type { CurriculumStep } from '@/types/curriculum'
 export const week_4_final_p2: CurriculumStep = {
   id: 'week-4-final-p2',
   title: '3주차 · 연습 ② 페이징·인덱스·트랜잭션 — querystring 검증',
-  order: 75,
+  order: 83,
   category: 'advanced',
   content: {
     mission:
