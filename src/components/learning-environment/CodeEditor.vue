@@ -76,6 +76,13 @@ onMounted(() => {
     minimap: { enabled: false },
     scrollBeyondLastLine: false,
     padding: { top: 16, bottom: 16 },
+    fontFamily: 'Monaco, "Courier New", monospace',
+    lineHeight: 1.4,
+    lineNumbers: 'off',
+    wordWrap: 'on',
+    wordWrapColumn: 80,
+    wordWrapBreakAfterCharacters: 'all',
+    wordWrapBreakBeforeCharacters: 'all',
     readOnly: false
   })
 
