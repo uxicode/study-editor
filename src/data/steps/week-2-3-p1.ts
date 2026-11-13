@@ -123,7 +123,8 @@ export const week_2_3_p1: CurriculumStep = {
       level: 3,
       content: '정답 예시입니다.',
       codeSnippet: `-- DEFAULT 0 만 있으면 값을 생략할 때만 0 이 되고, NULL 을 직접 넣으면 NULL 이 저장됩니다.
--- NULL + 1 은 NULL 이라 조회수가 영원히 늘지 않으므로 NOT NULL 도 함께 걸어야 합니다.
+-- 그 뒤 view_count = view_count + 1 은 NULL + 1 = NULL 이라 에러 없이 계속 NULL 로 남으므로,
+-- NOT NULL 을 함께 걸어 NULL 자체를 막아야 합니다.
 CREATE TABLE posts (
   post_id    INT          AUTO_INCREMENT PRIMARY KEY,
   title      VARCHAR(200) NOT NULL,
