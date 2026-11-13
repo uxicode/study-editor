@@ -135,6 +135,39 @@ CREATE TABLE post_tags (
   created_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE posts (
+  id         INT          AUTO_INCREMENT PRIMARY KEY,
+  user_id    INT          NOT NULL,
+  title      VARCHAR(255) NOT NULL,
+  content    TEXT,
+  status     VARCHAR(20)  NOT NULL DEFAULT 'draft',
+  created_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE comments (
+  id         INT          AUTO_INCREMENT PRIMARY KEY,
+  post_id    INT          NOT NULL,
+  user_id    INT,
+  body       TEXT         NOT NULL,
+  created_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+);
+
+CREATE TABLE tags (
+  id   INT         AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(50) NOT NULL UNIQUE
+);
+
+CREATE TABLE post_tags (
+  post_id INT NOT NULL,
+  tag_id  INT NOT NULL,
+  PRIMARY KEY (post_id, tag_id),
+  FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE,
+  FOREIGN KEY (tag_id)  REFERENCES tags(id)  ON DELETE CASCADE
+);
+
 -- 조회가 먼저 WHERE user_id = ? 로 범위를 좁히므로 user_id 가 앞에 와야 하고,
 -- 그 안에서 created_at 순서가 이미 정렬되어 있어 ORDER BY 를 추가 정렬 없이 처리할 수 있습니다.
 CREATE INDEX idx_posts_user_created ON posts (user_id, created_at);

@@ -131,7 +131,21 @@ CREATE TABLE posts (
     {
       level: 3,
       content: '정답 예시입니다.',
-      codeSnippet: `-- id 는 저장할 때마다 새 번호가 발급되어, (user_id, post_id) 가 같아도 매번 다른 행으로 저장됩니다.
+      codeSnippet: `CREATE TABLE users (
+  id    INT          AUTO_INCREMENT PRIMARY KEY,
+  email VARCHAR(255) NOT NULL UNIQUE,
+  name  VARCHAR(100) NOT NULL
+);
+
+CREATE TABLE posts (
+  id      INT          AUTO_INCREMENT PRIMARY KEY,
+  user_id INT          NOT NULL,
+  title   VARCHAR(255) NOT NULL,
+  content TEXT,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- id 는 저장할 때마다 새 번호가 발급되어, (user_id, post_id) 가 같아도 매번 다른 행으로 저장됩니다.
 -- (user_id, post_id) 를 기본키로 묶으면 같은 조합의 두 번째 저장은 중복으로 거부됩니다.
 CREATE TABLE post_likes (
   user_id    INT      NOT NULL,

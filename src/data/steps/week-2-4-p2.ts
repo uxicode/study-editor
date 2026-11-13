@@ -123,7 +123,13 @@ Q&A 서비스에서 답변이 채택된 글은 다른 사용자에게도 중요�
     {
       level: 3,
       content: '정답 예시입니다.',
-      codeSnippet: `-- SET NULL 은 user_id 를 NULL 로 바꾸는 동작이라, NOT NULL 이면 바꿀 수 없어 사용자 삭제 자체가 실패합니다.
+      codeSnippet: `CREATE TABLE users (
+  id    INT          AUTO_INCREMENT PRIMARY KEY,
+  email VARCHAR(255) NOT NULL UNIQUE,
+  name  VARCHAR(100) NOT NULL
+);
+
+-- SET NULL 은 user_id 를 NULL 로 바꾸는 동작이라, NOT NULL 이면 바꿀 수 없어 사용자 삭제 자체가 실패합니다.
 -- 화면에서는 user_id 가 NULL 인 글을 "(탈퇴한 사용자)" 로 표시하면 됩니다.
 CREATE TABLE posts_archive (
   id      INT          AUTO_INCREMENT PRIMARY KEY,

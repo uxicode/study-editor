@@ -63,19 +63,48 @@ CREATE TABLE posts (
 
     it('SELECT 컬럼 순서·별칭·추가 컬럼이 달라도 통과', async () => {
       const errors = await grade('week-2-final-p3', {
-        'schema.sql': `SELECT u.id, u.name AS author, p.title AS subject
+        'schema.sql': `-- 글과 태그는 N:M 이라 post_tags 를 거쳐야 합니다.
+SELECT u.id, u.name AS author, p.title AS subject, p.created_at
 FROM tags t
 JOIN post_tags pt ON pt.tag_id = t.id
 JOIN posts p ON p.id = pt.post_id
 JOIN users u ON u.id = p.user_id
-WHERE t.name = 'sql';`
+WHERE t.name = 'sql'
+ORDER BY p.created_at DESC;`
       })
       expect(errors).toEqual([])
     })
 
     it('LEFT JOIN 대신 서브쿼리로 풀어도 통과 (글 없는 사용자)', async () => {
       const errors = await grade('week-2-6-p3', {
-        'queries.sql': 'SELECT name FROM users WHERE id NOT IN (SELECT user_id FROM posts);'
+        'queries.sql': `-- INNER JOIN 은 짝이 있는 행만 남겨서 글 없는 회원이 빠집니다.
+SELECT email, name FROM users WHERE id NOT IN (SELECT user_id FROM posts);`
+      })
+      expect(errors).toEqual([])
+    })
+
+    it('컬럼 이름을 문항대로 쓰면 통과 (post_id · body 를 쓰는 블로그 글 테이블)', async () => {
+      const errors = await grade('week-2-1-p1', {
+        'schema.sql': `-- title 은 짧은 값이라 VARCHAR(200), body 는 긴 글이라 TEXT 를 골랐습니다.
+CREATE TABLE posts (
+    post_id INT,
+    title VARCHAR(200),
+    body TEXT,
+    published_at DATETIME
+);`
+      })
+      expect(errors).toEqual([])
+    })
+
+    it('테이블 수준 UNIQUE (email) 로 써도 통과', async () => {
+      const errors = await grade('week-2-3-p3', {
+        'schema.sql': `-- 탈퇴 회원의 행이 남아 있어 재가입이 막힙니다. UNIQUE 는 NULL 끼리는 같다고 보지 않습니다.
+CREATE TABLE users (
+  user_id INT PRIMARY KEY AUTO_INCREMENT,
+  email   VARCHAR(255) NOT NULL,
+  status  VARCHAR(20)  NOT NULL DEFAULT 'active',
+  UNIQUE (email)
+);`
       })
       expect(errors).toEqual([])
     })
@@ -102,6 +131,36 @@ CREATE TABLE users (id INT AUTO_INCREMENT PRIMARY KEY, email VARCHAR(255), name 
       )
     })
 
+    it('주석에만 UNIQUE 를 적고 email 에 제약이 없으면 중복 가입이 허용되어 실패', async () => {
+      const errors = await grade('week-2-3-p3', {
+        'schema.sql': `-- 탈퇴 후 재가입 문제, UNIQUE 와 NULL
+CREATE TABLE users (user_id INT AUTO_INCREMENT PRIMARY KEY, email VARCHAR(255), status VARCHAR(20) DEFAULT 'active');`
+      })
+      expect(errors).toEqual(['이미 가입된 이메일로는 다시 가입할 수 없어야 합니다.'])
+    })
+
+    it('대용량 로그의 log_id 를 INT 로 두면 실패', async () => {
+      const errors = await grade('week-2-2-p2', {
+        'schema.sql': `-- INT 는 21억이 최댓값입니다.
+CREATE TABLE access_logs (log_id INT AUTO_INCREMENT PRIMARY KEY, path VARCHAR(255), accessed_at DATETIME);`
+      })
+      expect(errors).toEqual(['log_id 는 수년간 번호가 부족하지 않은 타입이어야 합니다.'])
+    })
+
+    it('주문이 있는 회원을 지울 수 있게 CASCADE 로 걸면 실패', async () => {
+      const step = CURRICULUM_STEPS.find((s) => s.id === 'week-2-4-p3')
+      const given = step?.initialFiles[0].content ?? ''
+      const errors = await grade('week-2-4-p3', {
+        'schema.sql': `${given}
+-- RESTRICT 대신 CASCADE, 주문 항목은 CASCADE
+CREATE TABLE orders (id INT AUTO_INCREMENT PRIMARY KEY, user_id INT NOT NULL, ordered_at DATETIME,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE);
+CREATE TABLE order_items (id INT AUTO_INCREMENT PRIMARY KEY, order_id INT NOT NULL, product_name VARCHAR(100), quantity INT,
+  FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE);`
+      })
+      expect(errors).toContain('주문이 있는 회원은 삭제가 거부되어야 합니다.')
+    })
+
     it('ON DELETE CASCADE 가 빠진 외래키는 실패', async () => {
       const errors = await grade('week-2-4', {
         'schema.sql': `CREATE TABLE users (id INT AUTO_INCREMENT PRIMARY KEY, email VARCHAR(255) NOT NULL UNIQUE, name VARCHAR(100) NOT NULL);
@@ -113,10 +172,11 @@ CREATE TABLE posts (id INT AUTO_INCREMENT PRIMARY KEY, user_id INT NOT NULL, tit
 
     it('HAVING 기준을 틀리면 (>= 2) 실패', async () => {
       const errors = await grade('week-2-6-p2', {
-        'queries.sql': `-- HAVING
-SELECT u.name, COUNT(p.id) FROM users u LEFT JOIN posts p ON p.user_id = u.id GROUP BY u.id, u.name HAVING COUNT(p.id) >= 2;`
+        'queries.sql': `-- HAVING 은 집계 후에 거릅니다.
+SELECT u.name, COUNT(p.id) AS post_count FROM users u JOIN posts p ON p.user_id = u.id
+GROUP BY u.id, u.name HAVING COUNT(p.id) >= 2 ORDER BY post_count DESC;`
       })
-      expect(errors.some((m) => m.includes('HAVING COUNT(p.id) >= 3'))).toBe(true)
+      expect(errors).toContain('글을 3개 이상 쓴 사용자의 이름과 글 수만 조회해야 합니다.')
     })
 
     it('INNER JOIN 으로 풀면 글 없는 사용자가 빠져 실패', async () => {
@@ -132,7 +192,8 @@ SELECT u.name, COUNT(p.id) FROM users u INNER JOIN posts p ON p.user_id = u.id G
 
     it('LIMIT 없이 정렬만 하면 실패', async () => {
       const errors = await grade('week-2-6-p1', {
-        'queries.sql': "SELECT id, title FROM posts WHERE title LIKE '%SQL%' ORDER BY id DESC;"
+        'queries.sql': `-- 2페이지는 OFFSET 5 를 붙입니다.
+SELECT id, title FROM posts WHERE title LIKE '%SQL%' ORDER BY id DESC;`
       })
       expect(errors).toHaveLength(1)
     })

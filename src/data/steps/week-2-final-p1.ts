@@ -129,6 +129,14 @@ CREATE TABLE post_tags (
       content: '정답 예시입니다.',
       codeSnippet: `-- 발행된 글 목록은 status = 'published' 로 고르는데, 'Published' 나 '공개' 는 이 조건과 다른 값이라 목록에서 빠집니다.
 -- CHECK 로 허용 값을 세 가지로 고정하면 오타나 다른 표기가 처음부터 저장되지 않습니다.
+CREATE TABLE users (
+  id         INT          AUTO_INCREMENT PRIMARY KEY,
+  email      VARCHAR(255) NOT NULL UNIQUE,
+  name       VARCHAR(100) NOT NULL,
+  role       VARCHAR(20)  NOT NULL DEFAULT 'user',
+  created_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE TABLE posts (
   id         INT          AUTO_INCREMENT PRIMARY KEY,
   user_id    INT          NOT NULL,
@@ -137,6 +145,29 @@ CREATE TABLE posts (
   status     VARCHAR(20)  NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'published', 'hidden')),
   created_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE comments (
+  id         INT          AUTO_INCREMENT PRIMARY KEY,
+  post_id    INT          NOT NULL,
+  user_id    INT,
+  body       TEXT         NOT NULL,
+  created_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+);
+
+CREATE TABLE tags (
+  id   INT         AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(50) NOT NULL UNIQUE
+);
+
+CREATE TABLE post_tags (
+  post_id INT NOT NULL,
+  tag_id  INT NOT NULL,
+  PRIMARY KEY (post_id, tag_id),
+  FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE,
+  FOREIGN KEY (tag_id)  REFERENCES tags(id)  ON DELETE CASCADE
 );
 `
     }

@@ -131,7 +131,21 @@ CREATE TABLE posts (
     {
       level: 3,
       content: '정답 예시입니다.',
-      codeSnippet: `-- 글이 지워져도 댓글이 남으면 어느 글에도 속하지 않는 고아 데이터가 되어
+      codeSnippet: `CREATE TABLE users (
+  id    INT          AUTO_INCREMENT PRIMARY KEY,
+  email VARCHAR(255) NOT NULL UNIQUE,
+  name  VARCHAR(100) NOT NULL
+);
+
+CREATE TABLE posts (
+  id      INT          AUTO_INCREMENT PRIMARY KEY,
+  user_id INT          NOT NULL,
+  title   VARCHAR(255) NOT NULL,
+  content TEXT,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- 글이 지워져도 댓글이 남으면 어느 글에도 속하지 않는 고아 데이터가 되어
 -- 존재하지 않는 글로 연결되거나, 댓글 수 집계가 틀어집니다.
 CREATE TABLE comments (
   id      INT  AUTO_INCREMENT PRIMARY KEY,

@@ -138,7 +138,13 @@ export const week_2_4_p3: CurriculumStep = {
     {
       level: 3,
       content: '정답 예시입니다.',
-      codeSnippet: `-- orders: 주문 내역은 5년간 보관해야 하므로, 주문이 있는 회원은 RESTRICT 로 삭제를 거부합니다.
+      codeSnippet: `CREATE TABLE users (
+  id    INT          AUTO_INCREMENT PRIMARY KEY,
+  email VARCHAR(255) NOT NULL UNIQUE,
+  name  VARCHAR(100) NOT NULL
+);
+
+-- orders: 주문 내역은 5년간 보관해야 하므로, 주문이 있는 회원은 RESTRICT 로 삭제를 거부합니다.
 -- order_items: 주문 없이는 의미가 없는 데이터이므로 CASCADE 로 주문과 함께 삭제합니다.
 CREATE TABLE orders (
   id         INT      AUTO_INCREMENT PRIMARY KEY,

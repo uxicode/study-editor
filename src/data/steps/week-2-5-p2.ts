@@ -120,6 +120,16 @@ CREATE TABLE enrollments (
       content: '정답 예시입니다.',
       codeSnippet: `-- 신청 일시와 성적은 "어떤 학생이 어떤 강의를" 이라는 관계(조합)마다 하나씩 생기는 값입니다.
 -- 학생이 강의 3개를 들으면 성적도 3개라, students 나 courses 의 한 칸에는 담을 수 없습니다.
+CREATE TABLE students (
+  id   INT          AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(100) NOT NULL
+);
+
+CREATE TABLE courses (
+  id    INT          AUTO_INCREMENT PRIMARY KEY,
+  title VARCHAR(200) NOT NULL
+);
+
 CREATE TABLE enrollments (
   student_id  INT        NOT NULL,
   course_id   INT        NOT NULL,
