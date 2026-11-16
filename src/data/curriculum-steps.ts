@@ -163,7 +163,34 @@ import { week_9_6 } from './steps/week-9-6'
 import { week_9_7 } from './steps/week-9-7'
 import { week_9_final } from './steps/week-9-final'
 
-export type CurriculumType = 'backend' | 'regex' | 'algorithm' | 'nextjs'
+// Interview — 문제 해결 · 작업 구조화 · 의사소통과 협업
+import { week_10_1 } from './steps/week-10-1'
+import { week_10_2 } from './steps/week-10-2'
+import { week_10_3 } from './steps/week-10-3'
+import { week_10_4 } from './steps/week-10-4'
+import { week_10_5 } from './steps/week-10-5'
+import { week_10_6 } from './steps/week-10-6'
+import { week_10_7 } from './steps/week-10-7'
+import { week_10_8 } from './steps/week-10-8'
+import { week_10_final } from './steps/week-10-final'
+import { week_11_1 } from './steps/week-11-1'
+import { week_11_2 } from './steps/week-11-2'
+import { week_11_3 } from './steps/week-11-3'
+import { week_11_4 } from './steps/week-11-4'
+import { week_11_5 } from './steps/week-11-5'
+import { week_11_6 } from './steps/week-11-6'
+import { week_11_final } from './steps/week-11-final'
+import { week_12_1 } from './steps/week-12-1'
+import { week_12_2 } from './steps/week-12-2'
+import { week_12_3 } from './steps/week-12-3'
+import { week_12_4 } from './steps/week-12-4'
+import { week_12_5 } from './steps/week-12-5'
+import { week_12_6 } from './steps/week-12-6'
+import { week_12_7 } from './steps/week-12-7'
+import { week_12_8 } from './steps/week-12-8'
+import { week_12_final } from './steps/week-12-final'
+
+export type CurriculumType = 'backend' | 'regex' | 'algorithm' | 'nextjs' | 'interview'
 
 export interface Curriculum {
   id: CurriculumType
@@ -248,6 +275,21 @@ export const CURRICULUMS: Curriculum[] = [
       week_9_1, week_9_2, week_9_3, week_9_4, week_9_5, week_9_6, week_9_7, week_9_final
     ],
     levelCounts: { 1: 6, 2: 6, 3: 8 }
+  },
+  {
+    id: 'interview',
+    title: '소프트 엔지니어링 면접 대응',
+    icon: '🎤',
+    description: '웹 개발 면접에서 평가하는 문제 해결, 작업 구조화, 의사소통과 협업을 라이브 코딩과 서술형 답변으로 연습',
+    steps: [
+      // Level 1: 문제 해결 (라이브 코딩)
+      week_10_1, week_10_2, week_10_3, week_10_4, week_10_5, week_10_6, week_10_7, week_10_8, week_10_final,
+      // Level 2: 작업 구조화
+      week_11_1, week_11_2, week_11_3, week_11_4, week_11_5, week_11_6, week_11_final,
+      // Level 3: 의사소통 · 협업
+      week_12_1, week_12_2, week_12_3, week_12_4, week_12_5, week_12_6, week_12_7, week_12_8, week_12_final
+    ],
+    levelCounts: { 1: 9, 2: 7, 3: 9 }
   }
 ]
 
@@ -255,7 +297,8 @@ export const CURRICULUM_STEPS: CurriculumStep[] = [
   ...CURRICULUMS[0].steps,
   ...CURRICULUMS[1].steps,
   ...CURRICULUMS[2].steps,
-  ...CURRICULUMS[3].steps
+  ...CURRICULUMS[3].steps,
+  ...CURRICULUMS[4].steps
 ]
 
 /**
@@ -269,5 +312,8 @@ export const LEVEL_STEP_COUNTS = {
   6: 16,
   7: 6,
   8: 6,
-  9: 8
+  9: 8,
+  10: 9,
+  11: 7,
+  12: 9
 } as const

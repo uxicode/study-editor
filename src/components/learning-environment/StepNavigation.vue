@@ -159,7 +159,10 @@ const weekTitlesMap: Record<string, string> = {
   'week-6-level-4': '4주차: 동적 계획법 (DP)',
   'week-7': '1주차: Next.js & React Hooks',
   'week-8': '2주차: 전역 상태 관리',
-  'week-9': '3주차: 로그인 및 고급 인증'
+  'week-9': '3주차: 로그인 및 고급 인증',
+  'week-10': '1주차: 문제 해결 (라이브 코딩)',
+  'week-11': '2주차: 작업 구조화',
+  'week-12': '3주차: 의사소통 & 협업'
 }
 
 // 활성 커리큘럼의 스텝 동적 그룹화
@@ -188,6 +191,8 @@ const weeks = computed(() => {
       titleKey = `week-${level + 6}`
     } else if (activeCurriculumId.value === 'algorithm') {
       titleKey = `week-6-level-${level}`
+    } else if (activeCurriculumId.value === 'interview') {
+      titleKey = `week-${level + 9}`
     }
 
     const title = weekTitlesMap[titleKey] || `${idx + 1}주차`

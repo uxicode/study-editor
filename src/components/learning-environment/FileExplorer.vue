@@ -76,6 +76,7 @@ function getFileIcon(fileName: string): string {
     prisma: '🔷',
     json: '📋',
     sql: '🗄️',
+    md: '📝',
     env: '🔐'
   }
 

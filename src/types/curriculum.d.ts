@@ -35,7 +35,7 @@ export interface FileTemplate {
   name: string
   path: string
   content: string
-  language: 'javascript' | 'typescript' | 'prisma' | 'json' | 'sql'
+  language: 'javascript' | 'typescript' | 'prisma' | 'json' | 'sql' | 'markdown'
   readonly?: boolean
 }
 

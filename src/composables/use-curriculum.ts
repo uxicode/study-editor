@@ -22,11 +22,17 @@ const userProgress = ref<UserProgress>({
     backend: 'week-2-1',
     regex: 'week-5-1',
     algorithm: 'week-6-1',
-    nextjs: 'week-7-1'
+    nextjs: 'week-7-1',
+    interview: 'week-10-1'
   },
   activeCurriculum: 'backend',
   attempts: {}
 })
+
+/** 면접 대응 커리큘럼(week-10 ~ week-12) 스텝인지. 'week-1' 접두어는 다른 주차와 겹치므로 정확히 비교한다 */
+function isInterviewStepId(stepId: string): boolean {
+  return /^week-1[0-2]-/.test(stepId)
+}
 
 function sanitizeProgress(input: Partial<UserProgress>): UserProgress {
   const completed = input.completedSteps ?? []
@@ -37,7 +43,8 @@ function sanitizeProgress(input: Partial<UserProgress>): UserProgress {
     backend: 'week-2-1',
     regex: 'week-5-1',
     algorithm: 'week-6-1',
-    nextjs: 'week-7-1'
+    nextjs: 'week-7-1',
+    interview: 'week-10-1'
   }
 
   return {
@@ -217,12 +224,14 @@ export function useCurriculum() {
           backend: current.startsWith('week-2') || current.startsWith('week-3') || current.startsWith('week-4') ? current : 'week-2-1',
           regex: current.startsWith('week-5') ? current : 'week-5-1',
           algorithm: current.startsWith('week-6') ? current : 'week-6-1',
-          nextjs: current.startsWith('week-7') || current.startsWith('week-8') || current.startsWith('week-9') ? current : 'week-7-1'
+          nextjs: current.startsWith('week-7') || current.startsWith('week-8') || current.startsWith('week-9') ? current : 'week-7-1',
+          interview: isInterviewStepId(current) ? current : 'week-10-1'
         },
         activeCurriculum: loaded.activeCurriculum ?? (
           current.startsWith('week-5') ? 'regex' :
           current.startsWith('week-6') ? 'algorithm' :
-          current.startsWith('week-7') || current.startsWith('week-8') || current.startsWith('week-9') ? 'nextjs' : 'backend'
+          current.startsWith('week-7') || current.startsWith('week-8') || current.startsWith('week-9') ? 'nextjs' :
+          isInterviewStepId(current) ? 'interview' : 'backend'
         ),
         attempts
       }

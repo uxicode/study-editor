@@ -201,7 +201,8 @@ function getLanguageFromFileName(fileName: string): string {
     tsx: 'typescript',
     prisma: 'prisma',
     json: 'json',
-    sql: 'sql'
+    sql: 'sql',
+    md: 'markdown'
   }
 
   return languageMap[ext || ''] || 'plaintext'
@@ -217,7 +218,8 @@ function getFileIcon(fileName: string): string {
     tsx: '⚛️',
     prisma: '🔷',
     json: '📋',
-    sql: '🗄️'
+    sql: '🗄️',
+    md: '📝'
   }
 
   return iconMap[ext || ''] || '📄'

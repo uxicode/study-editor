@@ -113,7 +113,8 @@ export function runFunctionTests(
       const call = formatCall(suite.functionName, testCase.args)
 
       try {
-        const actual = loaded.fn(...testCase.args)
+        // 학습자 코드가 인자를 직접 수정해도 스텝 정의의 테스트 데이터가 오염되지 않도록 복사본을 넘긴다
+        const actual = loaded.fn(...structuredClone(testCase.args))
         const passed = isDeepEqual(actual, testCase.expected)
 
         results.push({

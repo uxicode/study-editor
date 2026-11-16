@@ -17,7 +17,8 @@ function emptyProgress(): ExtendedUserProgress {
       backend: 'week-2-1',
       regex: 'week-5-1',
       algorithm: 'week-6-1',
-      nextjs: 'week-7-1'
+      nextjs: 'week-7-1',
+      interview: 'week-10-1'
     },
     activeCurriculum: 'backend',
     attempts: {}
@@ -33,7 +34,8 @@ function toUserProgress(entity: UserProgressEntity | null | undefined): Extended
       backend: 'week-2-1',
       regex: 'week-5-1',
       algorithm: 'week-6-1',
-      nextjs: 'week-7-1'
+      nextjs: 'week-7-1',
+      interview: 'week-10-1'
     },
     activeCurriculum: entity.activeCurriculum ?? 'backend',
     attempts: entity.attempts ?? {}
