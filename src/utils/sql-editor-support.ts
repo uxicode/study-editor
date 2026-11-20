@@ -130,6 +130,18 @@ export function registerSqlEditorSupport(languageId: string): void {
         word.endColumn
       )
 
+      // PRIMARY / FOREIGN / UNIQUE 바로 뒤에서는 KEY 만 제안한다.
+      // (KEY 는 컬럼명으로도 쓰여 KEYWORDS 에 없으므로, 없으면 FOREIGN KEY 스니펫만 걸린다)
+      const textBefore = model.getLineContent(position.lineNumber).slice(0, word.startColumn - 1)
+      const prevWord = /([A-Za-z_]+)\s+$/.exec(textBefore)?.[1]?.toUpperCase() ?? ''
+      if (KEY_PREFIXES.has(prevWord)) {
+        return {
+          suggestions: [
+            { label: 'KEY', kind: monaco.languages.CompletionItemKind.Keyword, insertText: 'KEY', range }
+          ]
+        }
+      }
+
       const keywordItems = [...KEYWORDS, ...TYPES, ...CONTEXT_TYPES].map((keyword) => ({
         label: keyword,
         kind: monaco.languages.CompletionItemKind.Keyword,

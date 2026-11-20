@@ -39,6 +39,12 @@
         </ul>
       </section>
 
+      <!-- 흐름 다이어그램 (등록된 스텝만) -->
+      <section v-if="flowSpec" class="content-section flow-section">
+        <h3 class="section-title">🎬 흐름으로 보기</h3>
+        <FlowDiagram :key="step.id" :spec="flowSpec" />
+      </section>
+
       <!-- 이론 설명 -->
       <section class="content-section theory-section">
         <h3 class="section-title">💡 이론</h3>
@@ -97,6 +103,8 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { CurriculumStep } from '@/types/curriculum'
+import { getFlowSpec } from '@/data/flows'
+import FlowDiagram from './flow/FlowDiagram.vue'
 
 interface Props {
   step: CurriculumStep | null
@@ -124,6 +132,8 @@ function formatMarkdown(text: string): string {
 function cleanTitle(title: string): string {
   return title.replace(/^\d+주차\s*·\s*/, '')
 }
+
+const flowSpec = computed(() => (props.step ? getFlowSpec(props.step.id) : null))
 
 const progressPercentage = computed(() => {
   if (props.totalSteps === 0) return 0
